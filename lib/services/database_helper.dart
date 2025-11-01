@@ -33,7 +33,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: _createDatabase,
       onUpgrade: _onUpgrade,
     );
@@ -357,6 +357,289 @@ class DatabaseHelper {
       )
     ''');
 
+    // ============ الجداول الأساسية ============
+    
+    // جدول المنتجات - Products
+    await db.execute('''
+      CREATE TABLE products (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        barcode TEXT NOT NULL UNIQUE,
+        category TEXT,
+        unit TEXT DEFAULT 'قطعة',
+        purchase_price REAL NOT NULL DEFAULT 0.0,
+        selling_price REAL NOT NULL DEFAULT 0.0,
+        quantity REAL NOT NULL DEFAULT 0.0,
+        min_quantity REAL DEFAULT 0.0,
+        max_quantity REAL,
+        carton_quantity INTEGER DEFAULT 1,
+        expiry_date TEXT,
+        supplier TEXT,
+        notes TEXT,
+        image_path TEXT,
+        is_active INTEGER DEFAULT 1,
+        created_at TEXT NOT NULL,
+        updated_at TEXT,
+        synced INTEGER DEFAULT 0,
+        sync_id TEXT
+      )
+    ''');
+
+    // جدول العملاء - Customers
+    await db.execute('''
+      CREATE TABLE customers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        email TEXT,
+        address TEXT,
+        city TEXT,
+        country TEXT DEFAULT 'العراق',
+        balance REAL DEFAULT 0.0,
+        credit_limit REAL DEFAULT 0.0,
+        discount_percentage REAL DEFAULT 0.0,
+        customer_type TEXT DEFAULT 'عادي',
+        notes TEXT,
+        is_active INTEGER DEFAULT 1,
+        created_at TEXT NOT NULL,
+        updated_at TEXT,
+        synced INTEGER DEFAULT 0,
+        sync_id TEXT
+      )
+    ''');
+
+    // جدول المبيعات - Sales
+    await db.execute('''
+      CREATE TABLE sales (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        invoice_number TEXT NOT NULL UNIQUE,
+        customer_id INTEGER,
+        customer_name TEXT,
+        total_amount REAL NOT NULL DEFAULT 0.0,
+        discount REAL DEFAULT 0.0,
+        tax REAL DEFAULT 0.0,
+        final_amount REAL NOT NULL DEFAULT 0.0,
+        paid_amount REAL DEFAULT 0.0,
+        remaining_amount REAL DEFAULT 0.0,
+        payment_method TEXT DEFAULT 'نقدي',
+        payment_status TEXT DEFAULT 'مدفوع',
+        invoice_type TEXT DEFAULT 'بيع',
+        notes TEXT,
+        sale_date TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT,
+        synced INTEGER DEFAULT 0,
+        sync_id TEXT,
+        FOREIGN KEY (customer_id) REFERENCES customers (id)
+      )
+    ''');
+
+    // جدول بنود المبيعات - Sale Items
+    await db.execute('''
+      CREATE TABLE sale_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sale_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        product_name TEXT NOT NULL,
+        product_barcode TEXT NOT NULL,
+        quantity REAL NOT NULL,
+        unit_price REAL NOT NULL,
+        total_price REAL NOT NULL,
+        discount REAL DEFAULT 0.0,
+        tax REAL DEFAULT 0.0,
+        final_price REAL NOT NULL,
+        notes TEXT,
+        FOREIGN KEY (sale_id) REFERENCES sales (id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products (id)
+      )
+    ''');
+
+    // جدول المشتريات - Purchases
+    await db.execute('''
+      CREATE TABLE purchases (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        invoice_number TEXT NOT NULL UNIQUE,
+        supplier_name TEXT NOT NULL,
+        supplier_phone TEXT,
+        total_amount REAL NOT NULL DEFAULT 0.0,
+        discount REAL DEFAULT 0.0,
+        tax REAL DEFAULT 0.0,
+        final_amount REAL NOT NULL DEFAULT 0.0,
+        paid_amount REAL DEFAULT 0.0,
+        remaining_amount REAL DEFAULT 0.0,
+        payment_method TEXT DEFAULT 'نقدي',
+        payment_status TEXT DEFAULT 'مدفوع',
+        notes TEXT,
+        purchase_date TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT,
+        synced INTEGER DEFAULT 0,
+        sync_id TEXT
+      )
+    ''');
+
+    // جدول بنود المشتريات - Purchase Items
+    await db.execute('''
+      CREATE TABLE purchase_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        purchase_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        product_name TEXT NOT NULL,
+        product_barcode TEXT NOT NULL,
+        quantity REAL NOT NULL,
+        unit_price REAL NOT NULL,
+        total_price REAL NOT NULL,
+        discount REAL DEFAULT 0.0,
+        tax REAL DEFAULT 0.0,
+        final_price REAL NOT NULL,
+        expiry_date TEXT,
+        notes TEXT,
+        FOREIGN KEY (purchase_id) REFERENCES purchases (id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products (id)
+      )
+    ''');
+
+    // جدول مرتجعات المبيعات - Sales Returns
+    await db.execute('''
+      CREATE TABLE sales_returns (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        return_number TEXT NOT NULL UNIQUE,
+        sale_id INTEGER,
+        customer_id INTEGER,
+        customer_name TEXT,
+        total_amount REAL NOT NULL DEFAULT 0.0,
+        refund_amount REAL NOT NULL DEFAULT 0.0,
+        payment_method TEXT DEFAULT 'نقدي',
+        reason TEXT,
+        notes TEXT,
+        return_date TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        synced INTEGER DEFAULT 0,
+        sync_id TEXT,
+        FOREIGN KEY (sale_id) REFERENCES sales (id),
+        FOREIGN KEY (customer_id) REFERENCES customers (id)
+      )
+    ''');
+
+    // جدول بنود مرتجعات المبيعات
+    await db.execute('''
+      CREATE TABLE sales_return_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        return_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        product_name TEXT NOT NULL,
+        product_barcode TEXT NOT NULL,
+        quantity REAL NOT NULL,
+        unit_price REAL NOT NULL,
+        total_price REAL NOT NULL,
+        FOREIGN KEY (return_id) REFERENCES sales_returns (id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products (id)
+      )
+    ''');
+
+    // جدول مرتجعات المشتريات - Purchase Returns
+    await db.execute('''
+      CREATE TABLE purchase_returns (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        return_number TEXT NOT NULL UNIQUE,
+        purchase_id INTEGER,
+        supplier_name TEXT NOT NULL,
+        total_amount REAL NOT NULL DEFAULT 0.0,
+        refund_amount REAL NOT NULL DEFAULT 0.0,
+        payment_method TEXT DEFAULT 'نقدي',
+        reason TEXT,
+        notes TEXT,
+        return_date TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        synced INTEGER DEFAULT 0,
+        sync_id TEXT,
+        FOREIGN KEY (purchase_id) REFERENCES purchases (id)
+      )
+    ''');
+
+    // جدول بنود مرتجعات المشتريات
+    await db.execute('''
+      CREATE TABLE purchase_return_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        return_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        product_name TEXT NOT NULL,
+        product_barcode TEXT NOT NULL,
+        quantity REAL NOT NULL,
+        unit_price REAL NOT NULL,
+        total_price REAL NOT NULL,
+        FOREIGN KEY (return_id) REFERENCES purchase_returns (id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products (id)
+      )
+    ''');
+
+    // جدول الموردين - Suppliers
+    await db.execute('''
+      CREATE TABLE suppliers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        email TEXT,
+        address TEXT,
+        city TEXT,
+        country TEXT DEFAULT 'العراق',
+        balance REAL DEFAULT 0.0,
+        notes TEXT,
+        is_active INTEGER DEFAULT 1,
+        created_at TEXT NOT NULL,
+        updated_at TEXT,
+        synced INTEGER DEFAULT 0,
+        sync_id TEXT
+      )
+    ''');
+
+    // جدول الأقساط - Installments
+    await db.execute('''
+      CREATE TABLE installments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_id INTEGER NOT NULL,
+        customer_name TEXT NOT NULL,
+        customer_phone TEXT,
+        sale_id INTEGER,
+        total_amount REAL NOT NULL,
+        paid_amount REAL DEFAULT 0.0,
+        remaining_amount REAL NOT NULL,
+        installment_amount REAL NOT NULL,
+        frequency TEXT DEFAULT 'شهري',
+        start_date TEXT NOT NULL,
+        end_date TEXT,
+        status TEXT DEFAULT 'نشط',
+        notes TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT,
+        synced INTEGER DEFAULT 0,
+        sync_id TEXT,
+        FOREIGN KEY (customer_id) REFERENCES customers (id),
+        FOREIGN KEY (sale_id) REFERENCES sales (id)
+      )
+    ''');
+
+    // جدول دفعات الأقساط - Installment Payments
+    await db.execute('''
+      CREATE TABLE installment_payments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        installment_id INTEGER NOT NULL,
+        payment_number TEXT NOT NULL,
+        amount REAL NOT NULL,
+        payment_date TEXT NOT NULL,
+        due_date TEXT NOT NULL,
+        status TEXT DEFAULT 'مستحق',
+        payment_method TEXT DEFAULT 'نقدي',
+        notes TEXT,
+        created_at TEXT NOT NULL,
+        synced INTEGER DEFAULT 0,
+        sync_id TEXT,
+        FOREIGN KEY (installment_id) REFERENCES installments (id) ON DELETE CASCADE
+      )
+    ''');
+
+    // ============ نهاية الجداول الأساسية ============
+
     // جدول عروض الأسعار - Quotations
     await db.execute('''
       CREATE TABLE quotations (
@@ -435,13 +718,102 @@ class DatabaseHelper {
       )
     ''');
 
+    // ============ جداول المخزون ============
+    
+    // جدول المستودعات - Warehouses
+    await db.execute('''
+      CREATE TABLE warehouses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        location TEXT NOT NULL,
+        description TEXT,
+        manager TEXT,
+        is_active INTEGER DEFAULT 1,
+        created_at TEXT NOT NULL,
+        updated_at TEXT,
+        synced INTEGER DEFAULT 0,
+        sync_id TEXT
+      )
+    ''');
+
+    // جدول التعبئة والتغليف - Packaging
+    await db.execute('''
+      CREATE TABLE packaging (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        quantity_per_unit REAL NOT NULL,
+        barcode TEXT,
+        product_id INTEGER,
+        is_active INTEGER DEFAULT 1,
+        created_at TEXT NOT NULL,
+        updated_at TEXT,
+        FOREIGN KEY (product_id) REFERENCES products (id)
+      )
+    ''');
+
+    // جدول مخزون المستودعات - Warehouse Stock
+    await db.execute('''
+      CREATE TABLE warehouse_stock (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        warehouse_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        quantity REAL NOT NULL DEFAULT 0,
+        min_quantity REAL DEFAULT 0,
+        max_quantity REAL,
+        location TEXT,
+        last_updated TEXT NOT NULL,
+        FOREIGN KEY (warehouse_id) REFERENCES warehouses (id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE,
+        UNIQUE(warehouse_id, product_id)
+      )
+    ''');
+
+    // جدول حركات المخزون - Inventory Transactions
+    await db.execute('''
+      CREATE TABLE inventory_transactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT NOT NULL,
+        transaction_number TEXT NOT NULL UNIQUE,
+        product_id INTEGER,
+        warehouse_from_id INTEGER,
+        warehouse_to_id INTEGER,
+        quantity REAL NOT NULL,
+        unit_cost REAL,
+        total_cost REAL,
+        notes TEXT,
+        reference TEXT,
+        transaction_date TEXT NOT NULL,
+        created_by TEXT,
+        created_at TEXT NOT NULL,
+        synced INTEGER DEFAULT 0,
+        sync_id TEXT,
+        FOREIGN KEY (product_id) REFERENCES products (id),
+        FOREIGN KEY (warehouse_from_id) REFERENCES warehouses (id),
+        FOREIGN KEY (warehouse_to_id) REFERENCES warehouses (id)
+      )
+    ''');
+
+    // ============ نهاية جداول المخزون ============
+
     print('');
     print('═══════════════════════════════════════════════════════════');
     print('✅ قاعدة البيانات SQLite تم إنشاؤها بنجاح!');
     print('📁 الموقع: ${Directory.current.path}\\sales_management.db');
-    print('📊 عدد الجداول: 24 جدول');
+    print('📊 عدد الجداول: 35+ جدول');
     print('💾 جميع البيانات ستُحفظ تلقائياً في هذه القاعدة');
     print('🔄 البيانات ستبقى محفوظة حتى بعد إغلاق التطبيق');
+    print('');
+    print('📋 الجداول الرئيسية:');
+    print('   - المنتجات (products)');
+    print('   - العملاء (customers)');
+    print('   - المبيعات (sales)');
+    print('   - المشتريات (purchases)');
+    print('   - الموردين (suppliers)');
+    print('   - المستودعات (warehouses)');
+    print('   - الأقساط (installments)');
+    print('   - عروض الأسعار (quotations)');
+    print('   - قوائم الانتظار (pending_orders)');
+    print('   - السندات المالية (vouchers)');
     print('═══════════════════════════════════════════════════════════');
     print('');
   }
@@ -590,6 +962,291 @@ class DatabaseHelper {
           FOREIGN KEY (warehouse_to_id) REFERENCES warehouses (id)
         )
       ''');
+    }
+
+    if (oldVersion < 5) {
+      // إضافة الجداول الأساسية الناقصة
+      
+      // جدول المنتجات
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS products (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          barcode TEXT NOT NULL UNIQUE,
+          category TEXT,
+          unit TEXT DEFAULT 'قطعة',
+          purchase_price REAL NOT NULL DEFAULT 0.0,
+          selling_price REAL NOT NULL DEFAULT 0.0,
+          quantity REAL NOT NULL DEFAULT 0.0,
+          min_quantity REAL DEFAULT 0.0,
+          max_quantity REAL,
+          carton_quantity INTEGER DEFAULT 1,
+          expiry_date TEXT,
+          supplier TEXT,
+          notes TEXT,
+          image_path TEXT,
+          is_active INTEGER DEFAULT 1,
+          created_at TEXT NOT NULL,
+          updated_at TEXT,
+          synced INTEGER DEFAULT 0,
+          sync_id TEXT
+        )
+      ''');
+
+      // جدول العملاء
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS customers (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          phone TEXT NOT NULL,
+          email TEXT,
+          address TEXT,
+          city TEXT,
+          country TEXT DEFAULT 'العراق',
+          balance REAL DEFAULT 0.0,
+          credit_limit REAL DEFAULT 0.0,
+          discount_percentage REAL DEFAULT 0.0,
+          customer_type TEXT DEFAULT 'عادي',
+          notes TEXT,
+          is_active INTEGER DEFAULT 1,
+          created_at TEXT NOT NULL,
+          updated_at TEXT,
+          synced INTEGER DEFAULT 0,
+          sync_id TEXT
+        )
+      ''');
+
+      // جدول المبيعات
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS sales (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          invoice_number TEXT NOT NULL UNIQUE,
+          customer_id INTEGER,
+          customer_name TEXT,
+          total_amount REAL NOT NULL DEFAULT 0.0,
+          discount REAL DEFAULT 0.0,
+          tax REAL DEFAULT 0.0,
+          final_amount REAL NOT NULL DEFAULT 0.0,
+          paid_amount REAL DEFAULT 0.0,
+          remaining_amount REAL DEFAULT 0.0,
+          payment_method TEXT DEFAULT 'نقدي',
+          payment_status TEXT DEFAULT 'مدفوع',
+          invoice_type TEXT DEFAULT 'بيع',
+          notes TEXT,
+          sale_date TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT,
+          synced INTEGER DEFAULT 0,
+          sync_id TEXT,
+          FOREIGN KEY (customer_id) REFERENCES customers (id)
+        )
+      ''');
+
+      // جدول بنود المبيعات
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS sale_items (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          sale_id INTEGER NOT NULL,
+          product_id INTEGER NOT NULL,
+          product_name TEXT NOT NULL,
+          product_barcode TEXT NOT NULL,
+          quantity REAL NOT NULL,
+          unit_price REAL NOT NULL,
+          total_price REAL NOT NULL,
+          discount REAL DEFAULT 0.0,
+          tax REAL DEFAULT 0.0,
+          final_price REAL NOT NULL,
+          notes TEXT,
+          FOREIGN KEY (sale_id) REFERENCES sales (id) ON DELETE CASCADE,
+          FOREIGN KEY (product_id) REFERENCES products (id)
+        )
+      ''');
+
+      // جدول المشتريات
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS purchases (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          invoice_number TEXT NOT NULL UNIQUE,
+          supplier_name TEXT NOT NULL,
+          supplier_phone TEXT,
+          total_amount REAL NOT NULL DEFAULT 0.0,
+          discount REAL DEFAULT 0.0,
+          tax REAL DEFAULT 0.0,
+          final_amount REAL NOT NULL DEFAULT 0.0,
+          paid_amount REAL DEFAULT 0.0,
+          remaining_amount REAL DEFAULT 0.0,
+          payment_method TEXT DEFAULT 'نقدي',
+          payment_status TEXT DEFAULT 'مدفوع',
+          notes TEXT,
+          purchase_date TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT,
+          synced INTEGER DEFAULT 0,
+          sync_id TEXT
+        )
+      ''');
+
+      // جدول بنود المشتريات
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS purchase_items (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          purchase_id INTEGER NOT NULL,
+          product_id INTEGER NOT NULL,
+          product_name TEXT NOT NULL,
+          product_barcode TEXT NOT NULL,
+          quantity REAL NOT NULL,
+          unit_price REAL NOT NULL,
+          total_price REAL NOT NULL,
+          discount REAL DEFAULT 0.0,
+          tax REAL DEFAULT 0.0,
+          final_price REAL NOT NULL,
+          expiry_date TEXT,
+          notes TEXT,
+          FOREIGN KEY (purchase_id) REFERENCES purchases (id) ON DELETE CASCADE,
+          FOREIGN KEY (product_id) REFERENCES products (id)
+        )
+      ''');
+
+      // جدول الموردين
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS suppliers (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          phone TEXT NOT NULL,
+          email TEXT,
+          address TEXT,
+          city TEXT,
+          country TEXT DEFAULT 'العراق',
+          balance REAL DEFAULT 0.0,
+          notes TEXT,
+          is_active INTEGER DEFAULT 1,
+          created_at TEXT NOT NULL,
+          updated_at TEXT,
+          synced INTEGER DEFAULT 0,
+          sync_id TEXT
+        )
+      ''');
+
+      // جدول الأقساط
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS installments (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          customer_id INTEGER NOT NULL,
+          customer_name TEXT NOT NULL,
+          customer_phone TEXT,
+          sale_id INTEGER,
+          total_amount REAL NOT NULL,
+          paid_amount REAL DEFAULT 0.0,
+          remaining_amount REAL NOT NULL,
+          installment_amount REAL NOT NULL,
+          frequency TEXT DEFAULT 'شهري',
+          start_date TEXT NOT NULL,
+          end_date TEXT,
+          status TEXT DEFAULT 'نشط',
+          notes TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT,
+          synced INTEGER DEFAULT 0,
+          sync_id TEXT,
+          FOREIGN KEY (customer_id) REFERENCES customers (id),
+          FOREIGN KEY (sale_id) REFERENCES sales (id)
+        )
+      ''');
+
+      // جدول دفعات الأقساط
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS installment_payments (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          installment_id INTEGER NOT NULL,
+          payment_number TEXT NOT NULL,
+          amount REAL NOT NULL,
+          payment_date TEXT NOT NULL,
+          due_date TEXT NOT NULL,
+          status TEXT DEFAULT 'مستحق',
+          payment_method TEXT DEFAULT 'نقدي',
+          notes TEXT,
+          created_at TEXT NOT NULL,
+          synced INTEGER DEFAULT 0,
+          sync_id TEXT,
+          FOREIGN KEY (installment_id) REFERENCES installments (id) ON DELETE CASCADE
+        )
+      ''');
+
+      // جداول المرتجعات
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS sales_returns (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          return_number TEXT NOT NULL UNIQUE,
+          sale_id INTEGER,
+          customer_id INTEGER,
+          customer_name TEXT,
+          total_amount REAL NOT NULL DEFAULT 0.0,
+          refund_amount REAL NOT NULL DEFAULT 0.0,
+          payment_method TEXT DEFAULT 'نقدي',
+          reason TEXT,
+          notes TEXT,
+          return_date TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          synced INTEGER DEFAULT 0,
+          sync_id TEXT,
+          FOREIGN KEY (sale_id) REFERENCES sales (id),
+          FOREIGN KEY (customer_id) REFERENCES customers (id)
+        )
+      ''');
+
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS sales_return_items (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          return_id INTEGER NOT NULL,
+          product_id INTEGER NOT NULL,
+          product_name TEXT NOT NULL,
+          product_barcode TEXT NOT NULL,
+          quantity REAL NOT NULL,
+          unit_price REAL NOT NULL,
+          total_price REAL NOT NULL,
+          FOREIGN KEY (return_id) REFERENCES sales_returns (id) ON DELETE CASCADE,
+          FOREIGN KEY (product_id) REFERENCES products (id)
+        )
+      ''');
+
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS purchase_returns (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          return_number TEXT NOT NULL UNIQUE,
+          purchase_id INTEGER,
+          supplier_name TEXT NOT NULL,
+          total_amount REAL NOT NULL DEFAULT 0.0,
+          refund_amount REAL NOT NULL DEFAULT 0.0,
+          payment_method TEXT DEFAULT 'نقدي',
+          reason TEXT,
+          notes TEXT,
+          return_date TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          synced INTEGER DEFAULT 0,
+          sync_id TEXT,
+          FOREIGN KEY (purchase_id) REFERENCES purchases (id)
+        )
+      ''');
+
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS purchase_return_items (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          return_id INTEGER NOT NULL,
+          product_id INTEGER NOT NULL,
+          product_name TEXT NOT NULL,
+          product_barcode TEXT NOT NULL,
+          quantity REAL NOT NULL,
+          unit_price REAL NOT NULL,
+          total_price REAL NOT NULL,
+          FOREIGN KEY (return_id) REFERENCES purchase_returns (id) ON DELETE CASCADE,
+          FOREIGN KEY (product_id) REFERENCES products (id)
+        )
+      ''');
+
+      print('');
+      print('✅ تم تحديث قاعدة البيانات إلى الإصدار 5');
+      print('📊 تمت إضافة جميع الجداول الأساسية');
+      print('');
     }
   }
 

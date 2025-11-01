@@ -83,7 +83,8 @@ class _PendingOrdersScreenState extends State<PendingOrdersScreen> {
                 title,
                 style: TextStyle(
                   fontSize: 13,
-                  color: isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600,
+                  color:
+                      isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -154,7 +155,9 @@ class _PendingOrdersScreenState extends State<PendingOrdersScreen> {
                           order.orderNumber,
                           style: TextStyle(
                             fontSize: 14,
-                            color: isDark ? const Color(0xFF94A3B8) : Colors.grey[600],
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : Colors.grey[600],
                           ),
                         ),
                       ],
@@ -164,7 +167,8 @@ class _PendingOrdersScreenState extends State<PendingOrdersScreen> {
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close),
                     style: IconButton.styleFrom(
-                      backgroundColor: isDark ? const Color(0xFF334155) : Colors.grey[100],
+                      backgroundColor:
+                          isDark ? const Color(0xFF334155) : Colors.grey[100],
                     ),
                   ),
                 ],
@@ -217,7 +221,10 @@ class _PendingOrdersScreenState extends State<PendingOrdersScreen> {
                       const SizedBox(height: 12),
                       Container(
                         decoration: BoxDecoration(
-                          border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.grey[300]!),
+                          border: Border.all(
+                              color: isDark
+                                  ? const Color(0xFF334155)
+                                  : Colors.grey[300]!),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
@@ -225,7 +232,9 @@ class _PendingOrdersScreenState extends State<PendingOrdersScreen> {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF334155) : Colors.grey[100],
+                                color: isDark
+                                    ? const Color(0xFF334155)
+                                    : Colors.grey[100],
                                 borderRadius: const BorderRadius.only(
                                   topLeft: Radius.circular(12),
                                   topRight: Radius.circular(12),
@@ -260,7 +269,10 @@ class _PendingOrdersScreenState extends State<PendingOrdersScreen> {
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
                                     border: Border(
-                                      top: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey[300]!),
+                                      top: BorderSide(
+                                          color: isDark
+                                              ? const Color(0xFF334155)
+                                              : Colors.grey[300]!),
                                     ),
                                   ),
                                   child: Row(
@@ -277,7 +289,9 @@ class _PendingOrdersScreenState extends State<PendingOrdersScreen> {
                                                 item.notes!,
                                                 style: TextStyle(
                                                   fontSize: 12,
-                                                  color: isDark ? const Color(0xFF94A3B8) : Colors.grey[600],
+                                                  color: isDark
+                                                      ? const Color(0xFF94A3B8)
+                                                      : Colors.grey[600],
                                                 ),
                                               ),
                                           ],
@@ -316,7 +330,9 @@ class _PendingOrdersScreenState extends State<PendingOrdersScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E293B) : Colors.grey[50],
+                          color: isDark
+                              ? const Color(0xFF1E293B)
+                              : Colors.grey[50],
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
@@ -366,7 +382,9 @@ class _PendingOrdersScreenState extends State<PendingOrdersScreen> {
                         Text(
                           'ملاحظات: ${order.notes}',
                           style: TextStyle(
-                            color: isDark ? const Color(0xFF94A3B8) : Colors.grey[700],
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : Colors.grey[700],
                             fontSize: 14,
                           ),
                         ),
@@ -434,7 +452,9 @@ class _PendingOrdersScreenState extends State<PendingOrdersScreen> {
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: isDark ? const Color(0xFF94A3B8) : Colors.grey[600]),
+          Icon(icon,
+              size: 20,
+              color: isDark ? const Color(0xFF94A3B8) : Colors.grey[600]),
           const SizedBox(width: 8),
           Text(
             '$label: ',
@@ -448,7 +468,8 @@ class _PendingOrdersScreenState extends State<PendingOrdersScreen> {
               value,
               style: TextStyle(
                 fontSize: 14,
-                color: valueColor ?? (isDark ? const Color(0xFF94A3B8) : Colors.grey[700]),
+                color: valueColor ??
+                    (isDark ? const Color(0xFF94A3B8) : Colors.grey[700]),
               ),
             ),
           ),
@@ -708,7 +729,8 @@ class _PendingOrdersScreenState extends State<PendingOrdersScreen> {
                             hintText: 'بحث في الطلبات...',
                             prefixIcon: const Icon(Icons.search),
                             filled: true,
-                            fillColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                            fillColor:
+                                isDark ? const Color(0xFF1E293B) : Colors.white,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
@@ -720,7 +742,8 @@ class _PendingOrdersScreenState extends State<PendingOrdersScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                          color:
+                              isDark ? const Color(0xFF1E293B) : Colors.white,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: DropdownButton<String>(
@@ -784,13 +807,18 @@ class _PendingOrdersScreenState extends State<PendingOrdersScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.hourglass_empty_rounded,
-                              size: 80, color: isDark ? const Color(0xFF475569) : Colors.grey[400]),
+                              size: 80,
+                              color: isDark
+                                  ? const Color(0xFF475569)
+                                  : Colors.grey[400]),
                           const SizedBox(height: 16),
                           Text(
                             'لا توجد طلبات معلقة',
                             style: TextStyle(
                               fontSize: 18,
-                              color: isDark ? const Color(0xFF94A3B8) : Colors.grey[600],
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : Colors.grey[600],
                             ),
                           ),
                         ],
@@ -817,17 +845,21 @@ class _PendingOrdersScreenState extends State<PendingOrdersScreen> {
                       return Container(
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                          color:
+                              isDark ? const Color(0xFF1E293B) : Colors.white,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: isOverdue
                                 ? Colors.red.withOpacity(0.3)
-                                : (isDark ? const Color(0xFF334155) : Colors.grey.shade200),
+                                : (isDark
+                                    ? const Color(0xFF334155)
+                                    : Colors.grey.shade200),
                             width: 2,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                              color:
+                                  Colors.black.withOpacity(isDark ? 0.3 : 0.05),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -930,7 +962,9 @@ class _PendingOrdersScreenState extends State<PendingOrdersScreen> {
                                           order.customerName ?? 'عميل عام',
                                           style: TextStyle(
                                             fontSize: 14,
-                                            color: isDark ? const Color(0xFF94A3B8) : Colors.grey[600],
+                                            color: isDark
+                                                ? const Color(0xFF94A3B8)
+                                                : Colors.grey[600],
                                           ),
                                         ),
                                         const SizedBox(height: 4),
@@ -939,7 +973,9 @@ class _PendingOrdersScreenState extends State<PendingOrdersScreen> {
                                             'التسليم: ${dateFormat.format(order.deliveryDate!)}',
                                             style: TextStyle(
                                               fontSize: 13,
-                                              color: isDark ? const Color(0xFF64748B) : Colors.grey[500],
+                                              color: isDark
+                                                  ? const Color(0xFF64748B)
+                                                  : Colors.grey[500],
                                             ),
                                           ),
                                       ],

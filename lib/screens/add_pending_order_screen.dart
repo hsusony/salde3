@@ -409,7 +409,9 @@ class _AddPendingOrderScreenState extends State<AddPendingOrderScreen> {
                                   border: const OutlineInputBorder(),
                                   prefixIcon: const Icon(Icons.person),
                                   filled: true,
-                                  fillColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+                                  fillColor: isDark
+                                      ? const Color(0xFF0F172A)
+                                      : Colors.white,
                                 ),
                                 readOnly: true,
                                 onTap: _showCustomerSearch,
@@ -423,9 +425,12 @@ class _AddPendingOrderScreenState extends State<AddPendingOrderScreen> {
                                   decoration: InputDecoration(
                                     labelText: 'تاريخ التسليم',
                                     border: const OutlineInputBorder(),
-                                    prefixIcon: const Icon(Icons.calendar_today),
+                                    prefixIcon:
+                                        const Icon(Icons.calendar_today),
                                     filled: true,
-                                    fillColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+                                    fillColor: isDark
+                                        ? const Color(0xFF0F172A)
+                                        : Colors.white,
                                   ),
                                   child: Text(
                                     DateFormat('yyyy-MM-dd')
@@ -449,14 +454,18 @@ class _AddPendingOrderScreenState extends State<AddPendingOrderScreen> {
                                 Icon(
                                   Icons.shopping_cart_outlined,
                                   size: 80,
-                                  color: isDark ? const Color(0xFF475569) : Colors.grey[300],
+                                  color: isDark
+                                      ? const Color(0xFF475569)
+                                      : Colors.grey[300],
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
                                   'لا توجد منتجات',
                                   style: TextStyle(
                                     fontSize: 18,
-                                    color: isDark ? const Color(0xFF94A3B8) : Colors.grey[600],
+                                    color: isDark
+                                        ? const Color(0xFF94A3B8)
+                                        : Colors.grey[600],
                                   ),
                                 ),
                               ],
@@ -492,7 +501,10 @@ class _AddPendingOrderScreenState extends State<AddPendingOrderScreen> {
                                                 Text(
                                                   'الباركود: ${item.product.barcode}',
                                                   style: TextStyle(
-                                                    color: isDark ? const Color(0xFF94A3B8) : Colors.grey[600],
+                                                    color: isDark
+                                                        ? const Color(
+                                                            0xFF94A3B8)
+                                                        : Colors.grey[600],
                                                     fontSize: 12,
                                                   ),
                                                 ),
@@ -596,7 +608,9 @@ class _AddPendingOrderScreenState extends State<AddPendingOrderScreen> {
                                           Text(
                                             'المجموع الفرعي: ${_currencyFormat.format(item.subtotal)}',
                                             style: TextStyle(
-                                                color: isDark ? const Color(0xFF94A3B8) : Colors.grey[600]),
+                                                color: isDark
+                                                    ? const Color(0xFF94A3B8)
+                                                    : Colors.grey[600]),
                                           ),
                                           Text(
                                             'المجموع: ${_currencyFormat.format(item.total)}',
@@ -624,7 +638,9 @@ class _AddPendingOrderScreenState extends State<AddPendingOrderScreen> {
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF0F172A) : Colors.grey[50],
                 border: Border(
-                  right: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey[300]!),
+                  right: BorderSide(
+                      color:
+                          isDark ? const Color(0xFF334155) : Colors.grey[300]!),
                 ),
               ),
               child: Column(
