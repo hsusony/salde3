@@ -19,16 +19,11 @@ dependencies:
   # State Management
   provider: ^6.1.1
   
-  # Database
+  # Database - SQL Server & SQLite
   sqflite_common_ffi: ^2.3.0
   path_provider: ^2.1.1
   path: ^1.8.3
-  sqlparser: ^0.35.0
   http: ^1.1.0
-  
-  # SQL Server Connection via HTTP API (REST)
-  # للاتصال بـ SQL Server، استخدم Web API (ASP.NET Core)
-  # أو استخدم SQLite المحلي الموجود بالفعل
   
   # Charts & Visualization
   fl_chart: ^0.65.0
@@ -48,6 +43,9 @@ dependencies:
   # File Picker
   file_picker: ^6.1.1
   
+  # URL Launcher
+  url_launcher: ^6.2.2
+  
   # Utils
   uuid: ^4.2.2
 
@@ -55,6 +53,13 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.1
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  windows:
+    generate: true
+    image_path: "assets/images/app_icon.png"
+  image_path: "assets/images/app_icon.png"
 
 flutter:
   uses-material-design: true

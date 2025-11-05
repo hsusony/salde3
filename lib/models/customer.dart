@@ -29,7 +29,7 @@ class Customer {
     return {
       'id': id,
       'name': name,
-      'customer_code': customerCode,
+      // 'customer_code': customerCode, // تم تعطيله مؤقتاً - العمود غير موجود في قاعدة البيانات
       'phone': phone,
       'email': email,
       'address': address,
@@ -45,7 +45,7 @@ class Customer {
     return Customer(
       id: map['id'],
       name: map['name'],
-      customerCode: map['customer_code'],
+      customerCode: map['customer_code'], // سيكون null إذا لم يكن موجود
       phone: map['phone'],
       email: map['email'],
       address: map['address'],

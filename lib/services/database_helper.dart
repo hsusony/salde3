@@ -357,8 +357,25 @@ class DatabaseHelper {
       )
     ''');
 
+    // جدول سجل التدقيق - Audit Log
+    await db.execute('''
+      CREATE TABLE audit_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        operation_type TEXT NOT NULL,
+        table_name TEXT NOT NULL,
+        record_id INTEGER NOT NULL,
+        record_name TEXT NOT NULL,
+        record_data TEXT,
+        user_name TEXT NOT NULL,
+        operation_date TEXT NOT NULL,
+        notes TEXT,
+        synced INTEGER DEFAULT 0,
+        sync_id TEXT
+      )
+    ''');
+
     // ============ الجداول الأساسية ============
-    
+
     // جدول المنتجات - Products
     await db.execute('''
       CREATE TABLE products (
@@ -719,7 +736,7 @@ class DatabaseHelper {
     ''');
 
     // ============ جداول المخزون ============
-    
+
     // جدول المستودعات - Warehouses
     await db.execute('''
       CREATE TABLE warehouses (
@@ -966,7 +983,7 @@ class DatabaseHelper {
 
     if (oldVersion < 5) {
       // إضافة الجداول الأساسية الناقصة
-      
+
       // جدول المنتجات
       await db.execute('''
         CREATE TABLE IF NOT EXISTS products (
@@ -1243,9 +1260,27 @@ class DatabaseHelper {
         )
       ''');
 
+      // جدول سجل التدقيق - Audit Log
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS audit_log (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          operation_type TEXT NOT NULL,
+          table_name TEXT NOT NULL,
+          record_id INTEGER NOT NULL,
+          record_name TEXT NOT NULL,
+          record_data TEXT,
+          user_name TEXT NOT NULL,
+          operation_date TEXT NOT NULL,
+          notes TEXT,
+          synced INTEGER DEFAULT 0,
+          sync_id TEXT
+        )
+      ''');
+
       print('');
       print('✅ تم تحديث قاعدة البيانات إلى الإصدار 5');
       print('📊 تمت إضافة جميع الجداول الأساسية');
+      print('🔍 تمت إضافة جدول سجل التدقيق (Audit Log)');
       print('');
     }
   }
@@ -1791,5 +1826,63 @@ class DatabaseHelper {
         await db.rawQuery('SELECT COUNT(*) as count FROM pending_orders');
     final count = result.first['count'] as int;
     return 'PO-${(count + 1).toString().padLeft(6, '0')}';
+  }
+
+  // ==================== AUDIT LOG ====================
+
+  /// الحصول على جميع سجلات التدقيق
+  Future<List<Map<String, dynamic>>> getAllAuditLogs({
+    String? operationType,
+    String? tableName,
+    DateTime? fromDate,
+    DateTime? toDate,
+  }) async {
+    final db = await database;
+
+    String whereClause = '';
+    List<dynamic> whereArgs = [];
+
+    if (operationType != null) {
+      whereClause += 'operation_type = ?';
+      whereArgs.add(operationType);
+    }
+
+    if (tableName != null) {
+      if (whereClause.isNotEmpty) whereClause += ' AND ';
+      whereClause += 'table_name = ?';
+      whereArgs.add(tableName);
+    }
+
+    if (fromDate != null) {
+      if (whereClause.isNotEmpty) whereClause += ' AND ';
+      whereClause += 'operation_date >= ?';
+      whereArgs.add(fromDate.toIso8601String());
+    }
+
+    if (toDate != null) {
+      if (whereClause.isNotEmpty) whereClause += ' AND ';
+      whereClause += 'operation_date <= ?';
+      whereArgs.add(toDate.toIso8601String());
+    }
+
+    return await db.query(
+      'audit_log',
+      where: whereClause.isNotEmpty ? whereClause : null,
+      whereArgs: whereArgs.isNotEmpty ? whereArgs : null,
+      orderBy: 'operation_date DESC',
+    );
+  }
+
+  /// الحصول على سجلات المواد المحذوفة فقط
+  Future<List<Map<String, dynamic>>> getDeletedProductsLog({
+    DateTime? fromDate,
+    DateTime? toDate,
+  }) async {
+    return await getAllAuditLogs(
+      operationType: 'حذف',
+      tableName: 'products',
+      fromDate: fromDate,
+      toDate: toDate,
+    );
   }
 }

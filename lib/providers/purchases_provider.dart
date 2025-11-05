@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
 import '../models/purchase.dart';
 import '../models/purchase_return.dart';
+import '../services/inventory_service.dart';
 
 class PurchasesProvider with ChangeNotifier {
+  final InventoryService _inventoryService = InventoryService();
   List<Purchase> _purchases = [];
   List<Purchase> _filteredPurchases = [];
   List<PurchaseReturn> _returns = [];
@@ -45,6 +47,16 @@ class PurchasesProvider with ChangeNotifier {
               1;
       final newPurchase = purchase.copyWith(id: newId);
       _purchases.insert(0, newPurchase);
+
+      // ✅ تحديث المخزون - إضافة الكميات المشتراة
+      for (var item in purchase.items) {
+        await _inventoryService.addStockForPurchase(
+          productId: item.productId,
+          quantity: item.quantity.toDouble(),
+          warehouseId: 1, // يمكنك تغيير هذا ليكون ديناميكي
+        );
+      }
+
       _filterPurchases();
       notifyListeners();
     } catch (e) {
@@ -88,6 +100,16 @@ class PurchasesProvider with ChangeNotifier {
           : _returns.map((r) => r.id ?? 0).reduce((a, b) => a > b ? a : b) + 1;
       final newReturn = returnItem.copyWith(id: newId);
       _returns.insert(0, newReturn);
+
+      // ✅ تحديث المخزون - طرح الكميات المرتجعة من المشتريات
+      for (var item in returnItem.items) {
+        await _inventoryService.deductStockForPurchaseReturn(
+          productId: item.productId,
+          quantity: item.quantity.toDouble(),
+          warehouseId: 1,
+        );
+      }
+
       _filterReturns();
       notifyListeners();
     } catch (e) {

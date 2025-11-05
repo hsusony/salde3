@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../models/sale.dart';
+import '../services/inventory_service.dart';
 import '../utils/database_helper_stub.dart'
     if (dart.library.io) '../utils/database_helper.dart';
 
 class SalesProvider extends ChangeNotifier {
+  final InventoryService _inventoryService = InventoryService();
   List<Sale> _sales = [];
   List<Sale> _filteredSales = [];
   bool _isLoading = false;
@@ -156,6 +158,15 @@ class SalesProvider extends ChangeNotifier {
           status: sale.status,
           notes: sale.notes,
         );
+
+        // ✅ تحديث المخزون - طرح الكميات المباعة
+        for (var item in sale.items) {
+          await _inventoryService.deductStockForSale(
+            productId: item.productId,
+            quantity: item.quantity.toDouble(),
+            warehouseId: 1, // يمكنك تغيير هذا ليكون ديناميكي
+          );
+        }
       } else {
         final newId = _sales.isEmpty
             ? 1

@@ -1,0 +1,30 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#F5F5DC" rx="80"/>
+  
+  <!-- Chart Icon -->
+  <g transform="translate(256, 180)">
+    <!-- Monitor/Screen -->
+    <rect x="-120" y="-60" width="240" height="150" rx="20" fill="none" stroke="#E57330" stroke-width="12"/>
+    
+    <!-- Chart Bars -->
+    <rect x="-80" y="20" width="30" height="40" fill="#E57330"/>
+    <rect x="-35" y="-10" width="30" height="70" fill="#E57330"/>
+    <rect x="10" y="0" width="30" height="60" fill="#E57330"/>
+    <rect x="55" y="-30" width="30" height="90" fill="#E57330"/>
+    
+    <!-- Arrow Trend Line -->
+    <path d="M -80 30 L -35 0 L 10 10 L 55 -20 L 75 -40" fill="none" stroke="#E57330" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 75 -40 L 60 -35 L 70 -25 Z" fill="#E57330"/>
+    
+    <!-- Monitor Stand -->
+    <rect x="-15" y="90" width="30" height="35" fill="#E57330"/>
+    <rect x="-60" y="125" width="120" height="12" rx="6" fill="#E57330"/>
+  </g>
+  
+  <!-- 9SOFT Text -->
+  <text x="256" y="370" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="#E57330" text-anchor="middle" letter-spacing="8">9SOFT</text>
+  
+  <!-- Subtitle -->
+  <text x="256" y="430" font-family="Arial, sans-serif" font-size="32" fill="#E57330" text-anchor="middle">نظام إدارة المبيعات</text>
+</svg>

@@ -3,12 +3,33 @@ import 'package:google_fonts/google_fonts.dart';
 
 class ThemeProvider extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.light;
+  Color _selectedPrimaryColor = const Color(0xFF6366F1); // Default Indigo
+  String _fontFamily = 'Tajawal';
+  double _fontSize = 14.0;
 
   ThemeMode get themeMode => _themeMode;
+  Color get selectedPrimaryColor => _selectedPrimaryColor;
+  String get fontFamily => _fontFamily;
+  double get fontSize => _fontSize;
 
   void toggleTheme() {
     _themeMode =
         _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    notifyListeners();
+  }
+
+  void setPrimaryColor(Color color) {
+    _selectedPrimaryColor = color;
+    notifyListeners();
+  }
+
+  void setFontFamily(String family) {
+    _fontFamily = family;
+    notifyListeners();
+  }
+
+  void setFontSize(double size) {
+    _fontSize = size;
     notifyListeners();
   }
 
@@ -48,22 +69,25 @@ class ThemeProvider extends ChangeNotifier {
 
   // Light Theme - Enhanced
   ThemeData get lightTheme {
+    // استخدام اللون المختار أو اللون الافتراضي
+    final currentPrimary = _selectedPrimaryColor;
+
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      primaryColor: primaryColor,
-      colorScheme: const ColorScheme.light(
-        primary: primaryColor,
+      primaryColor: currentPrimary,
+      colorScheme: ColorScheme.light(
+        primary: currentPrimary,
         secondary: secondaryColor,
         tertiary: accentColor,
         error: errorColor,
         surface: Colors.white,
-        surfaceContainerHighest: Color(0xFFF1F5F9),
+        surfaceContainerHighest: const Color(0xFFF1F5F9),
         onPrimary: Colors.white,
         onSecondary: Colors.white,
-        onSurface: Color(0xFF0F172A),
-        onSurfaceVariant: Color(0xFF475569),
-        outline: Color(0xFFCBD5E1),
+        onSurface: const Color(0xFF0F172A),
+        onSurfaceVariant: const Color(0xFF475569),
+        outline: const Color(0xFFCBD5E1),
       ),
       scaffoldBackgroundColor: const Color(0xFFF8FAFC),
       cardTheme: CardThemeData(
@@ -131,10 +155,10 @@ class ThemeProvider extends ChangeNotifier {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
+          backgroundColor: currentPrimary,
           foregroundColor: Colors.white,
           elevation: 2,
-          shadowColor: primaryColor.withOpacity(0.3),
+          shadowColor: currentPrimary.withOpacity(0.3),
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -156,8 +180,8 @@ class ThemeProvider extends ChangeNotifier {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: primaryColor,
-          side: const BorderSide(color: primaryColor, width: 2),
+          foregroundColor: currentPrimary,
+          side: BorderSide(color: currentPrimary, width: 2),
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -167,7 +191,7 @@ class ThemeProvider extends ChangeNotifier {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: primaryColor,
+          foregroundColor: currentPrimary,
           textStyle:
               GoogleFonts.tajawal(fontSize: 14, fontWeight: FontWeight.w600),
         ),
@@ -185,7 +209,7 @@ class ThemeProvider extends ChangeNotifier {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: primaryColor, width: 2.5),
+          borderSide: BorderSide(color: currentPrimary, width: 2.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -204,7 +228,7 @@ class ThemeProvider extends ChangeNotifier {
         hintStyle:
             GoogleFonts.tajawal(fontSize: 14, color: const Color(0xFF94A3B8)),
         floatingLabelStyle: GoogleFonts.tajawal(
-            fontSize: 14, color: primaryColor, fontWeight: FontWeight.w600),
+            fontSize: 14, color: currentPrimary, fontWeight: FontWeight.w600),
       ),
       iconTheme: const IconThemeData(color: Color(0xFF475569), size: 24),
       dividerTheme: const DividerThemeData(

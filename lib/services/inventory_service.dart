@@ -124,19 +124,28 @@ class InventoryService {
   Future<List<Map<String, dynamic>>> getAllStockWithDetails() async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> result = await db.rawQuery('''
-      SELECT ws.*, 
+      SELECT 
+             COALESCE(ws.id, 0) as id,
+             p.id as product_id,
+             COALESCE(w.id, 1) as warehouse_id,
+             CAST(COALESCE(ws.quantity, 0.0) AS REAL) as quantity,
+             CAST(ws.min_quantity AS REAL) as min_quantity,
+             CAST(ws.max_quantity AS REAL) as max_quantity,
+             ws.batch_number,
+             ws.expiry_date,
+             ws.last_restock_date,
              p.name as product_name, 
              p.barcode, 
              p.unit, 
              p.cost_price, 
              p.selling_price,
-             w.name as warehouse_name,
-             w.location as warehouse_location
-      FROM warehouse_stock ws
-      INNER JOIN products p ON ws.product_id = p.id
-      INNER JOIN warehouses w ON ws.warehouse_id = w.id
-      WHERE w.is_active = 1
-      ORDER BY w.name, p.name ASC
+             COALESCE(w.name, 'مخزن افتراضي') as warehouse_name,
+             COALESCE(w.location, '') as warehouse_location
+      FROM products p
+      LEFT JOIN warehouse_stock ws ON p.id = ws.product_id
+      LEFT JOIN warehouses w ON ws.warehouse_id = w.id
+      WHERE p.is_active = 1 AND (w.is_active = 1 OR w.id IS NULL)
+      ORDER BY COALESCE(w.name, 'مخزن افتراضي'), p.name ASC
     ''');
     return result;
   }
@@ -338,6 +347,81 @@ class InventoryService {
 
     return List.generate(
         maps.length, (i) => InventoryTransaction.fromMap(maps[i]));
+  }
+
+  /// طرح الكمية من المخزون (عند البيع)
+  /// warehouseId: معرف المخزن (افتراضي = 1)
+  /// productId: معرف المنتج
+  /// quantity: الكمية المباعة
+  Future<bool> deductStockForSale({
+    required int productId,
+    required double quantity,
+    int warehouseId = 1,
+  }) async {
+    try {
+      final stock = await getWarehouseStock(warehouseId, productId);
+
+      if (stock == null) {
+        // إنشاء سجل جديد بكمية سالبة (للتنبيه)
+        await updateOrInsertStock(WarehouseStock(
+          warehouseId: warehouseId,
+          productId: productId,
+          quantity: -quantity,
+        ));
+        return false; // تنبيه: لا يوجد مخزون
+      }
+
+      // طرح الكمية من المخزون
+      await _adjustStock(warehouseId, productId, -quantity);
+      return true;
+    } catch (e) {
+      print('Error deducting stock: $e');
+      return false;
+    }
+  }
+
+  /// إضافة الكمية للمخزون (عند الشراء)
+  /// warehouseId: معرف المخزن (افتراضي = 1)
+  /// productId: معرف المنتج
+  /// quantity: الكمية المشتراة
+  Future<bool> addStockForPurchase({
+    required int productId,
+    required double quantity,
+    int warehouseId = 1,
+  }) async {
+    try {
+      await _adjustStock(warehouseId, productId, quantity);
+      return true;
+    } catch (e) {
+      print('Error adding stock: $e');
+      return false;
+    }
+  }
+
+  /// إعادة الكمية للمخزون (عند مرتجع البيع)
+  Future<bool> returnStockForSaleReturn({
+    required int productId,
+    required double quantity,
+    int warehouseId = 1,
+  }) async {
+    return await addStockForPurchase(
+      productId: productId,
+      quantity: quantity,
+      warehouseId: warehouseId,
+    );
+  }
+
+  /// طرح الكمية من المخزون (عند مرتجع الشراء)
+  Future<bool> deductStockForPurchaseReturn({
+    required int productId,
+    required double quantity,
+    int warehouseId = 1,
+  }) async {
+    return await deductStockForSale(
+      productId: productId,
+      quantity: quantity,
+      warehouseId: warehouseId,
+    );
   }
 
   /// الحصول على تقرير المواد المنخفضة

@@ -10,6 +10,8 @@ import 'installments_screen.dart';
 import 'purchases_screen.dart';
 import 'cash_screen.dart';
 import 'inventory/inventory_menu_screen.dart';
+import 'settings_screen.dart';
+import 'about_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,6 +33,8 @@ class _HomeScreenState extends State<HomeScreen> {
     const InstallmentsScreen(),
     const ReportsScreen(),
     const InventoryMenuScreen(),
+    const SettingsScreen(),
+    const AboutScreen(),
   ];
 
   final List<NavigationItem> _navItems = [
@@ -38,12 +42,14 @@ class _HomeScreenState extends State<HomeScreen> {
     NavigationItem(icon: Icons.shopping_cart_rounded, label: 'البيع'),
     NavigationItem(icon: Icons.shopping_bag_rounded, label: 'المشتريات'),
     NavigationItem(icon: Icons.inventory_2_rounded, label: 'المنتجات'),
-    NavigationItem(icon: Icons.people_rounded, label: 'العملاء'),
+    NavigationItem(icon: Icons.person_add_rounded, label: 'إضافة حساب'),
     NavigationItem(
         icon: Icons.account_balance_rounded, label: 'النقد والحسابات'),
     NavigationItem(icon: Icons.credit_card_rounded, label: 'نظام التقسيط'),
     NavigationItem(icon: Icons.analytics_rounded, label: 'التقارير'),
     NavigationItem(icon: Icons.warehouse_rounded, label: 'المخزون'),
+    NavigationItem(icon: Icons.settings_rounded, label: 'الإعدادات'),
+    NavigationItem(icon: Icons.info_rounded, label: 'حول'),
   ];
 
   @override
@@ -84,32 +90,33 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       children: [
                         Container(
-                          width: 72,
-                          height: 72,
+                          width: 120,
+                          height: 120,
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF6366F1).withOpacity(0.4),
+                                color: const Color(0xFFE57330).withOpacity(0.3),
                                 blurRadius: 15,
                                 offset: const Offset(0, 8),
                               ),
                             ],
                           ),
-                          child: const Icon(Icons.store_rounded,
-                              color: Colors.white, size: 36),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Image.asset(
+                              'assets/images/app_icon.png',
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 16),
                         Text(
                           'نظام إدارة المبيعات',
                           style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
+                                    color: const Color(0xFFE57330),
                                   ),
                           textAlign: TextAlign.center,
                         ),

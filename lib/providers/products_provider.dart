@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../models/product.dart';
+import '../services/inventory_service.dart';
 import '../utils/database_helper_stub.dart'
     if (dart.library.io) '../utils/database_helper.dart';
 
 class ProductsProvider extends ChangeNotifier {
+  final InventoryService _inventoryService = InventoryService();
   List<Product> _products = [];
   List<Product> _filteredProducts = [];
   bool _isLoading = false;
@@ -24,11 +26,7 @@ class ProductsProvider extends ChangeNotifier {
         // Use demo data for web
         _products = _getDemoProducts();
       } else {
-        final maps = await DatabaseHelper.instance.getAllProducts();
-        _products = (maps)
-            .cast<Map<String, dynamic>>()
-            .map((map) => Product.fromMap(map))
-            .toList();
+        _products = await DatabaseHelper.instance.getAllProducts();
       }
       _filterProducts();
     } catch (e) {
@@ -53,6 +51,24 @@ class ProductsProvider extends ChangeNotifier {
       if (!kIsWeb) {
         final id = await DatabaseHelper.instance.insertProduct(product);
         product = product.copyWith(id: id);
+
+        // ✅ إنشاء سجل مخزون تلقائي للمنتج الجديد بكمية 0 في المخزن الافتراضي
+        try {
+          // الحصول على المخازن المتوفرة
+          final warehouses = await _inventoryService.getAllWarehouses();
+
+          if (warehouses.isNotEmpty) {
+            // إنشاء سجل في المخزن الأول (الافتراضي)
+            await _inventoryService.addStockForPurchase(
+              productId: id,
+              quantity: 0,
+              warehouseId: warehouses.first.id!,
+            );
+          }
+        } catch (e) {
+          debugPrint('Warning: Could not create warehouse stock entry: $e');
+          // لا نريد أن يفشل إضافة المنتج إذا فشل إنشاء المخزون
+        }
       } else {
         // For web, just add to list with new ID
         product = product.copyWith(
@@ -90,10 +106,10 @@ class ProductsProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> deleteProduct(int id) async {
+  Future<void> deleteProduct(int id, {String userName = 'المستخدم'}) async {
     try {
       if (!kIsWeb) {
-        await DatabaseHelper.instance.deleteProduct(id);
+        await DatabaseHelper.instance.deleteProduct(id, userName: userName);
       }
       _products.removeWhere((p) => p.id == id);
       _filterProducts();

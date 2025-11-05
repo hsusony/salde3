@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحميل شعار 9SOFT</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 600px;
+        }
+        canvas {
+            border: 3px solid #E57330;
+            border-radius: 15px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(229, 115, 48, 0.3);
+        }
+        button {
+            background: #E57330;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #C75E28;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(229, 115, 48, 0.4);
+        }
+        h1 {
+            color: #E57330;
+            margin-bottom: 10px;
+        }
+        .instructions {
+            background: #FFF3E0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: right;
+            border-right: 4px solid #E57330;
+        }
+        .instructions ol {
+            margin: 10px 0;
+            padding-right: 20px;
+        }
+        .instructions li {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 شعار 9SOFT - نظام إدارة المبيعات</h1>
+        <canvas id="iconCanvas" width="512" height="512"></canvas>
+        
+        <div class="instructions">
+            <h3 style="color: #E57330; margin-top: 0;">📋 التعليمات:</h3>
+            <ol>
+                <li>اضغط على زر "تحميل PNG" لحفظ الصورة</li>
+                <li>احفظ الملف باسم: <code>app_icon.png</code></li>
+                <li>ضع الملف في المسار: <code>c:\Users\HS_RW\Desktop\de3\assets\images\</code></li>
+                <li>ارجع للمحادثة وأخبرني بعد حفظ الملف</li>
+            </ol>
+        </div>
+        
+        <button onclick="downloadPNG()">📥 تحميل PNG (512x512)</button>
+        <button onclick="downloadICO()">📥 تحميل ICO (للويندوز)</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('iconCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function drawIcon() {
+            // Background
+            ctx.fillStyle = '#F5F5DC';
+            ctx.fillRect(0, 0, 512, 512);
+            
+            // Orange color
+            const orange = '#E57330';
+            
+            // Draw monitor frame
+            ctx.strokeStyle = orange;
+            ctx.lineWidth = 12;
+            ctx.beginPath();
+            roundRect(ctx, 136, 120, 240, 150, 20);
+            ctx.stroke();
+            
+            // Draw chart bars
+            ctx.fillStyle = orange;
+            ctx.fillRect(176, 200, 30, 40);
+            ctx.fillRect(221, 170, 30, 70);
+            ctx.fillRect(266, 180, 30, 60);
+            ctx.fillRect(311, 150, 30, 90);
+            
+            // Draw trend line
+            ctx.strokeStyle = orange;
+            ctx.lineWidth = 8;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            ctx.moveTo(176, 210);
+            ctx.lineTo(221, 180);
+            ctx.lineTo(266, 190);
+            ctx.lineTo(311, 160);
+            ctx.lineTo(331, 140);
+            ctx.stroke();
+            
+            // Draw arrow
+            ctx.fillStyle = orange;
+            ctx.beginPath();
+            ctx.moveTo(331, 140);
+            ctx.lineTo(316, 145);
+            ctx.lineTo(326, 155);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Draw monitor stand
+            ctx.fillRect(241, 270, 30, 35);
+            ctx.beginPath();
+            roundRect(ctx, 196, 305, 120, 12, 6);
+            ctx.fill();
+            
+            // Draw text "9SOFT"
+            ctx.fillStyle = orange;
+            ctx.font = 'bold 80px Arial';
+            ctx.textAlign = 'center';
+            ctx.letterSpacing = '8px';
+            ctx.fillText('9SOFT', 256, 370);
+            
+            // Draw subtitle
+            ctx.font = '28px Arial';
+            ctx.fillText('نظام إدارة المبيعات', 256, 420);
+        }
+
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+        }
+
+        function downloadPNG() {
+            const link = document.createElement('a');
+            link.download = 'app_icon.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function downloadICO() {
+            // For ICO, we'll download PNG and user can convert it
+            const link = document.createElement('a');
+            link.download = 'app_icon.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            alert('تم تحميل ملف PNG. لتحويله لـ ICO:\n1. افتح موقع: convertio.co/png-ico\n2. ارفع الملف\n3. حوّله لـ ICO\n4. احفظه في: windows/runner/resources/app_icon.ico');
+        }
+
+        // Draw the icon when page loads
+        drawIcon();
+    </script>
+</body>
+</html>

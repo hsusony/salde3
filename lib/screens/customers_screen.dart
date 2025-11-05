@@ -23,9 +23,20 @@ class _CustomersScreenState extends State<CustomersScreen> {
   final _notesController = TextEditingController();
   final _searchController = TextEditingController();
   final _accountNumberController = TextEditingController();
+  final _maxCreditController = TextEditingController(); // الحد الاعلى للرصيد
+  final _percentAfterLimitController =
+      TextEditingController(); // النسبة بعد تجاوز الحد
+  final _referenceNumberController = TextEditingController(); // رقم الاستناد
 
-  String _accountType = 'حساب عام';
+  String _accountType = 'حسابات الزبائن';
   String _linkedAccount = 'لا يوجد';
+  String _priceLink = 'يوم'; // ربط الزبون بالأسعار
+  String _distributorLink = 'لا يوجد'; // ربط بموزع
+  bool _isSpecificDate = false; // حسابات تاريخ محددة
+
+  // قوائم ديناميكية
+  List<String> _distributorsList = ['لا يوجد', 'موزع 1', 'موزع 2', 'موزع 3'];
+  List<String> _linkedAccountsList = ['لا يوجد', 'حساب 1', 'حساب 2', 'حساب 3'];
 
   String _searchQuery = '';
   Customer? _selectedCustomer;
@@ -52,6 +63,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
     _notesController.dispose();
     _searchController.dispose();
     _accountNumberController.dispose();
+    _maxCreditController.dispose();
+    _percentAfterLimitController.dispose();
+    _referenceNumberController.dispose();
     super.dispose();
   }
 
@@ -66,45 +80,79 @@ class _CustomersScreenState extends State<CustomersScreen> {
     _discountController.clear();
     _workplaceController.clear();
     _notesController.clear();
+    _maxCreditController.clear();
+    _percentAfterLimitController.clear();
+    _referenceNumberController.clear();
     setState(() {
       _selectedCustomer = null;
       _isEditing = false;
-      _accountType = 'حساب عام';
+      _accountType = 'حسابات الزبائن';
       _linkedAccount = 'لا يوجد';
+      _priceLink = 'يوم';
+      _distributorLink = 'لا يوجد';
+      _isSpecificDate = false;
     });
   }
 
   void _saveCustomer() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    final customer = Customer(
-      id: _isEditing ? _selectedCustomer!.id : null,
-      name: _nameController.text,
-      customerCode: _customerCodeController.text.isEmpty
-          ? null
-          : _customerCodeController.text,
-      phone: _phoneController.text,
-      address: _cityController.text, // استخدام المدينة كعنوان
-      notes: null,
-    );
-
-    final provider = Provider.of<CustomersProvider>(context, listen: false);
-
-    if (_isEditing) {
-      await provider.updateCustomer(customer);
-    } else {
-      await provider.addCustomer(customer);
-    }
-
-    if (mounted) {
+    if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              _isEditing ? 'تم تحديث الحساب بنجاح' : 'تم إضافة الحساب بنجاح'),
-          backgroundColor: const Color(0xFF10B981),
+        const SnackBar(
+          content: Text('الرجاء ملء جميع الحقول المطلوبة'),
+          backgroundColor: Colors.red,
         ),
       );
-      _clearForm();
+      return;
+    }
+
+    try {
+      final customer = Customer(
+        id: _isEditing ? _selectedCustomer!.id : null,
+        name: _nameController.text,
+        customerCode: _customerCodeController.text.isEmpty
+            ? null
+            : _customerCodeController.text,
+        phone: _phoneController.text,
+        address: _cityController.text, // استخدام المدينة كعنوان
+        notes: _notesController.text.isEmpty ? null : _notesController.text,
+      );
+
+      final provider = Provider.of<CustomersProvider>(context, listen: false);
+
+      if (_isEditing) {
+        await provider.updateCustomer(customer);
+      } else {
+        await provider.addCustomer(customer);
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 12),
+                Text(_isEditing
+                    ? 'تم تحديث الحساب بنجاح ✅'
+                    : 'تم إضافة الحساب بنجاح ✅'),
+              ],
+            ),
+            backgroundColor: const Color(0xFF10B981),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+        _clearForm();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('حدث خطأ: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
     }
   }
 
@@ -123,6 +171,136 @@ class _CustomersScreenState extends State<CustomersScreen> {
       _notesController.text = customer.notes ?? '';
       _accountNumberController.text = customer.id?.toString() ?? '';
     });
+  }
+
+  void _showAddDistributorDialog() {
+    final TextEditingController distributorNameController =
+        TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.local_shipping_rounded, color: Color(0xFF10B981)),
+            SizedBox(width: 12),
+            Text('إضافة موزع جديد'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: distributorNameController,
+              decoration: const InputDecoration(
+                labelText: 'اسم الموزع',
+                hintText: 'أدخل اسم الموزع',
+                prefixIcon: Icon(Icons.person),
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (distributorNameController.text.isNotEmpty) {
+                setState(() {
+                  // إضافة الموزع للقائمة إذا لم يكن موجوداً
+                  if (!_distributorsList
+                      .contains(distributorNameController.text)) {
+                    _distributorsList.add(distributorNameController.text);
+                  }
+                  _distributorLink = distributorNameController.text;
+                });
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                        'تم إضافة الموزع: ${distributorNameController.text}'),
+                    backgroundColor: const Color(0xFF10B981),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF10B981),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('إضافة'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddLinkedAccountDialog() {
+    final TextEditingController linkedAccountNameController =
+        TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.link_rounded, color: Color(0xFF10B981)),
+            SizedBox(width: 12),
+            Text('إضافة حساب جديد'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: linkedAccountNameController,
+              decoration: const InputDecoration(
+                labelText: 'اسم الحساب',
+                hintText: 'أدخل اسم الحساب',
+                prefixIcon: Icon(Icons.account_circle),
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (linkedAccountNameController.text.isNotEmpty) {
+                setState(() {
+                  // إضافة الحساب للقائمة إذا لم يكن موجوداً
+                  if (!_linkedAccountsList
+                      .contains(linkedAccountNameController.text)) {
+                    _linkedAccountsList.add(linkedAccountNameController.text);
+                  }
+                  _linkedAccount = linkedAccountNameController.text;
+                });
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                        'تم إضافة الحساب: ${linkedAccountNameController.text}'),
+                    backgroundColor: const Color(0xFF10B981),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF10B981),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('إضافة'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _deleteCustomer(int id) async {
@@ -211,9 +389,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  _isEditing
-                                      ? 'تعديل حساب زبون'
-                                      : 'إضافة حساب زبون',
+                                  _isEditing ? 'تعديل حساب' : 'إضافة حساب',
                                   style: Theme.of(context)
                                       .textTheme
                                       .headlineSmall
@@ -338,7 +514,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'نوع الزبون',
+                                  'نوع الحساب',
                                   style: Theme.of(context)
                                       .textTheme
                                       .titleMedium
@@ -357,8 +533,24 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                         ? const Color(0xFF334155)
                                         : const Color(0xFFF1F5F9),
                                   ),
-                                  items: ['حساب عام', 'حساب خاص', 'حساب تاجر']
-                                      .map((type) {
+                                  items: [
+                                    'مخزون المنافع بعرض البيع',
+                                    'مراكز العمليات / صيرفة',
+                                    'حسابات الزبائن',
+                                    'حسابات متعهدين',
+                                    'حسابات موقع',
+                                    'حسابات ربح نقدي',
+                                    'رأس المال المدفوع',
+                                    'حسابات شركات صيرفة',
+                                    'حسابات الصناديق',
+                                    'حسابات البنوك',
+                                    'حسابات مصاريف',
+                                    'حسابات مندوبين',
+                                    'حسابات الربح والخسائر',
+                                    'حسابات الكلفة',
+                                    'حسابات الموظفين',
+                                    'حسابات الايرادات',
+                                  ].map((type) {
                                     return DropdownMenuItem(
                                         value: type, child: Text(type));
                                   }).toList(),
@@ -393,7 +585,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                 TextFormField(
                                   controller: _nameController,
                                   decoration: InputDecoration(
-                                    hintText: 'أدخل اسم الزبون',
+                                    hintText: 'أدخل اسم الحساب',
                                     prefixIcon: const Icon(Icons.person_rounded,
                                         color: Color(0xFF10B981)),
                                     filled: true,
@@ -403,7 +595,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                   ),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
-                                      return 'الرجاء إدخال اسم الزبون';
+                                      return 'الرجاء إدخال اسم الحساب ';
                                     }
                                     return null;
                                   },
@@ -676,27 +868,42 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                       ),
                                 ),
                                 const SizedBox(height: 12),
-                                DropdownButtonFormField<String>(
-                                  initialValue: _linkedAccount,
-                                  decoration: InputDecoration(
-                                    prefixIcon: const Icon(Icons.link_rounded,
-                                        color: Color(0xFF10B981)),
-                                    filled: true,
-                                    fillColor: isDark
-                                        ? const Color(0xFF334155)
-                                        : const Color(0xFFF1F5F9),
-                                  ),
-                                  items: [
-                                    'لا يوجد',
-                                    'حساب 1',
-                                    'حساب 2',
-                                    'حساب 3'
-                                  ].map((type) {
-                                    return DropdownMenuItem(
-                                        value: type, child: Text(type));
-                                  }).toList(),
-                                  onChanged: (value) =>
-                                      setState(() => _linkedAccount = value!),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: DropdownButtonFormField<String>(
+                                        initialValue: _linkedAccount,
+                                        decoration: InputDecoration(
+                                          prefixIcon: const Icon(
+                                              Icons.link_rounded,
+                                              color: Color(0xFF10B981)),
+                                          filled: true,
+                                          fillColor: isDark
+                                              ? const Color(0xFF334155)
+                                              : const Color(0xFFF1F5F9),
+                                        ),
+                                        items: _linkedAccountsList.map((type) {
+                                          return DropdownMenuItem(
+                                              value: type, child: Text(type));
+                                        }).toList(),
+                                        onChanged: (value) => setState(
+                                            () => _linkedAccount = value!),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF10B981),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: IconButton(
+                                        icon: const Icon(Icons.add,
+                                            color: Colors.white),
+                                        onPressed: _showAddLinkedAccountDialog,
+                                        tooltip: 'إضافة حساب جديد',
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -706,7 +913,228 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
                       const SizedBox(height: 20),
 
-                      // Row 6: Notes
+                      // Row 6: ربط بموزع
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'ربط بموزع',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: DropdownButtonFormField<String>(
+                                  value: _distributorLink,
+                                  decoration: InputDecoration(
+                                    prefixIcon: const Icon(
+                                        Icons.local_shipping_rounded,
+                                        color: Color(0xFF10B981)),
+                                    filled: true,
+                                    fillColor: isDark
+                                        ? const Color(0xFF334155)
+                                        : const Color(0xFFF1F5F9),
+                                  ),
+                                  items: _distributorsList.map((distributor) {
+                                    return DropdownMenuItem(
+                                        value: distributor,
+                                        child: Text(distributor));
+                                  }).toList(),
+                                  onChanged: (value) =>
+                                      setState(() => _distributorLink = value!),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF10B981),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: IconButton(
+                                  onPressed: () {
+                                    _showAddDistributorDialog();
+                                  },
+                                  icon: const Icon(Icons.add,
+                                      color: Colors.white),
+                                  tooltip: 'إضافة موزع جديد',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Row 7: الحد الأعلى للرصيد + النسبة بعد تجاوز الحد
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'الحد الاعلى للرصيد',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: _maxCreditController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: InputDecoration(
+                                    hintText: '0',
+                                    prefixIcon: const Icon(
+                                        Icons.account_balance_wallet_rounded,
+                                        color: Color(0xFF10B981)),
+                                    filled: true,
+                                    fillColor: isDark
+                                        ? const Color(0xFF334155)
+                                        : const Color(0xFFF1F5F9),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'النسبة بعد تجاوز الحد',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: _percentAfterLimitController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: InputDecoration(
+                                    hintText: '0',
+                                    prefixIcon: const Icon(
+                                        Icons.percent_rounded,
+                                        color: Color(0xFF10B981)),
+                                    suffixText: '%',
+                                    filled: true,
+                                    fillColor: isDark
+                                        ? const Color(0xFF334155)
+                                        : const Color(0xFFF1F5F9),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Row 8: ربط الزبون بالأسعار + رقم الاستناد
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'ربط الزبون بالأسعار',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                                const SizedBox(height: 12),
+                                DropdownButtonFormField<String>(
+                                  value: _priceLink,
+                                  decoration: InputDecoration(
+                                    prefixIcon: const Icon(
+                                        Icons.attach_money_rounded,
+                                        color: Color(0xFF10B981)),
+                                    filled: true,
+                                    fillColor: isDark
+                                        ? const Color(0xFF334155)
+                                        : const Color(0xFFF1F5F9),
+                                  ),
+                                  items: ['يوم', 'اسبوع', 'شهر'].map((type) {
+                                    return DropdownMenuItem(
+                                        value: type, child: Text(type));
+                                  }).toList(),
+                                  onChanged: (value) =>
+                                      setState(() => _priceLink = value!),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'رقم الاستناد',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: _referenceNumberController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: InputDecoration(
+                                    hintText: 'أدخل رقم الاستناد',
+                                    prefixIcon: const Icon(
+                                        Icons.numbers_rounded,
+                                        color: Color(0xFF10B981)),
+                                    filled: true,
+                                    fillColor: isDark
+                                        ? const Color(0xFF334155)
+                                        : const Color(0xFFF1F5F9),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Row 9: حسابات تاريخ محددة (Checkbox)
+                      CheckboxListTile(
+                        title: const Text('حسابات تاريخ محددة'),
+                        value: _isSpecificDate,
+                        onChanged: (value) {
+                          setState(() {
+                            _isSpecificDate = value ?? false;
+                          });
+                        },
+                        controlAffinity: ListTileControlAffinity.leading,
+                        activeColor: const Color(0xFF10B981),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Row 10: Notes
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/sales_provider.dart';
 
 class BestSellersReportScreen extends StatefulWidget {
   const BestSellersReportScreen({super.key});
@@ -18,9 +20,42 @@ class _BestSellersReportScreenState extends State<BestSellersReportScreen> {
   final _dateFormat = DateFormat('yyyy-MM-dd', 'ar');
 
   @override
-  Widget build(BuildContext context) {
-    final products = _getFilteredProducts();
+  void initState() {
+    super.initState();
+    // تحميل بيانات المبيعات من قاعدة البيانات
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SalesProvider>().loadSales();
+    });
+  }
 
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<SalesProvider>(
+      builder: (context, salesProvider, child) {
+        if (salesProvider.isLoading) {
+          return Scaffold(
+            backgroundColor: Colors.grey[100],
+            appBar: AppBar(
+              title: const Text(
+                'تقرير المواد الأكثر مبيعاً',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              backgroundColor: const Color(0xFF10B981),
+              foregroundColor: Colors.white,
+              elevation: 0,
+            ),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final products = _getFilteredProducts(salesProvider.sales);
+
+        return _buildReportContent(products);
+      },
+    );
+  }
+
+  Widget _buildReportContent(List<Map<String, dynamic>> products) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
@@ -480,87 +515,57 @@ class _BestSellersReportScreenState extends State<BestSellersReportScreen> {
     );
   }
 
-  List<Map<String, dynamic>> _getFilteredProducts() {
-    final allProducts = _getDemoProducts();
-    return allProducts.where((product) {
-      final matchesSearch = _searchQuery.isEmpty ||
-          product['name'].toLowerCase().contains(_searchQuery.toLowerCase());
-      return matchesSearch;
-    }).toList();
-  }
+  List<Map<String, dynamic>> _getFilteredProducts(List<dynamic> allSales) {
+    // تجميع المبيعات حسب المنتج
+    Map<int, Map<String, dynamic>> productSales = {};
 
-  List<Map<String, dynamic>> _getDemoProducts() {
-    return [
-      {
-        'name': 'لابتوب HP ProBook',
-        'category': 'الكترونيات',
-        'quantity': 156,
-        'revenue': 156000000.0,
-        'profit': 31200000.0,
-      },
-      {
-        'name': 'طابعة Canon',
-        'category': 'الكترونيات',
-        'quantity': 143,
-        'revenue': 50050000.0,
-        'profit': 14300000.0,
-      },
-      {
-        'name': 'شاشة Samsung 24"',
-        'category': 'الكترونيات',
-        'quantity': 128,
-        'revenue': 57600000.0,
-        'profit': 19200000.0,
-      },
-      {
-        'name': 'ماوس لاسلكي',
-        'category': 'الكترونيات',
-        'quantity': 425,
-        'revenue': 10625000.0,
-        'profit': 4250000.0,
-      },
-      {
-        'name': 'كيبورد ميكانيكي',
-        'category': 'الكترونيات',
-        'quantity': 215,
-        'revenue': 25800000.0,
-        'profit': 8600000.0,
-      },
-      {
-        'name': 'قميص رجالي',
-        'category': 'ملابس',
-        'quantity': 189,
-        'revenue': 7560000.0,
-        'profit': 2835000.0,
-      },
-      {
-        'name': 'بنطلون جينز',
-        'category': 'ملابس',
-        'quantity': 167,
-        'revenue': 8350000.0,
-        'profit': 3340000.0,
-      },
-      {
-        'name': 'مكنسة كهربائية',
-        'category': 'أدوات منزلية',
-        'quantity': 78,
-        'revenue': 14040000.0,
-        'profit': 4680000.0,
-      },
-      {
-        'name': 'كرسي مكتب',
-        'category': 'أثاث',
-        'quantity': 45,
-        'revenue': 11250000.0,
-        'profit': 4500000.0,
-      },
-      {
-        'name': 'طاولة طعام خشبية',
-        'category': 'أثاث',
-        'quantity': 23,
-        'revenue': 17250000.0,
-        'profit': 5750000.0,
-      },
-    ];
+    for (var sale in allSales) {
+      final saleDate = DateTime.parse(sale.saleDate);
+
+      // فلترة حسب التاريخ
+      if (saleDate.isBefore(_fromDate) ||
+          saleDate.isAfter(_toDate.add(const Duration(days: 1)))) {
+        continue;
+      }
+
+      // تجميع عناصر كل منتج
+      for (var item in sale.items) {
+        final productId = item['product_id'] as int;
+        final quantity = (item['quantity'] as num).toDouble();
+        final totalPrice = (item['total_price'] as num).toDouble();
+        final costPrice = (item['cost_price'] ?? 0) as num;
+        final profit = totalPrice - (costPrice.toDouble() * quantity);
+
+        if (productSales.containsKey(productId)) {
+          productSales[productId]!['quantity'] += quantity;
+          productSales[productId]!['revenue'] += totalPrice;
+          productSales[productId]!['profit'] += profit;
+        } else {
+          productSales[productId] = {
+            'product_id': productId,
+            'name': item['product_name'] ?? 'غير محدد',
+            'category': item['category'] ?? 'عام',
+            'quantity': quantity,
+            'revenue': totalPrice,
+            'profit': profit,
+          };
+        }
+      }
+    }
+
+    // تحويل إلى قائمة وترتيب حسب الكمية
+    List<Map<String, dynamic>> products = productSales.values.toList();
+    products.sort(
+        (a, b) => (b['quantity'] as double).compareTo(a['quantity'] as double));
+
+    // تطبيق فلتر البحث
+    if (_searchQuery.isNotEmpty) {
+      products = products.where((product) {
+        final name = (product['name'] ?? '').toString().toLowerCase();
+        return name.contains(_searchQuery.toLowerCase());
+      }).toList();
+    }
+
+    return products;
   }
 }

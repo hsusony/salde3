@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:excel/excel.dart' as excel_lib;
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 import '../../providers/installments_provider.dart';
 import '../../models/installment.dart';
 
@@ -8,13 +11,234 @@ class InstallmentsReportsScreen extends StatefulWidget {
   const InstallmentsReportsScreen({super.key});
 
   @override
-  State<InstallmentsReportsScreen> createState() => _InstallmentsReportsScreenState();
+  State<InstallmentsReportsScreen> createState() =>
+      _InstallmentsReportsScreenState();
 }
 
 class _InstallmentsReportsScreenState extends State<InstallmentsReportsScreen> {
   DateTime _fromDate = DateTime.now().subtract(const Duration(days: 30));
   DateTime _toDate = DateTime.now();
   String _reportType = 'الكل'; // الكل، النشطة، المكتملة، المتأخرة
+
+  @override
+  void initState() {
+    super.initState();
+    // Load installments when screen opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<InstallmentsProvider>(context, listen: false)
+          .loadInstallments();
+    });
+  }
+
+  Future<void> _exportToExcel(List<Installment> installments) async {
+    try {
+      // Check if there's data to export
+      if (installments.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                  'لا توجد بيانات للتصدير. الرجاء التأكد من وجود أقساط في الفترة المحددة.'),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Show loading message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('جاري تصدير ${installments.length} قسط...'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+
+      // Create Excel file
+      var excel = excel_lib.Excel.createExcel();
+
+      // Delete default sheet and create new one
+      excel.delete('Sheet1');
+      var sheet = excel['تقرير الأقساط']; // Add headers
+      var headers = [
+        'ت',
+        'اسم الزبون',
+        'المبلغ الإجمالي',
+        'المبلغ المدفوع',
+        'المبلغ المتبقي',
+        'عدد الأقساط المدفوعة',
+        'إجمالي الأقساط',
+        'قيمة القسط',
+        'تاريخ البدء',
+        'الحالة',
+        'ملاحظات'
+      ];
+
+      // Add headers to first row
+      for (int i = 0; i < headers.length; i++) {
+        var cell = sheet.cell(
+            excel_lib.CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+        cell.value = excel_lib.TextCellValue(headers[i]);
+        cell.cellStyle = excel_lib.CellStyle(
+          backgroundColorHex: excel_lib.ExcelColor.blue,
+          fontColorHex: excel_lib.ExcelColor.white,
+          bold: true,
+        );
+      }
+
+      // Add data
+      final numberFormat = NumberFormat('#,##0', 'ar_IQ');
+      final dateFormat = DateFormat('yyyy/MM/dd', 'ar');
+
+      for (int i = 0; i < installments.length; i++) {
+        var installment = installments[i];
+        int row = i + 1;
+
+        sheet
+            .cell(excel_lib.CellIndex.indexByColumnRow(
+                columnIndex: 0, rowIndex: row))
+            .value = excel_lib.IntCellValue(i + 1);
+        sheet
+            .cell(excel_lib.CellIndex.indexByColumnRow(
+                columnIndex: 1, rowIndex: row))
+            .value = excel_lib.TextCellValue(installment.customerName);
+        sheet
+                .cell(excel_lib.CellIndex.indexByColumnRow(
+                    columnIndex: 2, rowIndex: row))
+                .value =
+            excel_lib.TextCellValue(
+                numberFormat.format(installment.totalAmount));
+        sheet
+                .cell(excel_lib.CellIndex.indexByColumnRow(
+                    columnIndex: 3, rowIndex: row))
+                .value =
+            excel_lib.TextCellValue(
+                numberFormat.format(installment.paidAmount));
+        sheet
+                .cell(excel_lib.CellIndex.indexByColumnRow(
+                    columnIndex: 4, rowIndex: row))
+                .value =
+            excel_lib.TextCellValue(
+                numberFormat.format(installment.remainingAmount));
+        sheet
+            .cell(excel_lib.CellIndex.indexByColumnRow(
+                columnIndex: 5, rowIndex: row))
+            .value = excel_lib.IntCellValue(installment.paidInstallments);
+        sheet
+            .cell(excel_lib.CellIndex.indexByColumnRow(
+                columnIndex: 6, rowIndex: row))
+            .value = excel_lib.IntCellValue(installment.numberOfInstallments);
+        sheet
+                .cell(excel_lib.CellIndex.indexByColumnRow(
+                    columnIndex: 7, rowIndex: row))
+                .value =
+            excel_lib.TextCellValue(
+                numberFormat.format(installment.installmentAmount));
+        sheet
+                .cell(excel_lib.CellIndex.indexByColumnRow(
+                    columnIndex: 8, rowIndex: row))
+                .value =
+            excel_lib.TextCellValue(
+                dateFormat.format(DateTime.parse(installment.startDate)));
+
+        String statusText = installment.status == 'active'
+            ? 'نشط'
+            : installment.status == 'completed'
+                ? 'مكتمل'
+                : installment.status == 'overdue'
+                    ? 'متأخر'
+                    : 'غير معروف';
+        sheet
+            .cell(excel_lib.CellIndex.indexByColumnRow(
+                columnIndex: 9, rowIndex: row))
+            .value = excel_lib.TextCellValue(statusText);
+        sheet
+            .cell(excel_lib.CellIndex.indexByColumnRow(
+                columnIndex: 10, rowIndex: row))
+            .value = excel_lib.TextCellValue(installment.notes);
+      }
+
+      // Add summary row
+      int summaryRow = installments.length + 2;
+      sheet
+          .cell(excel_lib.CellIndex.indexByColumnRow(
+              columnIndex: 0, rowIndex: summaryRow))
+          .value = excel_lib.TextCellValue('الإجمالي:');
+
+      double totalAmount =
+          installments.fold(0, (sum, inst) => sum + inst.totalAmount);
+      double paidAmount =
+          installments.fold(0, (sum, inst) => sum + inst.paidAmount);
+      double remainingAmount =
+          installments.fold(0, (sum, inst) => sum + inst.remainingAmount);
+
+      sheet
+          .cell(excel_lib.CellIndex.indexByColumnRow(
+              columnIndex: 2, rowIndex: summaryRow))
+          .value = excel_lib.TextCellValue(numberFormat.format(totalAmount));
+      sheet
+          .cell(excel_lib.CellIndex.indexByColumnRow(
+              columnIndex: 3, rowIndex: summaryRow))
+          .value = excel_lib.TextCellValue(numberFormat.format(paidAmount));
+      sheet
+              .cell(excel_lib.CellIndex.indexByColumnRow(
+                  columnIndex: 4, rowIndex: summaryRow))
+              .value =
+          excel_lib.TextCellValue(numberFormat.format(remainingAmount));
+
+      // Set column widths
+      for (int i = 0; i < headers.length; i++) {
+        sheet.setColumnWidth(i, 20);
+      }
+
+      // Pick save location
+      String? outputPath = await FilePicker.platform.saveFile(
+        dialogTitle: 'حفظ ملف Excel',
+        fileName:
+            'تقرير_الأقساط_${DateFormat('yyyy_MM_dd_HH_mm').format(DateTime.now())}.xlsx',
+        type: FileType.custom,
+        allowedExtensions: ['xlsx'],
+      );
+
+      if (outputPath != null) {
+        // Ensure the file has .xlsx extension
+        if (!outputPath.endsWith('.xlsx')) {
+          outputPath = '$outputPath.xlsx';
+        }
+
+        // Save the file
+        var fileBytes = excel.encode();
+        if (fileBytes != null) {
+          File(outputPath)
+            ..createSync(recursive: true)
+            ..writeAsBytesSync(fileBytes);
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('تم حفظ الملف بنجاح في: $outputPath'),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('حدث خطأ أثناء التصدير: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
 
   Future<void> _selectDate(BuildContext context, bool isFromDate) async {
     final DateTime? picked = await showDatePicker(
@@ -44,7 +268,8 @@ class _InstallmentsReportsScreenState extends State<InstallmentsReportsScreen> {
     }
   }
 
-  Widget _buildStatCard(String label, String value, Color color, IconData icon) {
+  Widget _buildStatCard(
+      String label, String value, Color color, IconData icon) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -96,7 +321,6 @@ class _InstallmentsReportsScreenState extends State<InstallmentsReportsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final dateFormat = DateFormat('yyyy/MM/dd', 'ar');
     final numberFormat = NumberFormat.currency(
       symbol: 'د.ع',
@@ -172,17 +396,49 @@ class _InstallmentsReportsScreenState extends State<InstallmentsReportsScreen> {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.print, color: Colors.white, size: 26),
+                      icon: const Icon(Icons.print,
+                          color: Colors.white, size: 26),
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('جاري طباعة التقرير...')),
+                          const SnackBar(
+                              content: Text('جاري طباعة التقرير...')),
                         );
                       },
                       tooltip: 'طباعة',
                     ),
                     const SizedBox(width: 8),
+                    Consumer<InstallmentsProvider>(
+                      builder: (context, provider, child) {
+                        return IconButton(
+                          icon: const Icon(Icons.file_download,
+                              color: Colors.white, size: 26),
+                          onPressed: () {
+                            var filteredInstallments =
+                                provider.installments.where((inst) {
+                              final startDate = DateTime.parse(inst.startDate);
+                              if (startDate.isBefore(_fromDate) ||
+                                  startDate.isAfter(
+                                      _toDate.add(const Duration(days: 1)))) {
+                                return false;
+                              }
+                              if (_reportType == 'النشطة' &&
+                                  inst.status != 'active') return false;
+                              if (_reportType == 'المكتملة' &&
+                                  inst.status != 'completed') return false;
+                              if (_reportType == 'المتأخرة' &&
+                                  inst.status != 'overdue') return false;
+                              return true;
+                            }).toList();
+                            _exportToExcel(filteredInstallments);
+                          },
+                          tooltip: 'تصدير إلى Excel',
+                        );
+                      },
+                    ),
+                    const SizedBox(width: 8),
                     IconButton(
-                      icon: const Icon(Icons.picture_as_pdf, color: Colors.white, size: 26),
+                      icon: const Icon(Icons.picture_as_pdf,
+                          color: Colors.white, size: 26),
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('جاري تصدير PDF...')),
@@ -205,11 +461,13 @@ class _InstallmentsReportsScreenState extends State<InstallmentsReportsScreen> {
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.15),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.white.withOpacity(0.3)),
+                            border: Border.all(
+                                color: Colors.white.withOpacity(0.3)),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.calendar_today, color: Colors.white, size: 20),
+                              const Icon(Icons.calendar_today,
+                                  color: Colors.white, size: 20),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Column(
@@ -249,11 +507,13 @@ class _InstallmentsReportsScreenState extends State<InstallmentsReportsScreen> {
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.15),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.white.withOpacity(0.3)),
+                            border: Border.all(
+                                color: Colors.white.withOpacity(0.3)),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.calendar_today, color: Colors.white, size: 20),
+                              const Icon(Icons.calendar_today,
+                                  color: Colors.white, size: 20),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Column(
@@ -291,15 +551,20 @@ class _InstallmentsReportsScreenState extends State<InstallmentsReportsScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.white.withOpacity(0.3)),
+                          border:
+                              Border.all(color: Colors.white.withOpacity(0.3)),
                         ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             value: _reportType,
                             isExpanded: true,
                             dropdownColor: const Color(0xFF1E40AF),
-                            icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-                            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                            icon: const Icon(Icons.arrow_drop_down,
+                                color: Colors.white),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold),
                             items: ['الكل', 'النشطة', 'المكتملة', 'المتأخرة']
                                 .map((type) => DropdownMenuItem(
                                       value: type,
@@ -330,7 +595,8 @@ class _InstallmentsReportsScreenState extends State<InstallmentsReportsScreen> {
                         ],
                       ),
                       child: IconButton(
-                        icon: const Icon(Icons.search, color: Color(0xFF3B82F6)),
+                        icon:
+                            const Icon(Icons.search, color: Color(0xFF3B82F6)),
                         onPressed: () {
                           setState(() {});
                         },
@@ -351,18 +617,25 @@ class _InstallmentsReportsScreenState extends State<InstallmentsReportsScreen> {
                 // Filter installments based on date and type
                 var filteredInstallments = provider.installments.where((inst) {
                   final startDate = DateTime.parse(inst.startDate);
-                  if (startDate.isBefore(_fromDate) || startDate.isAfter(_toDate.add(const Duration(days: 1)))) {
+                  if (startDate.isBefore(_fromDate) ||
+                      startDate.isAfter(_toDate.add(const Duration(days: 1)))) {
                     return false;
                   }
-                  if (_reportType == 'النشطة' && inst.status != 'active') return false;
-                  if (_reportType == 'المكتملة' && inst.status != 'completed') return false;
-                  if (_reportType == 'المتأخرة' && inst.status != 'overdue') return false;
+                  if (_reportType == 'النشطة' && inst.status != 'active')
+                    return false;
+                  if (_reportType == 'المكتملة' && inst.status != 'completed')
+                    return false;
+                  if (_reportType == 'المتأخرة' && inst.status != 'overdue')
+                    return false;
                   return true;
                 }).toList();
 
-                double totalAmount = filteredInstallments.fold(0, (sum, inst) => sum + inst.totalAmount);
-                double paidAmount = filteredInstallments.fold(0, (sum, inst) => sum + inst.paidAmount);
-                double remainingAmount = filteredInstallments.fold(0, (sum, inst) => sum + inst.remainingAmount);
+                double totalAmount = filteredInstallments.fold(
+                    0, (sum, inst) => sum + inst.totalAmount);
+                double paidAmount = filteredInstallments.fold(
+                    0, (sum, inst) => sum + inst.paidAmount);
+                double remainingAmount = filteredInstallments.fold(
+                    0, (sum, inst) => sum + inst.remainingAmount);
                 int totalCount = filteredInstallments.length;
 
                 return Row(
@@ -414,13 +687,17 @@ class _InstallmentsReportsScreenState extends State<InstallmentsReportsScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [const Color(0xFF3B82F6).withOpacity(0.1), const Color(0xFF1E40AF).withOpacity(0.05)],
+                colors: [
+                  const Color(0xFF3B82F6).withOpacity(0.1),
+                  const Color(0xFF1E40AF).withOpacity(0.05)
+                ],
               ),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
               ),
-              border: Border.all(color: const Color(0xFF3B82F6).withOpacity(0.3)),
+              border:
+                  Border.all(color: const Color(0xFF3B82F6).withOpacity(0.3)),
             ),
             child: const Row(
               children: [
@@ -490,12 +767,16 @@ class _InstallmentsReportsScreenState extends State<InstallmentsReportsScreen> {
               builder: (context, provider, child) {
                 var filteredInstallments = provider.installments.where((inst) {
                   final startDate = DateTime.parse(inst.startDate);
-                  if (startDate.isBefore(_fromDate) || startDate.isAfter(_toDate.add(const Duration(days: 1)))) {
+                  if (startDate.isBefore(_fromDate) ||
+                      startDate.isAfter(_toDate.add(const Duration(days: 1)))) {
                     return false;
                   }
-                  if (_reportType == 'النشطة' && inst.status != 'active') return false;
-                  if (_reportType == 'المكتملة' && inst.status != 'completed') return false;
-                  if (_reportType == 'المتأخرة' && inst.status != 'overdue') return false;
+                  if (_reportType == 'النشطة' && inst.status != 'active')
+                    return false;
+                  if (_reportType == 'المكتملة' && inst.status != 'completed')
+                    return false;
+                  if (_reportType == 'المتأخرة' && inst.status != 'overdue')
+                    return false;
                   return true;
                 }).toList();
 
@@ -528,7 +809,7 @@ class _InstallmentsReportsScreenState extends State<InstallmentsReportsScreen> {
                   itemCount: filteredInstallments.length,
                   itemBuilder: (context, index) {
                     final installment = filteredInstallments[index];
-                    
+
                     Color statusColor;
                     String statusText;
                     switch (installment.status) {
@@ -555,7 +836,8 @@ class _InstallmentsReportsScreenState extends State<InstallmentsReportsScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         border: Border(
-                          bottom: BorderSide(color: Colors.grey.shade200, width: 1),
+                          bottom:
+                              BorderSide(color: Colors.grey.shade200, width: 1),
                           right: BorderSide(color: statusColor, width: 4),
                         ),
                       ),
@@ -582,7 +864,10 @@ class _InstallmentsReportsScreenState extends State<InstallmentsReportsScreen> {
                                   height: 40,
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
-                                      colors: [statusColor.withOpacity(0.8), statusColor],
+                                      colors: [
+                                        statusColor.withOpacity(0.8),
+                                        statusColor
+                                      ],
                                     ),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
@@ -595,7 +880,8 @@ class _InstallmentsReportsScreenState extends State<InstallmentsReportsScreen> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         installment.customerName,
@@ -657,7 +943,8 @@ class _InstallmentsReportsScreenState extends State<InstallmentsReportsScreen> {
                           Expanded(
                             child: Center(
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
                                   color: statusColor.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(8),
@@ -686,7 +973,8 @@ class _InstallmentsReportsScreenState extends State<InstallmentsReportsScreen> {
                                     size: 22,
                                   ),
                                   onPressed: () {
-                                    _showInstallmentDetails(context, installment);
+                                    _showInstallmentDetails(
+                                        context, installment);
                                   },
                                   tooltip: 'عرض',
                                 ),
@@ -699,7 +987,8 @@ class _InstallmentsReportsScreenState extends State<InstallmentsReportsScreen> {
                                   onPressed: () {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text('طباعة قسط ${installment.customerName}'),
+                                        content: Text(
+                                            'طباعة قسط ${installment.customerName}'),
                                       ),
                                     );
                                   },
@@ -750,7 +1039,8 @@ class _InstallmentsReportsScreenState extends State<InstallmentsReportsScreen> {
                       ),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.receipt_long, color: Colors.white, size: 28),
+                    child: const Icon(Icons.receipt_long,
+                        color: Colors.white, size: 28),
                   ),
                   const SizedBox(width: 12),
                   const Expanded(
@@ -770,13 +1060,30 @@ class _InstallmentsReportsScreenState extends State<InstallmentsReportsScreen> {
               ),
               const Divider(height: 30),
               _buildDetailRow('رقم القسط', '#${installment.id}', Icons.tag),
-              _buildDetailRow('اسم الزبون', installment.customerName, Icons.person),
-              _buildDetailRow('المبلغ الإجمالي', numberFormat.format(installment.totalAmount), Icons.account_balance),
-              _buildDetailRow('المبلغ المدفوع', numberFormat.format(installment.paidAmount), Icons.payment),
-              _buildDetailRow('المبلغ المتبقي', numberFormat.format(installment.remainingAmount), Icons.money_off),
-              _buildDetailRow('عدد الأقساط', '${installment.paidInstallments}/${installment.numberOfInstallments}', Icons.format_list_numbered),
-              _buildDetailRow('قيمة القسط', numberFormat.format(installment.installmentAmount), Icons.attach_money),
-              _buildDetailRow('تاريخ البدء', dateFormat.format(DateTime.parse(installment.startDate)), Icons.calendar_today),
+              _buildDetailRow(
+                  'اسم الزبون', installment.customerName, Icons.person),
+              _buildDetailRow(
+                  'المبلغ الإجمالي',
+                  numberFormat.format(installment.totalAmount),
+                  Icons.account_balance),
+              _buildDetailRow('المبلغ المدفوع',
+                  numberFormat.format(installment.paidAmount), Icons.payment),
+              _buildDetailRow(
+                  'المبلغ المتبقي',
+                  numberFormat.format(installment.remainingAmount),
+                  Icons.money_off),
+              _buildDetailRow(
+                  'عدد الأقساط',
+                  '${installment.paidInstallments}/${installment.numberOfInstallments}',
+                  Icons.format_list_numbered),
+              _buildDetailRow(
+                  'قيمة القسط',
+                  numberFormat.format(installment.installmentAmount),
+                  Icons.attach_money),
+              _buildDetailRow(
+                  'تاريخ البدء',
+                  dateFormat.format(DateTime.parse(installment.startDate)),
+                  Icons.calendar_today),
               if (installment.notes.isNotEmpty)
                 _buildDetailRow('ملاحظات', installment.notes, Icons.note),
               const SizedBox(height: 20),

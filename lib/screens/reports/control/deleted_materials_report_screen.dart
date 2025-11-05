@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../../services/database_helper.dart';
+import '../../../models/audit_log.dart';
 
 class DeletedMaterialsReportScreen extends StatefulWidget {
   const DeletedMaterialsReportScreen({super.key});
@@ -11,15 +13,42 @@ class DeletedMaterialsReportScreen extends StatefulWidget {
 
 class _DeletedMaterialsReportScreenState
     extends State<DeletedMaterialsReportScreen> {
-  DateTime _selectedDate = DateTime.now();
-  String _selectedCategory = 'التصنيف';
+  DateTime _fromDate = DateTime.now().subtract(const Duration(days: 30));
+  DateTime _toDate = DateTime.now();
+  List<AuditLog> _deletedItems = [];
+  bool _isLoading = false;
 
   final _dateFormat = DateFormat('dd/MM/yyyy');
+  final _dateTimeFormat = DateFormat('dd/MM/yyyy hh:mm a');
 
-  Future<void> _selectDate(BuildContext context) async {
+  @override
+  void initState() {
+    super.initState();
+    _loadDeletedProducts();
+  }
+
+  Future<void> _loadDeletedProducts() async {
+    setState(() => _isLoading = true);
+    try {
+      final logs = await DatabaseHelper.instance.getDeletedProductsLog(
+        fromDate: _fromDate,
+        toDate: _toDate,
+      );
+
+      setState(() {
+        _deletedItems = logs.map((map) => AuditLog.fromMap(map)).toList();
+      });
+    } catch (e) {
+      print('Error loading deleted products: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _selectDate(BuildContext context, bool isFromDate) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate,
+      initialDate: isFromDate ? _fromDate : _toDate,
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
       builder: (context, child) {
@@ -37,8 +66,13 @@ class _DeletedMaterialsReportScreenState
     );
     if (picked != null) {
       setState(() {
-        _selectedDate = picked;
+        if (isFromDate) {
+          _fromDate = picked;
+        } else {
+          _toDate = picked;
+        }
       });
+      _loadDeletedProducts();
     }
   }
 
@@ -170,13 +204,13 @@ class _DeletedMaterialsReportScreenState
             ),
             child: Row(
               children: [
-                // Date Filter
+                // From Date
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'على تاريخ',
+                        'من تاريخ',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -185,7 +219,7 @@ class _DeletedMaterialsReportScreenState
                       ),
                       const SizedBox(height: 8),
                       InkWell(
-                        onTap: () => _selectDate(context),
+                        onTap: () => _selectDate(context, true),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -199,7 +233,7 @@ class _DeletedMaterialsReportScreenState
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                _dateFormat.format(_selectedDate),
+                                _dateFormat.format(_fromDate),
                                 style: const TextStyle(fontSize: 14),
                               ),
                               const Icon(
@@ -215,19 +249,49 @@ class _DeletedMaterialsReportScreenState
                   ),
                 ),
                 const SizedBox(width: 16),
-                // Category Dropdown
+                // To Date
                 Expanded(
-                  child: _buildDropdown('التصنيف', _selectedCategory, [
-                    'التصنيف',
-                    'الكل',
-                    'إلكترونيات',
-                    'موبايلات',
-                    'حواسيب'
-                  ], (value) {
-                    setState(() {
-                      _selectedCategory = value!;
-                    });
-                  }),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'إلى تاريخ',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      InkWell(
+                        onTap: () => _selectDate(context, false),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey[300]!),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _dateFormat.format(_toDate),
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                              const Icon(
+                                Icons.calendar_today_rounded,
+                                size: 18,
+                                color: Color(0xFF8B5CF6),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(width: 16),
                 // Update Button
@@ -241,7 +305,7 @@ class _DeletedMaterialsReportScreenState
                       ),
                       const SizedBox(height: 8),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: _loadDeletedProducts,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF10B981),
                           foregroundColor: Colors.white,
@@ -297,53 +361,141 @@ class _DeletedMaterialsReportScreenState
                     child: Row(
                       children: [
                         _buildTableHeader('ت', flex: 1),
-                        _buildTableHeader('المادة', flex: 2),
-                        _buildTableHeader('التصنيف', flex: 2),
-                        _buildTableHeader('الكمية', flex: 1),
-                        _buildTableHeader('الموديل', flex: 2),
+                        _buildTableHeader('اسم المادة', flex: 3),
+                        _buildTableHeader('اسم المستخدم', flex: 2),
                         _buildTableHeader('تاريخ الحذف', flex: 2),
-                        _buildTableHeader('ت', flex: 1),
+                        _buildTableHeader('الوقت', flex: 2),
+                        _buildTableHeader('ملاحظات', flex: 3),
                       ],
                     ),
                   ),
-                  // Empty State
+                  // Data Rows or Empty State
                   Expanded(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF8B5CF6).withOpacity(0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.delete_outline_rounded,
-                              size: 64,
-                              color: Color(0xFF8B5CF6),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'لا توجد مواد محذوفة',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'لا توجد مواد محذوفة في التاريخ المحدد',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    child: _isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : _deletedItems.isEmpty
+                            ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(24),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF8B5CF6)
+                                            .withOpacity(0.1),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.delete_outline_rounded,
+                                        size: 64,
+                                        color: Color(0xFF8B5CF6),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    const Text(
+                                      'لا توجد مواد محذوفة',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'لا توجد مواد محذوفة في الفترة المحددة',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : ListView.separated(
+                                padding: const EdgeInsets.all(16),
+                                itemCount: _deletedItems.length,
+                                separatorBuilder: (context, index) =>
+                                    const Divider(height: 1),
+                                itemBuilder: (context, index) {
+                                  final item = _deletedItems[index];
+                                  final date = DateFormat('dd/MM/yyyy')
+                                      .format(item.operationDate);
+                                  final time = DateFormat('hh:mm a')
+                                      .format(item.operationDate);
+
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 1,
+                                          child: Text(
+                                            '${index + 1}',
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 3,
+                                          child: Text(
+                                            item.recordName,
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF8B5CF6),
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 2,
+                                          child: Text(
+                                            item.userName,
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(
+                                              color: Color(0xFF10B981),
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 2,
+                                          child: Text(
+                                            date,
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 2,
+                                          child: Text(
+                                            time,
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 3,
+                                          child: Text(
+                                            item.notes ?? '-',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.grey[700],
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
                   ),
                 ],
               ),
@@ -351,43 +503,6 @@ class _DeletedMaterialsReportScreenState
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildDropdown(String label, String value, List<String> items,
-      void Function(String?) onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: DropdownButton<String>(
-            value: value,
-            underline: const SizedBox(),
-            isExpanded: true,
-            items: items
-                .map((item) => DropdownMenuItem(
-                      value: item,
-                      child: Text(item, style: const TextStyle(fontSize: 14)),
-                    ))
-                .toList(),
-            onChanged: onChanged,
-          ),
-        ),
-      ],
     );
   }
 

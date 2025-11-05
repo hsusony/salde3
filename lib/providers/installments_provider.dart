@@ -1,15 +1,20 @@
 import 'package:flutter/foundation.dart';
 import '../models/installment.dart';
+import '../repositories/installments_repository.dart';
 
 class InstallmentsProvider extends ChangeNotifier {
+  final InstallmentsRepository _repository = InstallmentsRepository();
+
   List<Installment> _installments = [];
   List<InstallmentPayment> _payments = [];
   bool _isLoading = false;
+  String? _error;
 
   List<Installment> get installments => _installments;
   List<InstallmentPayment> get payments => _payments;
   List<InstallmentPayment> get allPayments => _payments;
   bool get isLoading => _isLoading;
+  String? get error => _error;
 
   List<Installment> get activeInstallments =>
       _installments.where((i) => i.status == 'active').toList();
@@ -21,74 +26,90 @@ class InstallmentsProvider extends ChangeNotifier {
       _installments.where((i) => i.status == 'completed').toList();
 
   InstallmentsProvider() {
-    _loadDemoData();
-  }
-
-  void _loadDemoData() {
-    // TODO: استبدل هذه الدالة بجلب البيانات من قاعدة البيانات
-    // في النظام الحقيقي، يجب أن تجلب البيانات من قاعدة البيانات
-    _installments = [];
-    _payments = [];
-    notifyListeners();
+    loadInstallments();
   }
 
   Future<void> loadInstallments() async {
     _isLoading = true;
+    _error = null;
     notifyListeners();
 
-    // في التطبيق الفعلي، سيتم جلب البيانات من قاعدة البيانات
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    _isLoading = false;
-    notifyListeners();
-  }
-
-  Future<void> addInstallment(Installment installment) async {
-    final newInstallment = installment.copyWith(
-      id: _installments.isEmpty ? 1 : _installments.map((e) => e.id!).reduce((a, b) => a > b ? a : b) + 1,
-    );
-    _installments.add(newInstallment);
-    notifyListeners();
-  }
-
-  Future<void> updateInstallment(Installment installment) async {
-    final index = _installments.indexWhere((i) => i.id == installment.id);
-    if (index != -1) {
-      _installments[index] = installment;
+    try {
+      _installments = await _repository.getAllInstallments();
+      _payments = await _repository.getAllPayments();
+    } catch (e) {
+      _error = e.toString();
+      debugPrint('Error loading installments: $e');
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }
 
+  Future<void> addInstallment(Installment installment) async {
+    try {
+      final id = await _repository.addInstallment(installment);
+      final newInstallment = installment.copyWith(id: id);
+      _installments.add(newInstallment);
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      debugPrint('Error adding installment: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> updateInstallment(Installment installment) async {
+    try {
+      await _repository.updateInstallment(installment);
+      final index = _installments.indexWhere((i) => i.id == installment.id);
+      if (index != -1) {
+        _installments[index] = installment;
+        notifyListeners();
+      }
+    } catch (e) {
+      _error = e.toString();
+      debugPrint('Error updating installment: $e');
+      rethrow;
+    }
+  }
+
   Future<void> deleteInstallment(int id) async {
-    _installments.removeWhere((i) => i.id == id);
-    _payments.removeWhere((p) => p.installmentId == id);
-    notifyListeners();
+    try {
+      await _repository.deleteInstallment(id);
+      _installments.removeWhere((i) => i.id == id);
+      _payments.removeWhere((p) => p.installmentId == id);
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      debugPrint('Error deleting installment: $e');
+      rethrow;
+    }
   }
 
   Future<void> addPayment(InstallmentPayment payment) async {
-    final newPayment = payment.copyWith(
-      id: _payments.isEmpty ? 1 : _payments.map((e) => e.id!).reduce((a, b) => a > b ? a : b) + 1,
-    );
-    _payments.add(newPayment);
+    try {
+      final id = await _repository.addPayment(payment);
+      final newPayment = payment.copyWith(id: id);
+      _payments.add(newPayment);
 
-    // تحديث بيانات القسط
-    final installmentIndex = _installments.indexWhere((i) => i.id == payment.installmentId);
-    if (installmentIndex != -1) {
-      final installment = _installments[installmentIndex];
-      final newPaidAmount = installment.paidAmount + payment.amount;
-      final newRemainingAmount = installment.totalAmount - newPaidAmount;
-      final newPaidInstallments = installment.paidInstallments + 1;
-      final newStatus = newRemainingAmount <= 0 ? 'completed' : 'active';
+      // Reload installment to get updated data
+      final installmentIndex =
+          _installments.indexWhere((i) => i.id == payment.installmentId);
+      if (installmentIndex != -1) {
+        final updatedInstallment =
+            await _repository.getInstallmentById(payment.installmentId);
+        if (updatedInstallment != null) {
+          _installments[installmentIndex] = updatedInstallment;
+        }
+      }
 
-      _installments[installmentIndex] = installment.copyWith(
-        paidAmount: newPaidAmount,
-        remainingAmount: newRemainingAmount,
-        paidInstallments: newPaidInstallments,
-        status: newStatus,
-      );
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      debugPrint('Error adding payment: $e');
+      rethrow;
     }
-
-    notifyListeners();
   }
 
   List<InstallmentPayment> getPaymentsByInstallmentId(int installmentId) {
@@ -110,26 +131,19 @@ class InstallmentsProvider extends ChangeNotifier {
   int getActiveInstallmentsCount() {
     return _installments.where((i) => i.status == 'active').length;
   }
-}
 
-extension InstallmentPaymentCopyWith on InstallmentPayment {
-  InstallmentPayment copyWith({
-    int? id,
-    int? installmentId,
-    String? customerName,
-    double? amount,
-    String? paymentDate,
-    int? installmentNumber,
-    String? notes,
-  }) {
-    return InstallmentPayment(
-      id: id ?? this.id,
-      installmentId: installmentId ?? this.installmentId,
-      customerName: customerName ?? this.customerName,
-      amount: amount ?? this.amount,
-      paymentDate: paymentDate ?? this.paymentDate,
-      installmentNumber: installmentNumber ?? this.installmentNumber,
-      notes: notes ?? this.notes,
-    );
+  Future<Map<String, dynamic>> getStats() async {
+    try {
+      return await _repository.getInstallmentStats();
+    } catch (e) {
+      debugPrint('Error getting installment stats: $e');
+      return {
+        'activeTotalAmount': 0.0,
+        'overdueTotalAmount': 0.0,
+        'activeCount': 0,
+        'overdueCount': 0,
+        'monthPayments': 0.0,
+      };
+    }
   }
 }

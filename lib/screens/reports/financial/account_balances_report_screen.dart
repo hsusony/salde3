@@ -551,7 +551,7 @@ class _AccountBalancesReportScreenState
     // بيانات نموذجية للحسابات
     return [
       {
-        'code': '1001',
+        'accountNo': '1001',
         'name': 'الصندوق الرئيسي',
         'type': 'أصول',
         'debit': 5000000.0,
@@ -559,7 +559,7 @@ class _AccountBalancesReportScreenState
         'balance': 3000000.0,
       },
       {
-        'code': '1002',
+        'accountNo': '1002',
         'name': 'البنك العربي',
         'type': 'أصول',
         'debit': 8000000.0,
@@ -567,7 +567,7 @@ class _AccountBalancesReportScreenState
         'balance': 5000000.0,
       },
       {
-        'code': '1003',
+        'accountNo': '1003',
         'name': 'العملاء - حساب جاري',
         'type': 'أصول',
         'debit': 12000000.0,
@@ -575,7 +575,7 @@ class _AccountBalancesReportScreenState
         'balance': 5000000.0,
       },
       {
-        'code': '2001',
+        'accountNo': '2001',
         'name': 'الموردين',
         'type': 'خصوم',
         'debit': 4000000.0,
@@ -583,7 +583,7 @@ class _AccountBalancesReportScreenState
         'balance': -5000000.0,
       },
       {
-        'code': '3001',
+        'accountNo': '3001',
         'name': 'رأس المال',
         'type': 'حقوق ملكية',
         'debit': 0.0,
@@ -591,7 +591,7 @@ class _AccountBalancesReportScreenState
         'balance': -10000000.0,
       },
       {
-        'code': '4001',
+        'accountNo': '4001',
         'name': 'المبيعات',
         'type': 'إيرادات',
         'debit': 5000000.0,
@@ -599,7 +599,7 @@ class _AccountBalancesReportScreenState
         'balance': -15000000.0,
       },
       {
-        'code': '5001',
+        'accountNo': '5001',
         'name': 'تكلفة البضاعة المباعة',
         'type': 'مصروفات',
         'debit': 12000000.0,
@@ -607,7 +607,7 @@ class _AccountBalancesReportScreenState
         'balance': 12000000.0,
       },
       {
-        'code': '5002',
+        'accountNo': '5002',
         'name': 'الرواتب والأجور',
         'type': 'مصروفات',
         'debit': 3000000.0,
@@ -615,7 +615,7 @@ class _AccountBalancesReportScreenState
         'balance': 3000000.0,
       },
       {
-        'code': '5003',
+        'accountNo': '5003',
         'name': 'الإيجار',
         'type': 'مصروفات',
         'debit': 1200000.0,
@@ -623,7 +623,7 @@ class _AccountBalancesReportScreenState
         'balance': 1200000.0,
       },
       {
-        'code': '5004',
+        'accountNo': '5004',
         'name': 'الكهرباء والماء',
         'type': 'مصروفات',
         'debit': 500000.0,

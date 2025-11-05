@@ -5,6 +5,7 @@ import '../providers/products_provider.dart';
 import '../providers/theme_provider.dart';
 import '../models/product.dart';
 import '../widgets/product_form_dialog.dart';
+import '../services/user_service.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
@@ -15,7 +16,8 @@ class ProductsScreen extends StatefulWidget {
 
 class _ProductsScreenState extends State<ProductsScreen> {
   final _searchController = TextEditingController();
-  final _currencyFormat = NumberFormat.currency(symbol: 'د.ع ', decimalDigits: 0);
+  final _currencyFormat =
+      NumberFormat.currency(symbol: 'د.ع ', decimalDigits: 0);
 
   @override
   void initState() {
@@ -56,9 +58,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       Consumer<ProductsProvider>(
                         builder: (context, provider, _) => Text(
                           'إجمالي المنتجات: ${provider.products.length}',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Colors.grey,
+                                  ),
                         ),
                       ),
                     ],
@@ -74,19 +77,20 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       hintText: 'بحث عن منتج...',
                       prefixIcon: const Icon(Icons.search_rounded),
                       suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear_rounded),
-                            onPressed: () {
-                              _searchController.clear();
-                              Provider.of<ProductsProvider>(context, listen: false)
-                                .searchProducts('');
-                            },
-                          )
-                        : null,
+                          ? IconButton(
+                              icon: const Icon(Icons.clear_rounded),
+                              onPressed: () {
+                                _searchController.clear();
+                                Provider.of<ProductsProvider>(context,
+                                        listen: false)
+                                    .searchProducts('');
+                              },
+                            )
+                          : null,
                     ),
                     onChanged: (value) {
                       Provider.of<ProductsProvider>(context, listen: false)
-                        .searchProducts(value);
+                          .searchProducts(value);
                     },
                   ),
                 ),
@@ -96,7 +100,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   icon: const Icon(Icons.add_rounded),
                   label: const Text('إضافة منتج جديد'),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 16),
                   ),
                 ),
               ],
@@ -124,16 +129,18 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         const SizedBox(height: 16),
                         Text(
                           'لا توجد منتجات',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: Colors.grey[600],
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: Colors.grey[600],
+                                  ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'ابدأ بإضافة منتج جديد',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey[500],
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Colors.grey[500],
+                                  ),
                         ),
                       ],
                     ),
@@ -175,23 +182,23 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: product.imageUrl != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        product.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(
-                          Icons.inventory_2_rounded,
-                          color: ThemeProvider.primaryColor,
-                          size: 40,
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          product.imageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.inventory_2_rounded,
+                            color: ThemeProvider.primaryColor,
+                            size: 40,
+                          ),
                         ),
+                      )
+                    : const Icon(
+                        Icons.inventory_2_rounded,
+                        color: ThemeProvider.primaryColor,
+                        size: 40,
                       ),
-                    )
-                  : const Icon(
-                      Icons.inventory_2_rounded,
-                      color: ThemeProvider.primaryColor,
-                      size: 40,
-                    ),
               ),
               const SizedBox(width: 20),
 
@@ -210,9 +217,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         ),
                         if (product.isLowStock)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: ThemeProvider.warningColor.withOpacity(0.1),
+                              color:
+                                  ThemeProvider.warningColor.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Row(
@@ -253,19 +262,20 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         _buildInfoChip(
                           Icons.inventory_rounded,
                           '${product.quantity} قطعة',
-                          color: product.isLowStock 
-                            ? ThemeProvider.errorColor
-                            : ThemeProvider.successColor,
+                          color: product.isLowStock
+                              ? ThemeProvider.errorColor
+                              : ThemeProvider.successColor,
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    if (product.description != null && product.description!.isNotEmpty)
+                    if (product.description != null &&
+                        product.description!.isNotEmpty)
                       Text(
                         product.description!,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[600],
-                        ),
+                              color: Colors.grey[600],
+                            ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -281,26 +291,27 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   Text(
                     'سعر البيع',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[600],
-                    ),
+                          color: Colors.grey[600],
+                        ),
                   ),
                   Text(
                     _currencyFormat.format(product.sellingPrice),
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: ThemeProvider.successColor,
-                      fontWeight: FontWeight.bold,
-                    ),
+                          color: ThemeProvider.successColor,
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'سعر الشراء: ${_currencyFormat.format(product.purchasePrice)}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[500],
-                    ),
+                          color: Colors.grey[500],
+                        ),
                   ),
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: ThemeProvider.successColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
@@ -319,11 +330,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        onPressed: () => _showProductDialog(context, product: product),
+                        onPressed: () =>
+                            _showProductDialog(context, product: product),
                         icon: const Icon(Icons.edit_rounded),
                         tooltip: 'تعديل',
                         style: IconButton.styleFrom(
-                          backgroundColor: ThemeProvider.primaryColor.withOpacity(0.1),
+                          backgroundColor:
+                              ThemeProvider.primaryColor.withOpacity(0.1),
                           foregroundColor: ThemeProvider.primaryColor,
                         ),
                       ),
@@ -333,7 +346,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         icon: const Icon(Icons.delete_rounded),
                         tooltip: 'حذف',
                         style: IconButton.styleFrom(
-                          backgroundColor: ThemeProvider.errorColor.withOpacity(0.1),
+                          backgroundColor:
+                              ThemeProvider.errorColor.withOpacity(0.1),
                           foregroundColor: ThemeProvider.errorColor,
                         ),
                       ),
@@ -394,8 +408,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
           ElevatedButton(
             onPressed: () async {
               try {
+                final userName = UserService.instance.currentUserName;
                 await Provider.of<ProductsProvider>(context, listen: false)
-                  .deleteProduct(product.id!);
+                    .deleteProduct(product.id!, userName: userName);
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(

@@ -47,17 +47,22 @@ class Installment {
   factory Installment.fromMap(Map<String, dynamic> map) {
     return Installment(
       id: map['id'],
-      customerId: map['customerId'],
-      customerName: map['customerName'],
-      totalAmount: map['totalAmount'],
-      paidAmount: map['paidAmount'],
-      remainingAmount: map['remainingAmount'],
-      numberOfInstallments: map['numberOfInstallments'],
-      paidInstallments: map['paidInstallments'],
-      installmentAmount: map['installmentAmount'],
-      startDate: map['startDate'],
-      notes: map['notes'],
-      status: map['status'],
+      customerId: map['customer_id'] ?? map['customerId'],
+      customerName: map['customer_name'] ?? map['customerName'],
+      totalAmount: (map['total_amount'] ?? map['totalAmount'] ?? 0).toDouble(),
+      paidAmount: (map['paid_amount'] ?? map['paidAmount'] ?? 0).toDouble(),
+      remainingAmount:
+          (map['remaining_amount'] ?? map['remainingAmount'] ?? 0).toDouble(),
+      numberOfInstallments:
+          map['number_of_installments'] ?? map['numberOfInstallments'] ?? 0,
+      paidInstallments:
+          map['paid_installments'] ?? map['paidInstallments'] ?? 0,
+      installmentAmount:
+          (map['installment_amount'] ?? map['installmentAmount'] ?? 0)
+              .toDouble(),
+      startDate: map['start_date'] ?? map['startDate'] ?? '',
+      notes: map['notes'] ?? '',
+      status: map['status'] ?? 'active',
     );
   }
 
@@ -126,12 +131,33 @@ class InstallmentPayment {
   factory InstallmentPayment.fromMap(Map<String, dynamic> map) {
     return InstallmentPayment(
       id: map['id'],
-      installmentId: map['installmentId'],
-      customerName: map['customerName'],
-      amount: map['amount'],
-      paymentDate: map['paymentDate'],
-      installmentNumber: map['installmentNumber'],
-      notes: map['notes'],
+      installmentId: map['installment_id'] ?? map['installmentId'],
+      customerName: map['customer_name'] ?? map['customerName'] ?? '',
+      amount: (map['amount'] ?? 0).toDouble(),
+      paymentDate: map['payment_date'] ?? map['paymentDate'] ?? '',
+      installmentNumber:
+          map['installment_number'] ?? map['installmentNumber'] ?? 0,
+      notes: map['notes'] ?? '',
+    );
+  }
+
+  InstallmentPayment copyWith({
+    int? id,
+    int? installmentId,
+    String? customerName,
+    double? amount,
+    String? paymentDate,
+    int? installmentNumber,
+    String? notes,
+  }) {
+    return InstallmentPayment(
+      id: id ?? this.id,
+      installmentId: installmentId ?? this.installmentId,
+      customerName: customerName ?? this.customerName,
+      amount: amount ?? this.amount,
+      paymentDate: paymentDate ?? this.paymentDate,
+      installmentNumber: installmentNumber ?? this.installmentNumber,
+      notes: notes ?? this.notes,
     );
   }
 }

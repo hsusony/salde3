@@ -22,11 +22,7 @@ class CustomersProvider extends ChangeNotifier {
         // Use demo data for web
         _customers = _getDemoCustomers();
       } else {
-        final maps = await DatabaseHelper.instance.getAllCustomers();
-        _customers = (maps)
-            .cast<Map<String, dynamic>>()
-            .map((map) => Customer.fromMap(map))
-            .toList();
+        _customers = await DatabaseHelper.instance.getAllCustomers();
       }
       _filterCustomers();
     } catch (e) {

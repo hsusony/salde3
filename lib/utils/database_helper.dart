@@ -29,7 +29,7 @@ class DatabaseHelper {
     return await databaseFactoryFfi.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 3, // زيادة رقم النسخة لتفعيل onUpgrade
+        version: 4, // زيادة رقم النسخة لإضافة جداول الأقساط
         onCreate: _createDB,
         onUpgrade: _upgradeDB,
       ),
@@ -70,6 +70,56 @@ class DatabaseHelper {
       } catch (e) {
         // العمود موجود بالفعل
         print('⚠️ عمود carton_quantity موجود بالفعل: $e');
+      }
+    }
+
+    if (oldVersion < 4) {
+      // إضافة جداول الأقساط
+      try {
+        await db.execute('''
+          CREATE TABLE installments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            customer_id INTEGER NOT NULL,
+            customer_name TEXT NOT NULL,
+            total_amount REAL NOT NULL,
+            paid_amount REAL DEFAULT 0,
+            remaining_amount REAL NOT NULL,
+            number_of_installments INTEGER NOT NULL,
+            paid_installments INTEGER DEFAULT 0,
+            installment_amount REAL NOT NULL,
+            start_date TEXT NOT NULL,
+            notes TEXT,
+            status TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT,
+            FOREIGN KEY (customer_id) REFERENCES customers (id)
+          )
+        ''');
+
+        await db.execute('''
+          CREATE TABLE installment_payments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            installment_id INTEGER NOT NULL,
+            customer_name TEXT NOT NULL,
+            amount REAL NOT NULL,
+            payment_date TEXT NOT NULL,
+            installment_number INTEGER NOT NULL,
+            notes TEXT,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (installment_id) REFERENCES installments (id) ON DELETE CASCADE
+          )
+        ''');
+
+        await db.execute(
+            'CREATE INDEX idx_installments_customer ON installments(customer_id)');
+        await db.execute(
+            'CREATE INDEX idx_installments_status ON installments(status)');
+        await db.execute(
+            'CREATE INDEX idx_installment_payments_installment ON installment_payments(installment_id)');
+
+        print('✅ تم إضافة جداول الأقساط بنجاح');
+      } catch (e) {
+        print('⚠️ خطأ في إضافة جداول الأقساط: $e');
       }
     }
   }
@@ -150,6 +200,42 @@ class DatabaseHelper {
       )
     ''');
 
+    // Installments Table
+    await db.execute('''
+      CREATE TABLE installments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_id INTEGER NOT NULL,
+        customer_name TEXT NOT NULL,
+        total_amount REAL NOT NULL,
+        paid_amount REAL DEFAULT 0,
+        remaining_amount REAL NOT NULL,
+        number_of_installments INTEGER NOT NULL,
+        paid_installments INTEGER DEFAULT 0,
+        installment_amount REAL NOT NULL,
+        start_date TEXT NOT NULL,
+        notes TEXT,
+        status TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT,
+        FOREIGN KEY (customer_id) REFERENCES customers (id)
+      )
+    ''');
+
+    // Installment Payments Table
+    await db.execute('''
+      CREATE TABLE installment_payments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        installment_id INTEGER NOT NULL,
+        customer_name TEXT NOT NULL,
+        amount REAL NOT NULL,
+        payment_date TEXT NOT NULL,
+        installment_number INTEGER NOT NULL,
+        notes TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (installment_id) REFERENCES installments (id) ON DELETE CASCADE
+      )
+    ''');
+
     // Create Indexes
     await db.execute('CREATE INDEX idx_products_barcode ON products(barcode)');
     await db
@@ -157,6 +243,12 @@ class DatabaseHelper {
     await db.execute('CREATE INDEX idx_customers_phone ON customers(phone)');
     await db.execute('CREATE INDEX idx_sales_invoice ON sales(invoice_number)');
     await db.execute('CREATE INDEX idx_sales_date ON sales(created_at)');
+    await db.execute(
+        'CREATE INDEX idx_installments_customer ON installments(customer_id)');
+    await db.execute(
+        'CREATE INDEX idx_installments_status ON installments(status)');
+    await db.execute(
+        'CREATE INDEX idx_installment_payments_installment ON installment_payments(installment_id)');
   }
 
   // ==================== PRODUCTS ====================
@@ -197,8 +289,32 @@ class DatabaseHelper {
     );
   }
 
-  Future<int> deleteProduct(int id) async {
+  Future<int> deleteProduct(int id, {String userName = 'المستخدم'}) async {
     final db = await database;
+
+    // جلب بيانات المنتج قبل الحذف
+    final product = await getProductById(id);
+    if (product == null) return 0;
+
+    // تسجيل عملية الحذف في سجل التدقيق
+    try {
+      await db.insert('audit_log', {
+        'operation_type': 'حذف',
+        'table_name': 'products',
+        'record_id': id,
+        'record_name': product.name,
+        'record_data':
+            'باركود: ${product.barcode}, السعر: ${product.sellingPrice}',
+        'user_name': userName,
+        'operation_date': DateTime.now().toIso8601String(),
+        'notes': 'تم حذف المنتج: ${product.name}',
+        'synced': 0,
+      });
+    } catch (e) {
+      print('Error logging deletion: $e');
+    }
+
+    // حذف المنتج
     return await db.delete('products', where: 'id = ?', whereArgs: [id]);
   }
 
@@ -349,16 +465,34 @@ class DatabaseHelper {
     final startOfDay =
         DateTime(today.year, today.month, today.day).toIso8601String();
     final todaySales = await db.rawQuery(
-      'SELECT SUM(final_amount) as total FROM sales WHERE created_at >= ? AND status = "completed"',
+      'SELECT SUM(final_amount) as total, SUM(final_amount - total_amount) as profit FROM sales WHERE created_at >= ? AND status = "completed"',
       [startOfDay],
     );
 
     // Total Sales This Month
     final startOfMonth = DateTime(today.year, today.month, 1).toIso8601String();
     final monthSales = await db.rawQuery(
-      'SELECT SUM(final_amount) as total FROM sales WHERE created_at >= ? AND status = "completed"',
+      'SELECT SUM(final_amount) as total, SUM(final_amount - total_amount) as profit FROM sales WHERE created_at >= ? AND status = "completed"',
       [startOfMonth],
     );
+
+    // Sales Chart - Last 7 Days
+    List<Map<String, dynamic>> salesChart = [];
+    for (int i = 6; i >= 0; i--) {
+      final day = DateTime.now().subtract(Duration(days: i));
+      final dayStart = DateTime(day.year, day.month, day.day).toIso8601String();
+      final dayEnd = DateTime(day.year, day.month, day.day, 23, 59, 59).toIso8601String();
+      
+      final daySales = await db.rawQuery(
+        'SELECT SUM(final_amount) as total FROM sales WHERE created_at >= ? AND created_at <= ? AND status = "completed"',
+        [dayStart, dayEnd],
+      );
+      
+      salesChart.add({
+        'date': day,
+        'total': (daySales.first['total'] as num?)?.toDouble() ?? 0.0,
+      });
+    }
 
     // Total Products
     final productsCount =
@@ -377,12 +511,149 @@ class DatabaseHelper {
         await db.rawQuery('SELECT SUM(balance) as total FROM customers');
 
     return {
-      'todaySales': todaySales.first['total'] ?? 0.0,
-      'monthSales': monthSales.first['total'] ?? 0.0,
+      'todaySales': (todaySales.first['total'] as num?)?.toDouble() ?? 0.0,
+      'monthSales': (monthSales.first['total'] as num?)?.toDouble() ?? 0.0,
+      'todayProfit': (todaySales.first['profit'] as num?)?.toDouble() ?? 0.0,
+      'monthProfit': (monthSales.first['profit'] as num?)?.toDouble() ?? 0.0,
+      'salesChart': salesChart,
       'productsCount': productsCount.first['count'] ?? 0,
       'customersCount': customersCount.first['count'] ?? 0,
       'lowStockCount': lowStock.first['count'] ?? 0,
-      'totalBalance': totalBalance.first['total'] ?? 0.0,
+      'totalBalance': (totalBalance.first['total'] as num?)?.toDouble() ?? 0.0,
+    };
+  }
+
+  // ==================== INSTALLMENTS ====================
+  Future<int> insertInstallment(Map<String, dynamic> installment) async {
+    final db = await database;
+    return await db.insert('installments', installment);
+  }
+
+  Future<List<Map<String, dynamic>>> getAllInstallments() async {
+    final db = await database;
+    return await db.query('installments', orderBy: 'created_at DESC');
+  }
+
+  Future<Map<String, dynamic>?> getInstallmentById(int id) async {
+    final db = await database;
+    final result = await db.query('installments',
+        where: 'id = ?', whereArgs: [id], limit: 1);
+    if (result.isEmpty) return null;
+    return result.first;
+  }
+
+  Future<List<Map<String, dynamic>>> getInstallmentsByCustomerId(
+      int customerId) async {
+    final db = await database;
+    return await db.query('installments',
+        where: 'customer_id = ?', whereArgs: [customerId]);
+  }
+
+  Future<List<Map<String, dynamic>>> getInstallmentsByStatus(
+      String status) async {
+    final db = await database;
+    return await db
+        .query('installments', where: 'status = ?', whereArgs: [status]);
+  }
+
+  Future<int> updateInstallment(
+      int id, Map<String, dynamic> installment) async {
+    final db = await database;
+    return await db
+        .update('installments', installment, where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<int> deleteInstallment(int id) async {
+    final db = await database;
+    return await db.delete('installments', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // ==================== INSTALLMENT PAYMENTS ====================
+  Future<int> insertInstallmentPayment(Map<String, dynamic> payment) async {
+    final db = await database;
+    final paymentId = await db.insert('installment_payments', payment);
+
+    // Update installment after payment
+    final installmentId = payment['installment_id'] as int;
+    final amount = payment['amount'] as double;
+
+    final installment = await getInstallmentById(installmentId);
+    if (installment != null) {
+      final paidAmount = (installment['paid_amount'] as double) + amount;
+      final remainingAmount =
+          (installment['total_amount'] as double) - paidAmount;
+      final paidInstallments = (installment['paid_installments'] as int) + 1;
+      final status = remainingAmount <= 0 ? 'completed' : 'active';
+
+      await updateInstallment(installmentId, {
+        'paid_amount': paidAmount,
+        'remaining_amount': remainingAmount,
+        'paid_installments': paidInstallments,
+        'status': status,
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+    }
+
+    return paymentId;
+  }
+
+  Future<List<Map<String, dynamic>>> getInstallmentPayments(
+      int installmentId) async {
+    final db = await database;
+    return await db.query('installment_payments',
+        where: 'installment_id = ?',
+        whereArgs: [installmentId],
+        orderBy: 'payment_date DESC');
+  }
+
+  Future<List<Map<String, dynamic>>> getAllInstallmentPayments() async {
+    final db = await database;
+    return await db.query('installment_payments', orderBy: 'payment_date DESC');
+  }
+
+  Future<int> deleteInstallmentPayment(int id) async {
+    final db = await database;
+    return await db
+        .delete('installment_payments', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // ==================== INSTALLMENT STATISTICS ====================
+  Future<Map<String, dynamic>> getInstallmentStats() async {
+    final db = await database;
+
+    // Total Active Installments Amount
+    final activeTotal = await db.rawQuery(
+        'SELECT SUM(remaining_amount) as total FROM installments WHERE status = "active"');
+
+    // Total Overdue Installments Amount
+    final overdueTotal = await db.rawQuery(
+        'SELECT SUM(remaining_amount) as total FROM installments WHERE status = "overdue"');
+
+    // Active Installments Count
+    final activeCount = await db.rawQuery(
+        'SELECT COUNT(*) as count FROM installments WHERE status = "active"');
+
+    // Overdue Installments Count
+    final overdueCount = await db.rawQuery(
+        'SELECT COUNT(*) as count FROM installments WHERE status = "overdue"');
+
+    // Total Paid This Month
+    final today = DateTime.now();
+    final startOfMonth = DateTime(today.year, today.month, 1).toIso8601String();
+    final monthPayments = await db.rawQuery(
+      'SELECT SUM(amount) as total FROM installment_payments WHERE payment_date >= ?',
+      [startOfMonth],
+    );
+
+    return {
+      'activeTotalAmount':
+          (activeTotal.first['total'] as num?)?.toDouble() ?? 0.0,
+      'overdueTotalAmount':
+          (overdueTotal.first['total'] as num?)?.toDouble() ?? 0.0,
+      'activeCount': activeCount.first['count'] ?? 0,
+      'overdueCount': overdueCount.first['count'] ?? 0,
+      'monthPayments':
+          (monthPayments.first['total'] as num?)?.toDouble() ?? 0.0,
     };
   }
 

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import '../providers/sales_provider.dart';
 import '../models/sale.dart';
+import '../services/inventory_service.dart';
 
 class SalesReturnScreen extends StatefulWidget {
   const SalesReturnScreen({super.key});
@@ -18,9 +19,7 @@ class _SalesReturnScreenState extends State<SalesReturnScreen> {
   final _formKey = GlobalKey<FormState>();
 
   // Return form fields
-  Sale? _selectedSale;
   final Map<int, int> _returnQuantities = {};
-  String _returnReason = '';
   final TextEditingController _reasonController = TextEditingController();
 
   @override
@@ -58,7 +57,6 @@ class _SalesReturnScreenState extends State<SalesReturnScreen> {
   }
 
   void _showReturnDialog(Sale sale) {
-    _selectedSale = sale;
     _returnQuantities.clear();
     _reasonController.clear();
 
@@ -333,7 +331,7 @@ class _SalesReturnScreenState extends State<SalesReturnScreen> {
     return total;
   }
 
-  void _processReturn(BuildContext context, Sale sale) {
+  void _processReturn(BuildContext context, Sale sale) async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -350,19 +348,42 @@ class _SalesReturnScreenState extends State<SalesReturnScreen> {
       return;
     }
 
-    // Process return
-    // TODO: Implement actual return processing in the provider
-    Navigator.pop(context);
+    try {
+      // ✅ إعادة الكميات المرتجعة إلى المخزون
+      final inventoryService = InventoryService();
+      for (var item in sale.items) {
+        final returnQty = _returnQuantities[item.productId] ?? 0;
+        if (returnQty > 0) {
+          await inventoryService.returnStockForSaleReturn(
+            productId: item.productId,
+            quantity: returnQty.toDouble(),
+            warehouseId: 1,
+          );
+        }
+      }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'تم إرجاع الفاتورة رقم ${sale.invoiceNumber} بنجاح\nالمبلغ المرتجع: ${_calculateReturnAmount(sale).toStringAsFixed(2)} دينار',
+      // TODO: حفظ المرتجع في قاعدة البيانات
+
+      Navigator.pop(context);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'تم إرجاع الفاتورة رقم ${sale.invoiceNumber} بنجاح\nالمبلغ المرتجع: ${_calculateReturnAmount(sale).toStringAsFixed(2)} دينار\n✅ تم تحديث المخزون',
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 3),
         ),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 3),
-      ),
-    );
+      );
+    } catch (e) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('حدث خطأ أثناء معالجة الإرجاع: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Widget _buildInfoRow(String label, String value) {
