@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+
 import '../models/warehouse.dart';
 import '../models/packaging.dart';
 import '../models/inventory_transaction.dart';
@@ -123,8 +124,12 @@ class InventoryProvider with ChangeNotifier {
     notifyListeners();
     try {
       _stockWithDetails = await _inventoryService.getAllStockWithDetails();
+      debugPrint('📦 تم تحميل ${_stockWithDetails.length} سجل مخزون');
+      if (_stockWithDetails.isNotEmpty) {
+        debugPrint('🔍 أول سجل: ${_stockWithDetails.first}');
+      }
     } catch (e) {
-      print('Error loading stock: $e');
+      debugPrint('❌ خطأ في تحميل المخزون: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -160,7 +165,7 @@ class InventoryProvider with ChangeNotifier {
     notifyListeners();
     try {
       _transactions = await _inventoryService.getAllTransactions(
-        type: type,
+        type: type?.toString(),
         fromDate: fromDate,
         toDate: toDate,
       );

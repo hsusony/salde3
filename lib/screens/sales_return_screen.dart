@@ -23,6 +23,14 @@ class _SalesReturnScreenState extends State<SalesReturnScreen> {
   final TextEditingController _reasonController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<SalesProvider>(context, listen: false).loadSales();
+    });
+  }
+
+  @override
   void dispose() {
     _reasonController.dispose();
     super.dispose();
@@ -543,13 +551,24 @@ class _SalesReturnScreenState extends State<SalesReturnScreen> {
 
             // Sales List
             Expanded(
-              child: filteredSales.isEmpty
-                  ? Center(
+              child: Consumer<SalesProvider>(
+                builder: (context, salesProvider, child) {
+                  if (salesProvider.isLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(Color(0xFFEF4444)),
+                      ),
+                    );
+                  }
+
+                  if (filteredSales.isEmpty) {
+                    return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            Icons.inventory_2_outlined,
+                            Icons.receipt_long_outlined,
                             size: 80,
                             color: Colors.grey[400],
                           ),
@@ -558,160 +577,171 @@ class _SalesReturnScreenState extends State<SalesReturnScreen> {
                             'لا توجد فواتير بيع',
                             style: TextStyle(
                               fontSize: 18,
+                              fontWeight: FontWeight.bold,
                               color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'قم بإجراء عملية بيع أولاً من نقطة البيع',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[500],
                             ),
                           ),
                         ],
                       ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: filteredSales.length,
-                      itemBuilder: (context, index) {
-                        final sale = filteredSales[index];
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: InkWell(
-                            onTap: () => _showReturnDialog(sale),
-                            borderRadius: BorderRadius.circular(12),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFEF4444)
-                                          .withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Icon(
-                                      Icons.receipt_long,
-                                      color: Color(0xFFEF4444),
-                                      size: 24,
-                                    ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: filteredSales.length,
+                    itemBuilder: (context, index) {
+                      final sale = filteredSales[index];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: InkWell(
+                          onTap: () => _showReturnDialog(sale),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEF4444)
+                                        .withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Text(
-                                              'فاتورة رقم: ${sale.invoiceNumber}',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 8,
-                                                vertical: 4,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.green
-                                                    .withOpacity(0.1),
-                                                borderRadius:
-                                                    BorderRadius.circular(6),
-                                              ),
-                                              child: Text(
-                                                sale.customerName ?? 'نقدي',
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                  color: Colors.green,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Row(
-                                          children: [
-                                            Icon(
-                                              Icons.calendar_today,
-                                              size: 14,
-                                              color: Colors.grey[600],
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              DateFormat('yyyy-MM-dd')
-                                                  .format(sale.createdAt),
-                                              style: TextStyle(
-                                                color: Colors.grey[600],
-                                                fontSize: 13,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 16),
-                                            Icon(
-                                              Icons.shopping_bag,
-                                              size: 14,
-                                              color: Colors.grey[600],
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              '${sale.items.length} صنف',
-                                              style: TextStyle(
-                                                color: Colors.grey[600],
-                                                fontSize: 13,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
+                                  child: const Icon(
+                                    Icons.receipt_long,
+                                    color: Color(0xFFEF4444),
+                                    size: 24,
                                   ),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        '${sale.totalAmount.toStringAsFixed(2)} دينار',
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFFEF4444),
-                                        ),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            'فاتورة رقم: ${sale.invoiceNumber}',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  Colors.green.withOpacity(0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              sale.customerName ?? 'نقدي',
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.green,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                       const SizedBox(height: 8),
-                                      ElevatedButton.icon(
-                                        onPressed: () =>
-                                            _showReturnDialog(sale),
-                                        icon: const Icon(
-                                            Icons.keyboard_return_rounded,
-                                            size: 18),
-                                        label: const Text('إرجاع'),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor:
-                                              const Color(0xFFEF4444),
-                                          foregroundColor: Colors.white,
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 8,
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.calendar_today,
+                                            size: 14,
+                                            color: Colors.grey[600],
                                           ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(8),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            DateFormat('yyyy-MM-dd')
+                                                .format(sale.createdAt),
+                                            style: TextStyle(
+                                              color: Colors.grey[600],
+                                              fontSize: 13,
+                                            ),
                                           ),
-                                        ),
+                                          const SizedBox(width: 16),
+                                          Icon(
+                                            Icons.shopping_bag,
+                                            size: 14,
+                                            color: Colors.grey[600],
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '${sale.items.length} صنف',
+                                            style: TextStyle(
+                                              color: Colors.grey[600],
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
-                                ],
-                              ),
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      '${sale.totalAmount.toStringAsFixed(2)} دينار',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFFEF4444),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ElevatedButton.icon(
+                                      onPressed: () => _showReturnDialog(sale),
+                                      icon: const Icon(
+                                          Icons.keyboard_return_rounded,
+                                          size: 18),
+                                      label: const Text('إرجاع'),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            const Color(0xFFEF4444),
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 8,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),

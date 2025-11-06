@@ -12,6 +12,7 @@ import 'cash_screen.dart';
 import 'inventory/inventory_menu_screen.dart';
 import 'settings_screen.dart';
 import 'about_screen.dart';
+import 'backup_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -34,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const ReportsScreen(),
     const InventoryMenuScreen(),
     const SettingsScreen(),
+    const BackupScreen(),
     const AboutScreen(),
   ];
 
@@ -49,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
     NavigationItem(icon: Icons.analytics_rounded, label: 'التقارير'),
     NavigationItem(icon: Icons.warehouse_rounded, label: 'المخزون'),
     NavigationItem(icon: Icons.settings_rounded, label: 'الإعدادات'),
+    NavigationItem(icon: Icons.backup_rounded, label: 'النسخ الاحتياطي'),
     NavigationItem(icon: Icons.info_rounded, label: 'حول'),
   ];
 

@@ -61,13 +61,16 @@ class CashProvider with ChangeNotifier {
   Future<void> loadData() async {
     try {
       print('🔄 بدء تحميل البيانات من قاعدة البيانات SQLite...');
-      _receiptVouchers = await _db.getAllReceiptVouchers();
+      _receiptVouchers =
+          (await _db.getAllReceiptVouchers()).cast<ReceiptVoucher>();
       print('📥 تم تحميل ${_receiptVouchers.length} سند قبض من قاعدة البيانات');
 
-      _multipleReceiptVouchers = await _db.getAllMultipleReceiptVouchers();
+      _multipleReceiptVouchers = (await _db.getAllMultipleReceiptVouchers())
+          .cast<MultipleReceiptVoucher>();
       print('📥 تم تحميل ${_multipleReceiptVouchers.length} سند قبض متعدد');
 
-      _dualCurrencyReceipts = await _db.getAllDualCurrencyReceipts();
+      _dualCurrencyReceipts =
+          (await _db.getAllDualCurrencyReceipts()).cast<DualCurrencyReceipt>();
       print('📥 تم تحميل ${_dualCurrencyReceipts.length} سند قبض بالعملتين');
 
       notifyListeners();

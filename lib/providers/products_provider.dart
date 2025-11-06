@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import '../models/product.dart';
-import '../services/inventory_service.dart';
-import '../utils/database_helper_stub.dart'
-    if (dart.library.io) '../utils/database_helper.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ProductsProvider extends ChangeNotifier {
-  final InventoryService _inventoryService = InventoryService();
   List<Product> _products = [];
   List<Product> _filteredProducts = [];
   bool _isLoading = false;
@@ -22,17 +19,23 @@ class ProductsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      if (kIsWeb) {
-        // Use demo data for web
-        _products = _getDemoProducts();
+      // استخدام API بدلاً من SQLite
+      final response = await http.get(
+        Uri.parse('http://localhost:3000/api/products'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        _products = data.map((json) => Product.fromMap(json)).toList();
+        debugPrint('✅ تم تحميل ${_products.length} منتج من API');
       } else {
-        _products = await DatabaseHelper.instance.getAllProducts();
+        throw Exception('فشل تحميل المنتجات: ${response.statusCode}');
       }
       _filterProducts();
     } catch (e) {
-      debugPrint('Error loading products: $e');
-      // Fallback to demo data
-      _products = _getDemoProducts();
+      debugPrint('❌ خطأ في تحميل المنتجات: $e');
+      _products = [];
       _filterProducts();
     } finally {
       _isLoading = false;
@@ -40,82 +43,95 @@ class ProductsProvider extends ChangeNotifier {
     }
   }
 
-  List<Product> _getDemoProducts() {
-    // TODO: استبدل هذه الدالة بجلب البيانات من قاعدة البيانات
-    // في النظام الحقيقي، يجب أن تجلب البيانات من قاعدة البيانات
-    return [];
-  }
-
   Future<void> addProduct(Product product) async {
     try {
-      if (!kIsWeb) {
-        final id = await DatabaseHelper.instance.insertProduct(product);
-        product = product.copyWith(id: id);
+      // استخدام API لإضافة المنتج
+      final response = await http
+          .post(
+            Uri.parse('http://localhost:3000/api/products'),
+            headers: {'Content-Type': 'application/json; charset=UTF-8'},
+            body: jsonEncode({
+              'Name': product.name,
+              'Barcode': product.barcode,
+              'BuyingPrice': product.purchasePrice,
+              'SellingPrice': product.sellingPrice,
+              'Stock': product.quantity,
+              'MinStock': product.minQuantity,
+              'Description': product.description,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
 
-        // ✅ إنشاء سجل مخزون تلقائي للمنتج الجديد بكمية 0 في المخزن الافتراضي
-        try {
-          // الحصول على المخازن المتوفرة
-          final warehouses = await _inventoryService.getAllWarehouses();
-
-          if (warehouses.isNotEmpty) {
-            // إنشاء سجل في المخزن الأول (الافتراضي)
-            await _inventoryService.addStockForPurchase(
-              productId: id,
-              quantity: 0,
-              warehouseId: warehouses.first.id!,
-            );
-          }
-        } catch (e) {
-          debugPrint('Warning: Could not create warehouse stock entry: $e');
-          // لا نريد أن يفشل إضافة المنتج إذا فشل إنشاء المخزون
-        }
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        product = Product.fromMap(data);
+        _products.add(product);
+        _filterProducts();
+        notifyListeners();
+        debugPrint('✅ تم إضافة المنتج بنجاح');
       } else {
-        // For web, just add to list with new ID
-        product = product.copyWith(
-          id: _products.isEmpty
-              ? 1
-              : _products
-                      .map((p) => p.id ?? 0)
-                      .reduce((a, b) => a > b ? a : b) +
-                  1,
-        );
+        throw Exception('فشل إضافة المنتج: ${response.statusCode}');
       }
-      _products.add(product);
-      _filterProducts();
-      notifyListeners();
     } catch (e) {
-      debugPrint('Error adding product: $e');
+      debugPrint('❌ خطأ في إضافة المنتج: $e');
       rethrow;
     }
   }
 
   Future<void> updateProduct(Product product) async {
     try {
-      if (!kIsWeb) {
-        await DatabaseHelper.instance.updateProduct(product);
-      }
-      final index = _products.indexWhere((p) => p.id == product.id);
-      if (index != -1) {
-        _products[index] = product;
-        _filterProducts();
-        notifyListeners();
+      // استخدام API لتحديث المنتج
+      final response = await http
+          .put(
+            Uri.parse('http://localhost:3000/api/products/${product.id}'),
+            headers: {'Content-Type': 'application/json; charset=UTF-8'},
+            body: jsonEncode({
+              'Name': product.name,
+              'Barcode': product.barcode,
+              'BuyingPrice': product.purchasePrice,
+              'SellingPrice': product.sellingPrice,
+              'Stock': product.quantity,
+              'MinStock': product.minQuantity,
+              'Description': product.description,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final index = _products.indexWhere((p) => p.id == product.id);
+        if (index != -1) {
+          _products[index] = product;
+          _filterProducts();
+          notifyListeners();
+        }
+        debugPrint('✅ تم تحديث المنتج بنجاح');
+      } else {
+        throw Exception('فشل تحديث المنتج: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('Error updating product: $e');
+      debugPrint('❌ خطأ في تحديث المنتج: $e');
       rethrow;
     }
   }
 
   Future<void> deleteProduct(int id, {String userName = 'المستخدم'}) async {
     try {
-      if (!kIsWeb) {
-        await DatabaseHelper.instance.deleteProduct(id, userName: userName);
+      // استخدام API لحذف المنتج
+      final response = await http.delete(
+        Uri.parse('http://localhost:3000/api/products/$id'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        _products.removeWhere((p) => p.id == id);
+        _filterProducts();
+        notifyListeners();
+        debugPrint('✅ تم حذف المنتج بنجاح');
+      } else {
+        throw Exception('فشل حذف المنتج: ${response.statusCode}');
       }
-      _products.removeWhere((p) => p.id == id);
-      _filterProducts();
-      notifyListeners();
     } catch (e) {
-      debugPrint('Error deleting product: $e');
+      debugPrint('❌ خطأ في حذف المنتج: $e');
       rethrow;
     }
   }
@@ -137,5 +153,7 @@ class ProductsProvider extends ChangeNotifier {
             product.category.toLowerCase().contains(lowerQuery);
       }).toList();
     }
+    debugPrint(
+        '🔍 البحث: "$_searchQuery" | إجمالي المنتجات: ${_products.length} | المنتجات المعروضة: ${_filteredProducts.length}');
   }
 }

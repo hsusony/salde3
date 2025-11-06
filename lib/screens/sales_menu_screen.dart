@@ -4,6 +4,7 @@ import 'sales_return_screen.dart';
 import 'edit_sales_return_screen.dart';
 import 'quotations_screen.dart';
 import 'pending_orders_screen.dart';
+import 'sales_list_screen.dart';
 
 class SalesMenuScreen extends StatelessWidget {
   const SalesMenuScreen({super.key});
@@ -123,7 +124,22 @@ class SalesMenuScreen extends StatelessWidget {
                     ),
                     _buildSalesCard(
                       context: context,
-                      title: 'قائمة البيع',
+                      title: 'قائمة بيع',
+                      icon: Icons.list_alt_rounded,
+                      color: const Color(0xFF059669),
+                      description: 'بيع المنتجات بقائمة',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SalesListScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    _buildSalesCard(
+                      context: context,
+                      title: 'الفواتير',
                       icon: Icons.receipt_long_rounded,
                       color: const Color(0xFF3B82F6),
                       description: 'عرض جميع فواتير البيع',

@@ -19,11 +19,9 @@ dependencies:
   # State Management
   provider: ^6.1.1
   
-  # Database - SQL Server & SQLite
-  sqflite_common_ffi: ^2.3.0
-  path_provider: ^2.1.1
-  path: ^1.8.3
-  http: ^1.1.0
+  # Database - SQL Server 2008
+  # ملاحظة: سنستخدم HTTP API للاتصال بـ SQL Server
+  # أو يمكن استخدام مكتبات مثل mssql_connection
   
   # Charts & Visualization
   fl_chart: ^0.65.0

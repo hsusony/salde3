@@ -71,7 +71,46 @@ class Sale {
       status: map['status'],
       notes: map['notes'],
       createdAt: DateTime.parse(map['created_at']),
-      updatedAt: map['updated_at'] != null ? DateTime.parse(map['updated_at']) : null,
+      updatedAt:
+          map['updated_at'] != null ? DateTime.parse(map['updated_at']) : null,
+    );
+  }
+
+  Sale copyWith({
+    int? id,
+    String? invoiceNumber,
+    int? customerId,
+    String? customerName,
+    double? totalAmount,
+    double? discount,
+    double? tax,
+    double? finalAmount,
+    double? paidAmount,
+    double? remainingAmount,
+    String? paymentMethod,
+    String? status,
+    String? notes,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    List<SaleItem>? items,
+  }) {
+    return Sale(
+      id: id ?? this.id,
+      invoiceNumber: invoiceNumber ?? this.invoiceNumber,
+      customerId: customerId ?? this.customerId,
+      customerName: customerName ?? this.customerName,
+      totalAmount: totalAmount ?? this.totalAmount,
+      discount: discount ?? this.discount,
+      tax: tax ?? this.tax,
+      finalAmount: finalAmount ?? this.finalAmount,
+      paidAmount: paidAmount ?? this.paidAmount,
+      remainingAmount: remainingAmount ?? this.remainingAmount,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      status: status ?? this.status,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      items: items ?? this.items,
     );
   }
 }

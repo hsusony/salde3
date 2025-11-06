@@ -21,7 +21,7 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.grey[50],
       appBar: AppBar(
@@ -286,15 +286,15 @@ class AboutScreen extends StatelessWidget {
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: isDark 
-                    ? [
-                        const Color(0xFF6366F1).withOpacity(0.2),
-                        const Color(0xFF8B5CF6).withOpacity(0.2),
-                      ]
-                    : [
-                        const Color(0xFF6366F1).withOpacity(0.1),
-                        const Color(0xFF8B5CF6).withOpacity(0.1),
-                      ],
+                  colors: isDark
+                      ? [
+                          const Color(0xFF6366F1).withOpacity(0.2),
+                          const Color(0xFF8B5CF6).withOpacity(0.2),
+                        ]
+                      : [
+                          const Color(0xFF6366F1).withOpacity(0.1),
+                          const Color(0xFF8B5CF6).withOpacity(0.1),
+                        ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),

@@ -1,33 +1,40 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "Run Flutter App",
-            "type": "shell",
-            "command": "flutter run -d windows",
-            "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "Build Release",
-            "type": "shell",
-            "command": "flutter build windows --release",
-            "problemMatcher": []
-        },
-        {
-            "label": "Clean Project",
-            "type": "shell",
-            "command": "flutter clean",
-            "problemMatcher": []
-        },
-        {
-            "label": "Get Dependencies",
-            "type": "shell",
-            "command": "flutter pub get",
-            "problemMatcher": []
-        }
-    ]
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run Flutter App",
+			"type": "shell",
+			"command": "flutter run -d windows",
+			"problemMatcher": [],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
+			"label": "Build Release",
+			"type": "shell",
+			"command": "flutter build windows --release",
+			"problemMatcher": []
+		},
+		{
+			"label": "Clean Project",
+			"type": "shell",
+			"command": "flutter clean",
+			"problemMatcher": []
+		},
+		{
+			"label": "Get Dependencies",
+			"type": "shell",
+			"command": "flutter pub get",
+			"problemMatcher": []
+		},
+		{
+			"label": "Start Backend Server",
+			"type": "shell",
+			"command": "cd backend; node server.js",
+			"isBackground": true,
+			"problemMatcher": []
+		}
+	]
 }

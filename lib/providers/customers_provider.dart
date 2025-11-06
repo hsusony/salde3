@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import '../models/customer.dart';
-import '../utils/database_helper_stub.dart'
-    if (dart.library.io) '../utils/database_helper.dart';
+import '../services/api_client.dart';
 
 class CustomersProvider extends ChangeNotifier {
   List<Customer> _customers = [];
@@ -18,45 +16,32 @@ class CustomersProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      if (kIsWeb) {
-        // Use demo data for web
-        _customers = _getDemoCustomers();
-      } else {
-        _customers = await DatabaseHelper.instance.getAllCustomers();
-      }
+      final data = await ApiClient.get('/customers');
+      _customers =
+          (data as List).map((json) => Customer.fromMap(json)).toList();
       _filterCustomers();
     } catch (e) {
       debugPrint('Error loading customers: $e');
-      // Fallback to demo data
-      _customers = _getDemoCustomers();
+      _customers = [];
       _filterCustomers();
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  List<Customer> _getDemoCustomers() {
-    // TODO: استبدل هذه الدالة بجلب البيانات من قاعدة البيانات
-    // في النظام الحقيقي، يجب أن تجلب البيانات من قاعدة البيانات
-    return [];
-  }
-
   Future<void> addCustomer(Customer customer) async {
     try {
-      if (!kIsWeb) {
-        final id = await DatabaseHelper.instance.insertCustomer(customer);
-        customer = customer.copyWith(id: id);
-      } else {
-        customer = customer.copyWith(
-          id: _customers.isEmpty
-              ? 1
-              : _customers
-                      .map((c) => c.id ?? 0)
-                      .reduce((a, b) => a > b ? a : b) +
-                  1,
-        );
-      }
+      final data = await ApiClient.post('/customers', {
+        'Name': customer.name,
+        'Phone': customer.phone,
+        'Email': customer.email,
+        'Address': customer.address,
+        'Notes': customer.notes,
+      });
+
+      customer = customer.copyWith(id: data['id']);
       _customers.add(customer);
       _filterCustomers();
       notifyListeners();
@@ -68,9 +53,14 @@ class CustomersProvider extends ChangeNotifier {
 
   Future<void> updateCustomer(Customer customer) async {
     try {
-      if (!kIsWeb) {
-        await DatabaseHelper.instance.updateCustomer(customer);
-      }
+      await ApiClient.put('/customers/${customer.id}', {
+        'Name': customer.name,
+        'Phone': customer.phone,
+        'Email': customer.email,
+        'Address': customer.address,
+        'Notes': customer.notes,
+      });
+
       final index = _customers.indexWhere((c) => c.id == customer.id);
       if (index != -1) {
         _customers[index] = customer;
@@ -85,9 +75,7 @@ class CustomersProvider extends ChangeNotifier {
 
   Future<void> deleteCustomer(int id) async {
     try {
-      if (!kIsWeb) {
-        await DatabaseHelper.instance.deleteCustomer(id);
-      }
+      await ApiClient.delete('/customers/$id');
       _customers.removeWhere((c) => c.id == id);
       _filterCustomers();
       notifyListeners();

@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../models/sale.dart';
-import '../services/inventory_service.dart';
-import '../utils/database_helper_stub.dart'
-    if (dart.library.io) '../utils/database_helper.dart';
 
 class SalesProvider extends ChangeNotifier {
-  final InventoryService _inventoryService = InventoryService();
   List<Sale> _sales = [];
   List<Sale> _filteredSales = [];
   bool _isLoading = false;
   String _searchQuery = '';
+
+  static const String baseUrl = 'http://localhost:3000/api';
 
   // Dashboard stats
   double _todaySales = 0.0;
@@ -40,22 +39,20 @@ class SalesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      if (kIsWeb) {
-        // Use demo data for web
-        _sales = _getDemoSales();
+      final response = await http.get(Uri.parse('$baseUrl/sales'));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
+        _sales = data.map((json) => Sale.fromMap(json)).toList();
       } else {
-        final maps = await DatabaseHelper.instance.getAllSales();
-        _sales = (maps)
-            .cast<Map<String, dynamic>>()
-            .map((map) => Sale.fromMap(map))
-            .toList();
+        throw Exception('فشل تحميل المبيعات');
       }
       _filterSales();
     } catch (e) {
       debugPrint('Error loading sales: $e');
-      // Fallback to demo data
-      _sales = _getDemoSales();
+      _sales = [];
       _filterSales();
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -64,134 +61,101 @@ class SalesProvider extends ChangeNotifier {
 
   Future<void> loadDashboardStats() async {
     try {
-      if (kIsWeb) {
-        // Calculate demo stats
-        final now = DateTime.now();
-        final today = DateTime(now.year, now.month, now.day);
-        final monthStart = DateTime(now.year, now.month, 1);
+      // For now, calculate from loaded sales
+      // TODO: Create dedicated dashboard stats endpoint in backend
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final monthStart = DateTime(now.year, now.month, 1);
 
-        final todaySalesList = _getDemoSales()
+      final todaySalesList = _sales
+          .where((s) =>
+              s.createdAt.isAfter(today) || s.createdAt.isAtSameMomentAs(today))
+          .toList();
+
+      final monthSalesList = _sales
+          .where((s) =>
+              s.createdAt.isAfter(monthStart) ||
+              s.createdAt.isAtSameMomentAs(monthStart))
+          .toList();
+
+      _todaySales = todaySalesList.fold(0.0, (sum, s) => sum + s.finalAmount);
+      _monthSales = monthSalesList.fold(0.0, (sum, s) => sum + s.finalAmount);
+      _todayProfit = todaySalesList.fold(
+          0.0, (sum, s) => sum + (s.finalAmount - s.discount));
+      _monthProfit = monthSalesList.fold(
+          0.0, (sum, s) => sum + (s.finalAmount - s.discount));
+
+      // Generate chart data for last 7 days
+      _salesChart = List.generate(7, (index) {
+        final day = now.subtract(Duration(days: 6 - index));
+        final dayStart = DateTime(day.year, day.month, day.day);
+        final dayEnd = dayStart.add(const Duration(days: 1));
+
+        final daySales = _sales
             .where((s) =>
-                s.createdAt.isAfter(today) ||
-                s.createdAt.isAtSameMomentAs(today))
+                s.createdAt.isAfter(dayStart) && s.createdAt.isBefore(dayEnd))
             .toList();
 
-        final monthSalesList = _getDemoSales()
-            .where((s) =>
-                s.createdAt.isAfter(monthStart) ||
-                s.createdAt.isAtSameMomentAs(monthStart))
-            .toList();
+        return {
+          'date': dayStart,
+          'total': daySales.fold(0.0, (sum, s) => sum + s.finalAmount),
+        };
+      }).toList();
 
-        _todaySales = todaySalesList.fold(0.0, (sum, s) => sum + s.finalAmount);
-        _monthSales = monthSalesList.fold(0.0, (sum, s) => sum + s.finalAmount);
-        _todayProfit = todaySalesList.fold(
-            0.0, (sum, s) => sum + (s.finalAmount - s.discount));
-        _monthProfit = monthSalesList.fold(
-            0.0, (sum, s) => sum + (s.finalAmount - s.discount));
-
-        // Generate chart data for last 7 days
-        _salesChart = List.generate(7, (index) {
-          final day = now.subtract(Duration(days: 6 - index));
-          final dayStart = DateTime(day.year, day.month, day.day);
-          final dayEnd = dayStart.add(const Duration(days: 1));
-
-          final daySales = _getDemoSales()
-              .where((s) =>
-                  s.createdAt.isAfter(dayStart) && s.createdAt.isBefore(dayEnd))
-              .toList();
-
-          return {
-            'date': dayStart,
-            'total': daySales.fold(0.0, (sum, s) => sum + s.finalAmount),
-          };
-        }).toList();
-      } else {
-        final stats = await DatabaseHelper.instance.getDashboardStats();
-        _todaySales = stats['todaySales'];
-        _monthSales = stats['monthSales'];
-        _todayProfit = stats['todayProfit'];
-        _monthProfit = stats['monthProfit'];
-        _salesChart = stats['salesChart'];
-      }
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading dashboard stats: $e');
       // Use default values
-      _todaySales = 15750.0;
-      _monthSales = 125500.0;
-      _todayProfit = 3250.0;
-      _monthProfit = 28500.0;
-      _salesChart = _getDefaultChartData();
+      _todaySales = 0.0;
+      _monthSales = 0.0;
+      _todayProfit = 0.0;
+      _monthProfit = 0.0;
+      _salesChart = [];
       notifyListeners();
     }
   }
 
-  List<Sale> _getDemoSales() {
-    // TODO: استبدل هذه الدالة بجلب البيانات من قاعدة البيانات
-    // في النظام الحقيقي، يجب أن تجلب البيانات من قاعدة البيانات
-    return [];
-  }
-
-  List<Map<String, dynamic>> _getDefaultChartData() {
-    // TODO: استبدل هذه الدالة بجلب البيانات من قاعدة البيانات
-    return [];
-  }
-
   Future<void> addSale(Sale sale) async {
     try {
-      if (!kIsWeb) {
-        final id = await DatabaseHelper.instance.insertSale(sale);
-        sale = Sale(
-          id: id,
-          invoiceNumber: sale.invoiceNumber,
-          createdAt: sale.createdAt,
-          customerId: sale.customerId,
-          customerName: sale.customerName,
-          items: sale.items,
-          totalAmount: sale.totalAmount,
-          discount: sale.discount,
-          tax: sale.tax,
-          finalAmount: sale.finalAmount,
-          paymentMethod: sale.paymentMethod,
-          paidAmount: sale.paidAmount,
-          remainingAmount: sale.remainingAmount,
-          status: sale.status,
-          notes: sale.notes,
-        );
+      final saleData = {
+        'InvoiceNumber': sale.invoiceNumber,
+        'SaleDate': sale.createdAt.toIso8601String(),
+        'CustomerId': sale.customerId,
+        'TotalAmount': sale.totalAmount,
+        'Discount': sale.discount,
+        'Tax': sale.tax,
+        'FinalAmount': sale.finalAmount,
+        'PaymentMethod': sale.paymentMethod,
+        'PaidAmount': sale.paidAmount,
+        'RemainingAmount': sale.remainingAmount,
+        'Status': sale.status,
+        'Notes': sale.notes,
+        'Items': sale.items
+            .map((item) => {
+                  'ProductId': item.productId,
+                  'Quantity': item.quantity,
+                  'UnitPrice': item.unitPrice,
+                  'Discount': item.discount ?? 0,
+                  'TotalPrice': item.totalPrice,
+                })
+            .toList(),
+      };
 
-        // ✅ تحديث المخزون - طرح الكميات المباعة
-        for (var item in sale.items) {
-          await _inventoryService.deductStockForSale(
-            productId: item.productId,
-            quantity: item.quantity.toDouble(),
-            warehouseId: 1, // يمكنك تغيير هذا ليكون ديناميكي
-          );
-        }
+      final response = await http.post(
+        Uri.parse('$baseUrl/sales'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: json.encode(saleData),
+      );
+
+      if (response.statusCode == 201) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+        sale = sale.copyWith(id: data['id']);
+        _sales.insert(0, sale);
+        _filterSales();
+        notifyListeners();
       } else {
-        final newId = _sales.isEmpty
-            ? 1
-            : _sales.map((s) => s.id ?? 0).reduce((a, b) => a > b ? a : b) + 1;
-        sale = Sale(
-          id: newId,
-          invoiceNumber: sale.invoiceNumber,
-          createdAt: sale.createdAt,
-          customerId: sale.customerId,
-          customerName: sale.customerName,
-          items: sale.items,
-          totalAmount: sale.totalAmount,
-          discount: sale.discount,
-          tax: sale.tax,
-          finalAmount: sale.finalAmount,
-          paymentMethod: sale.paymentMethod,
-          paidAmount: sale.paidAmount,
-          remainingAmount: sale.remainingAmount,
-          status: sale.status,
-          notes: sale.notes,
-        );
+        throw Exception('فشل إضافة البيع');
       }
-      _sales.insert(0, sale); // Add to beginning
-      _filterSales();
-      notifyListeners();
     } catch (e) {
       debugPrint('Error adding sale: $e');
       rethrow;
@@ -200,14 +164,36 @@ class SalesProvider extends ChangeNotifier {
 
   Future<void> updateSale(Sale sale) async {
     try {
-      if (!kIsWeb) {
-        // await DatabaseHelper.instance.updateSale(sale.toMap());
-      }
-      final index = _sales.indexWhere((s) => s.id == sale.id);
-      if (index != -1) {
-        _sales[index] = sale;
-        _filterSales();
-        notifyListeners();
+      final saleData = {
+        'InvoiceNumber': sale.invoiceNumber,
+        'SaleDate': sale.createdAt.toIso8601String(),
+        'CustomerId': sale.customerId,
+        'TotalAmount': sale.totalAmount,
+        'Discount': sale.discount,
+        'Tax': sale.tax,
+        'FinalAmount': sale.finalAmount,
+        'PaymentMethod': sale.paymentMethod,
+        'PaidAmount': sale.paidAmount,
+        'RemainingAmount': sale.remainingAmount,
+        'Status': sale.status,
+        'Notes': sale.notes,
+      };
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/sales/${sale.id}'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: json.encode(saleData),
+      );
+
+      if (response.statusCode == 200) {
+        final index = _sales.indexWhere((s) => s.id == sale.id);
+        if (index != -1) {
+          _sales[index] = sale;
+          _filterSales();
+          notifyListeners();
+        }
+      } else {
+        throw Exception('فشل تحديث البيع');
       }
     } catch (e) {
       debugPrint('Error updating sale: $e');
@@ -217,12 +203,17 @@ class SalesProvider extends ChangeNotifier {
 
   Future<void> deleteSale(int id) async {
     try {
-      if (!kIsWeb) {
-        // await DatabaseHelper.instance.deleteSale(id);
+      final response = await http.delete(
+        Uri.parse('$baseUrl/sales/$id'),
+      );
+
+      if (response.statusCode == 200) {
+        _sales.removeWhere((s) => s.id == id);
+        _filterSales();
+        notifyListeners();
+      } else {
+        throw Exception('فشل حذف البيع');
       }
-      _sales.removeWhere((s) => s.id == id);
-      _filterSales();
-      notifyListeners();
     } catch (e) {
       debugPrint('Error deleting sale: $e');
       rethrow;

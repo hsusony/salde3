@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:intl/date_symbol_data_local.dart';
 import 'providers/products_provider.dart';
 import 'providers/customers_provider.dart';
@@ -15,8 +14,7 @@ import 'providers/inventory_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/pos_screen.dart';
 import 'screens/sales_screen.dart';
-
-// Conditional imports for desktop
+import 'screens/sales_list_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,36 +22,16 @@ void main() async {
   // Initialize date formatting for Arabic locale
   await initializeDateFormatting('ar', null);
 
-  // Initialize database only for desktop platforms
-  if (!kIsWeb) {
-    try {
-      await initializeDatabase();
-    } catch (e) {
-      debugPrint('Database initialization skipped on web: $e');
-    }
-  }
+  // ملاحظة: تم إزالة SQLite - الآن نستخدم SQL Server 2008 فقط
+  // للاتصال بـ SQL Server، يجب إنشاء REST API أولاً
+  print('�️ النظام معد للعمل مع SQL Server 2008');
+  print('📡 تأكد من تشغيل قاعدة البيانات والـ API');
 
-  // Initialize CashProvider and load data BEFORE running app
-  final cashProvider = CashProvider();
-  print('🚀 بدء تحميل بيانات النقد...');
-  await cashProvider.loadData();
-  print('✅ اكتمل تحميل بيانات النقد!');
-
-  runApp(SalesManagementApp(cashProvider: cashProvider));
-}
-
-Future<void> initializeDatabase() async {
-  // This will be implemented in database_helper.dart for desktop
-  // and stub for web
-  if (!kIsWeb) {
-    // Database initialization happens in database_helper.dart
-  }
+  runApp(const SalesManagementApp());
 }
 
 class SalesManagementApp extends StatelessWidget {
-  final CashProvider cashProvider;
-
-  const SalesManagementApp({super.key, required this.cashProvider});
+  const SalesManagementApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -68,9 +46,7 @@ class SalesManagementApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => QuotationsProvider()),
         ChangeNotifierProvider(create: (_) => PendingOrdersProvider()),
         ChangeNotifierProvider(create: (_) => InventoryProvider()),
-        ChangeNotifierProvider.value(
-          value: cashProvider, // Use pre-loaded instance
-        ),
+        ChangeNotifierProvider(create: (_) => CashProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
@@ -84,6 +60,7 @@ class SalesManagementApp extends StatelessWidget {
             routes: {
               '/pos': (context) => const POSScreen(),
               '/sales': (context) => const SalesScreen(),
+              '/sales-list': (context) => const SalesListScreen(),
             },
           );
         },
