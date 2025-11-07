@@ -2,12 +2,51 @@
 import '../models/packaging.dart';
 import '../models/inventory_transaction.dart';
 import '../models/warehouse_stock.dart';
+import 'api_client.dart';
 
 class InventoryService {
-  Future<int> addWarehouse(Warehouse warehouse) async => 0;
-  Future<List<Warehouse>> getAllWarehouses() async => [];
-  Future<int> updateWarehouse(Warehouse warehouse) async => 0;
-  Future<int> deleteWarehouse(int id) async => 0;
+  // ===================== WAREHOUSES =====================
+
+  Future<int> addWarehouse(Warehouse warehouse) async {
+    try {
+      final response = await ApiClient.post('/warehouses', warehouse.toMap());
+      return response['id'] ?? 0;
+    } catch (e) {
+      print('Error adding warehouse: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Warehouse>> getAllWarehouses() async {
+    try {
+      final response = await ApiClient.get('/warehouses');
+      final List data = response['data'] ?? [];
+      return data.map((json) => Warehouse.fromMap(json)).toList();
+    } catch (e) {
+      print('Error getting warehouses: $e');
+      return [];
+    }
+  }
+
+  Future<int> updateWarehouse(Warehouse warehouse) async {
+    try {
+      await ApiClient.put('/warehouses/${warehouse.id}', warehouse.toMap());
+      return 1;
+    } catch (e) {
+      print('Error updating warehouse: $e');
+      rethrow;
+    }
+  }
+
+  Future<int> deleteWarehouse(int id) async {
+    try {
+      await ApiClient.delete('/warehouses/$id');
+      return 1;
+    } catch (e) {
+      print('Error deleting warehouse: $e');
+      rethrow;
+    }
+  }
 
   Future<int> addPackaging(Packaging packaging) async => 0;
   Future<List<Packaging>> getAllPackagings() async => [];

@@ -209,7 +209,10 @@ class _POSScreenState extends State<POSScreen> {
   Future<void> _completeSale() async {
     if (_cart.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('السلة فارغة')),
+        const SnackBar(
+          content: Text('السلة فارغة - الرجاء إضافة منتجات'),
+          backgroundColor: Colors.orange,
+        ),
       );
       return;
     }
@@ -219,39 +222,66 @@ class _POSScreenState extends State<POSScreen> {
     // Create invoice number
     final invoiceNumber = 'INV-${DateTime.now().millisecondsSinceEpoch}';
 
+    // Convert cart items to sale items
+    final saleItems = _cart.map((cartItem) {
+      return SaleItem(
+        productId: cartItem.product.id!,
+        productName: cartItem.product.name,
+        productBarcode: cartItem.product.barcode,
+        quantity: cartItem.quantity,
+        unitPrice: cartItem.product.sellingPrice,
+        totalPrice: cartItem.total,
+        discount: cartItem.discount,
+      );
+    }).toList();
+
     final sale = Sale(
       invoiceNumber: invoiceNumber,
       customerId: _selectedCustomer?.id,
-      customerName: _selectedCustomer?.name,
+      customerName: _selectedCustomer?.name ?? 'زبون نقدي',
       totalAmount: _subtotal,
       discount: _totalDiscount + _totalItemDiscounts,
       tax: 0,
       finalAmount: _grandTotal,
-      paidAmount: _grandTotal,
-      remainingAmount: 0,
+      paidAmount: _paymentMethod == 'آجل' ? 0 : _grandTotal,
+      remainingAmount: _paymentMethod == 'آجل' ? _grandTotal : 0,
       paymentMethod: _paymentMethod,
-      status: 'completed',
-      items: const [],
+      status: _paymentMethod == 'آجل' ? 'pending' : 'completed',
+      items: saleItems,
     );
 
     try {
       await salesProvider.addSale(sale);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('تم إتمام البيع - فاتورة رقم: $invoiceNumber'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('✅ تم إتمام البيع بنجاح - فاتورة رقم: $invoiceNumber'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+            action: SnackBarAction(
+              label: 'طباعة',
+              textColor: Colors.white,
+              onPressed: () {
+                // TODO: Print invoice
+              },
+            ),
+          ),
+        );
 
-      _clearCart();
+        _clearCart();
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('حدث خطأ: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ حدث خطأ: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     }
   }
 
@@ -985,30 +1015,67 @@ class _POSScreenState extends State<POSScreen> {
       child: Column(
         children: [
           // Customer selection
-          Container(
-            decoration: BoxDecoration(
-              color: theme.scaffoldBackgroundColor,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                  color: theme.primaryColor.withOpacity(0.3), width: 2),
-            ),
-            child: TextField(
-              controller: _customerController,
-              readOnly: true,
-              decoration: InputDecoration(
-                hintText: 'اختر العميل (اختياري)',
-                border: InputBorder.none,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                prefixIcon:
-                    Icon(Icons.person_rounded, color: theme.primaryColor),
-                suffixIcon: IconButton(
-                  icon: Icon(Icons.arrow_drop_down_circle_rounded,
-                      color: theme.primaryColor),
-                  onPressed: () => _showCustomerDialog(),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: theme.scaffoldBackgroundColor,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                        color: theme.primaryColor.withOpacity(0.3), width: 2),
+                  ),
+                  child: TextField(
+                    controller: _customerController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      hintText: 'اختر العميل (اختياري)',
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 16),
+                      prefixIcon:
+                          Icon(Icons.person_rounded, color: theme.primaryColor),
+                      suffixIcon: IconButton(
+                        icon: Icon(Icons.arrow_drop_down_circle_rounded,
+                            color: theme.primaryColor),
+                        onPressed: () => _showCustomerDialog(),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(width: 12),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.green.shade600, Colors.green.shade700],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.green.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => _showAddCustomerDialog(),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      child: const Icon(
+                        Icons.add_rounded,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
 
@@ -1307,6 +1374,139 @@ class _POSScreenState extends State<POSScreen> {
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('إلغاء'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showAddCustomerDialog() {
+    final nameController = TextEditingController();
+    final phoneController = TextEditingController();
+    final addressController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.person_add_rounded,
+                    color: Colors.green.shade700, size: 28),
+              ),
+              const SizedBox(width: 12),
+              const Text('إضافة عميل جديد'),
+            ],
+          ),
+          content: SizedBox(
+            width: 400,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'اسم العميل *',
+                      prefixIcon: Icon(Icons.person_rounded),
+                      border: OutlineInputBorder(),
+                    ),
+                    autofocus: true,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: phoneController,
+                    decoration: const InputDecoration(
+                      labelText: 'رقم الهاتف *',
+                      prefixIcon: Icon(Icons.phone_rounded),
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: addressController,
+                    decoration: const InputDecoration(
+                      labelText: 'العنوان (اختياري)',
+                      prefixIcon: Icon(Icons.location_on_rounded),
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 2,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إلغاء'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () async {
+                if (nameController.text.trim().isEmpty ||
+                    phoneController.text.trim().isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('الرجاء إدخال اسم العميل ورقم الهاتف'),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                  return;
+                }
+
+                final customer = Customer(
+                  name: nameController.text.trim(),
+                  phone: phoneController.text.trim(),
+                  address: addressController.text.trim().isEmpty
+                      ? null
+                      : addressController.text.trim(),
+                );
+
+                try {
+                  final provider =
+                      Provider.of<CustomersProvider>(context, listen: false);
+                  await provider.addCustomer(customer);
+
+                  // اختيار العميل الجديد تلقائياً
+                  setState(() {
+                    _selectedCustomer = customer;
+                    _customerController.text = customer.name;
+                  });
+
+                  if (mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('✅ تم إضافة العميل بنجاح'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('❌ خطأ: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              icon: const Icon(Icons.check_rounded),
+              label: const Text('إضافة'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
             ),
           ],
         );

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../models/quotation.dart';
-import '../services/database_helper.dart';
 
 class QuotationsProvider with ChangeNotifier {
+  static const String baseUrl = 'http://localhost:3000/api';
   List<Quotation> _quotations = [];
   bool _isLoading = false;
 
@@ -15,16 +17,17 @@ class QuotationsProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final data = await DatabaseHelper.instance.getAllQuotations();
-      _quotations = data.map((map) {
-        final items = (map['items'] as List<dynamic>)
-            .map((item) => QuotationItem.fromMap(item as Map<String, dynamic>))
-            .toList();
+      final response = await http.get(
+        Uri.parse('$baseUrl/quotations'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      );
 
-        return Quotation.fromMap(map).copyWith(items: items);
-      }).toList();
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
+        _quotations = data.map((json) => Quotation.fromMap(json)).toList();
+      }
     } catch (e) {
-      print('Error loading quotations: $e');
+      print('❌ Error loading quotations: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -34,21 +37,19 @@ class QuotationsProvider with ChangeNotifier {
   /// إضافة عرض سعر جديد
   Future<bool> addQuotation(Quotation quotation) async {
     try {
-      final quotationMap = quotation.toMap();
-      quotationMap.remove('id'); // Remove id for auto-increment
+      final response = await http.post(
+        Uri.parse('$baseUrl/quotations'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: json.encode(quotation.toMap()),
+      );
 
-      final items = quotation.items.map((item) {
-        final map = item.toMap();
-        map.remove('id');
-        map.remove('quotation_id');
-        return map;
-      }).toList();
-
-      await DatabaseHelper.instance.insertQuotation(quotationMap, items);
-      await loadQuotations();
-      return true;
+      if (response.statusCode == 201) {
+        await loadQuotations();
+        return true;
+      }
+      return false;
     } catch (e) {
-      print('Error adding quotation: $e');
+      print('❌ Error adding quotation: $e');
       return false;
     }
   }
@@ -58,25 +59,19 @@ class QuotationsProvider with ChangeNotifier {
     if (quotation.id == null) return false;
 
     try {
-      final quotationMap = quotation.toMap();
-      quotationMap.remove('id');
-
-      final items = quotation.items.map((item) {
-        final map = item.toMap();
-        map.remove('id');
-        map.remove('quotation_id');
-        return map;
-      }).toList();
-
-      await DatabaseHelper.instance.updateQuotation(
-        quotation.id!,
-        quotationMap,
-        items,
+      final response = await http.put(
+        Uri.parse('$baseUrl/quotations/${quotation.id}'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: json.encode(quotation.toMap()),
       );
-      await loadQuotations();
-      return true;
+
+      if (response.statusCode == 200) {
+        await loadQuotations();
+        return true;
+      }
+      return false;
     } catch (e) {
-      print('Error updating quotation: $e');
+      print('❌ Error updating quotation: $e');
       return false;
     }
   }
@@ -84,11 +79,18 @@ class QuotationsProvider with ChangeNotifier {
   /// حذف عرض سعر
   Future<bool> deleteQuotation(int id) async {
     try {
-      await DatabaseHelper.instance.deleteQuotation(id);
-      await loadQuotations();
-      return true;
+      final response = await http.delete(
+        Uri.parse('$baseUrl/quotations/$id'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      );
+
+      if (response.statusCode == 200) {
+        await loadQuotations();
+        return true;
+      }
+      return false;
     } catch (e) {
-      print('Error deleting quotation: $e');
+      print('❌ Error deleting quotation: $e');
       return false;
     }
   }
@@ -96,11 +98,19 @@ class QuotationsProvider with ChangeNotifier {
   /// تحديث حالة عرض السعر
   Future<bool> updateQuotationStatus(int id, String status) async {
     try {
-      await DatabaseHelper.instance.updateQuotationStatus(id, status);
-      await loadQuotations();
-      return true;
+      final response = await http.patch(
+        Uri.parse('$baseUrl/quotations/$id/status'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: json.encode({'status': status}),
+      );
+
+      if (response.statusCode == 200) {
+        await loadQuotations();
+        return true;
+      }
+      return false;
     } catch (e) {
-      print('Error updating quotation status: $e');
+      print('❌ Error updating quotation status: $e');
       return false;
     }
   }
@@ -108,9 +118,18 @@ class QuotationsProvider with ChangeNotifier {
   /// توليد رقم عرض سعر جديد
   Future<String> generateQuotationNumber() async {
     try {
-      return await DatabaseHelper.instance.generateQuotationNumber();
+      final response = await http.get(
+        Uri.parse('$baseUrl/quotations/generate/number'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['quotationNumber'];
+      }
+      return 'QT-000001';
     } catch (e) {
-      print('Error generating quotation number: $e');
+      print('❌ Error generating quotation number: $e');
       return 'QT-000001';
     }
   }

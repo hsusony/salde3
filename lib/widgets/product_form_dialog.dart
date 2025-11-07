@@ -66,7 +66,8 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         text: widget.product?.barcode ?? _generateBarcode());
     _pieceBarcodeController = TextEditingController(text: '');
     _materialBarcodeController = TextEditingController(text: '');
-    _selectedCategory = widget.product?.category;
+    final cat = widget.product?.category;
+    _selectedCategory = (cat != null && cat.isNotEmpty) ? cat : null;
     _purchasePriceController = TextEditingController(
         text: widget.product?.purchasePrice.toString() ?? '');
     _sellingPriceController = TextEditingController(
@@ -475,7 +476,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                       const SizedBox(height: 16),
 
                       DropdownButtonFormField<String>(
-                        initialValue: _selectedCategory,
+                        value: _selectedCategory,
                         decoration: const InputDecoration(
                           labelText: 'الفئة *',
                           prefixIcon: Icon(Icons.category_rounded),
@@ -497,6 +498,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                           }
                           return null;
                         },
+                        hint: const Text('اختر الفئة'),
                       ),
                       const SizedBox(height: 16),
 
@@ -566,6 +568,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                                         filled: true,
                                         fillColor: Colors.white,
                                       ),
+                                      hint: const Text('اختر نوع التعبئة'),
                                       items: ['كارتونة', 'مرتبة', 'مترية']
                                           .map((type) {
                                         return DropdownMenuItem(
@@ -1156,6 +1159,20 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         imageUrl = 'local_image_${DateTime.now().millisecondsSinceEpoch}';
       }
 
+      // التأكد من القيم قبل الإرسال
+      final purchasePrice =
+          double.tryParse(_purchasePriceController.text.trim()) ?? 0.0;
+      final sellingPrice =
+          double.tryParse(_sellingPriceController.text.trim()) ?? 0.0;
+      final quantity = int.tryParse(_quantityController.text.trim()) ?? 0;
+      final minQuantity = int.tryParse(_minQuantityController.text.trim()) ?? 5;
+
+      debugPrint('🔄 حفظ المنتج: ${_nameController.text.trim()}');
+      debugPrint('   - الباركود: ${_barcodeController.text.trim()}');
+      debugPrint('   - سعر الشراء: $purchasePrice');
+      debugPrint('   - سعر البيع: $sellingPrice');
+      debugPrint('   - الكمية: $quantity');
+
       final product = Product(
         id: widget.product?.id,
         name: _nameController.text.trim(),
@@ -1163,10 +1180,10 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         additionalBarcodes:
             _additionalBarcodes.isNotEmpty ? _additionalBarcodes : null,
         category: _selectedCategory!,
-        purchasePrice: double.parse(_purchasePriceController.text),
-        sellingPrice: double.parse(_sellingPriceController.text),
-        quantity: int.parse(_quantityController.text),
-        minQuantity: int.tryParse(_minQuantityController.text) ?? 5,
+        purchasePrice: purchasePrice,
+        sellingPrice: sellingPrice,
+        quantity: quantity,
+        minQuantity: minQuantity,
         cartonQuantity: _cartonQuantityController.text.isNotEmpty
             ? int.parse(_cartonQuantityController.text)
             : null,
@@ -1179,28 +1196,48 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
 
       final provider = Provider.of<ProductsProvider>(context, listen: false);
       if (widget.product == null) {
+        debugPrint('📝 إضافة منتج جديد');
         await provider.addProduct(product);
       } else {
+        debugPrint('✏️ تحديث منتج موجود - ID: ${product.id}');
         await provider.updateProduct(product);
       }
 
+      // إعادة تحميل المنتجات للتأكد من التحديث
+      await provider.loadProducts();
+
       if (mounted) {
-        Navigator.pop(context);
+        Navigator.pop(context, true); // إرجاع true للإشارة إلى النجاح
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.product == null
-                ? 'تم إضافة المنتج بنجاح'
-                : 'تم تحديث المنتج بنجاح'),
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 12),
+                Text(widget.product == null
+                    ? 'تم إضافة المنتج بنجاح'
+                    : 'تم تحديث المنتج بنجاح'),
+              ],
+            ),
             backgroundColor: ThemeProvider.successColor,
+            duration: const Duration(seconds: 2),
           ),
         );
       }
     } catch (e) {
+      debugPrint('❌ خطأ في حفظ المنتج: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('خطأ: $e'),
+            content: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(child: Text('خطأ في الحفظ: $e')),
+              ],
+            ),
             backgroundColor: ThemeProvider.errorColor,
+            duration: const Duration(seconds: 4),
           ),
         );
       }

@@ -1,31 +1,43 @@
 const express = require('express');
 const router = express.Router();
 const { getConnection, sql } = require('../config/database');
+const cache = require('../utils/cache');
 
-// Get all products
+// Get all products with caching
 router.get('/', async (req, res) => {
   try {
-    const pool = await getConnection();
-    const result = await pool.request().query('SELECT * FROM Products ORDER BY ProductID DESC');
-    res.json(result.recordset);
+    const products = await cache.getOrFetch('products:all', async () => {
+      const pool = await getConnection();
+      const result = await pool.request().query('SELECT * FROM Products ORDER BY ProductID DESC');
+      return result.recordset;
+    }, 2 * 60 * 1000); // cache لمدة دقيقتين
+    
+    res.json(products);
   } catch (err) {
     console.error('Error fetching products:', err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// Get product by ID
+// Get product by ID with caching
 router.get('/:id', async (req, res) => {
   try {
-    const pool = await getConnection();
-    const result = await pool.request()
-      .input('id', sql.Int, req.params.id)
-      .query('SELECT * FROM Products WHERE ProductID = @id');
+    const product = await cache.getOrFetch(`product:${req.params.id}`, async () => {
+      const pool = await getConnection();
+      const result = await pool.request()
+        .input('id', sql.Int, req.params.id)
+        .query('SELECT * FROM Products WHERE ProductID = @id');
+      
+      if (result.recordset.length === 0) {
+        return null;
+      }
+      return result.recordset[0];
+    }, 5 * 60 * 1000); // cache لمدة 5 دقائق
     
-    if (result.recordset.length === 0) {
+    if (!product) {
       return res.status(404).json({ error: 'Product not found' });
     }
-    res.json(result.recordset[0]);
+    res.json(product);
   } catch (err) {
     console.error('Error fetching product:', err);
     res.status(500).json({ error: err.message });
@@ -53,6 +65,9 @@ router.post('/', async (req, res) => {
         OUTPUT INSERTED.ProductID
         VALUES (@Name, @Barcode, @BuyingPrice, @SellingPrice, @Stock, @MinStock, @CategoryID, @SupplierID, @Description, GETDATE())
       `);
+    
+    // حذف الـ cache بعد الإضافة
+    cache.delete('products:all');
     
     res.status(201).json({ id: result.recordset[0].ProductID, message: 'Product created successfully' });
   } catch (err) {
@@ -93,6 +108,10 @@ router.put('/:id', async (req, res) => {
         WHERE ProductID = @id
       `);
     
+    // حذف الـ cache بعد التحديث
+    cache.delete('products:all');
+    cache.delete(`product:${req.params.id}`);
+    
     res.json({ message: 'Product updated successfully', rowsAffected: result.rowsAffected[0] });
   } catch (err) {
     console.error('Error updating product:', err);
@@ -107,6 +126,10 @@ router.delete('/:id', async (req, res) => {
     const result = await pool.request()
       .input('id', sql.Int, req.params.id)
       .query('DELETE FROM Products WHERE ProductID = @id');
+    
+    // حذف الـ cache بعد الحذف
+    cache.delete('products:all');
+    cache.delete(`product:${req.params.id}`);
     
     res.json({ message: 'Product deleted successfully', rowsAffected: result.rowsAffected[0] });
   } catch (err) {

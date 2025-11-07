@@ -34,38 +34,57 @@ class Quotation {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'quotation_number': quotationNumber,
-      'customer_id': customerId,
-      'customer_name': customerName,
-      'total_amount': totalAmount,
+      'quotationNumber': quotationNumber,
+      'customerId': customerId,
+      'customerName': customerName,
+      'totalAmount': totalAmount,
       'discount': discount,
       'tax': tax,
-      'final_amount': finalAmount,
+      'finalAmount': finalAmount,
       'status': status,
       'notes': notes,
-      'valid_until': validUntil.toIso8601String(),
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
+      'validUntil': validUntil.toIso8601String(),
+      'items': items.map((item) => item.toMap()).toList(),
     };
   }
 
   factory Quotation.fromMap(Map<String, dynamic> map) {
+    // Parse items if available
+    List<QuotationItem> itemsList = [];
+    if (map['items'] != null && map['items'] is List) {
+      itemsList = (map['items'] as List)
+          .map((item) => QuotationItem.fromMap(item as Map<String, dynamic>))
+          .toList();
+    }
+
     return Quotation(
-      id: map['id'],
-      quotationNumber: map['quotation_number'],
-      customerId: map['customer_id'],
-      customerName: map['customer_name'],
-      totalAmount: map['total_amount'].toDouble(),
-      discount: map['discount']?.toDouble() ?? 0.0,
-      tax: map['tax']?.toDouble() ?? 0.0,
-      finalAmount: map['final_amount'].toDouble(),
-      status: map['status'],
-      notes: map['notes'],
-      validUntil: DateTime.parse(map['valid_until']),
-      createdAt: DateTime.parse(map['created_at']),
-      updatedAt:
-          map['updated_at'] != null ? DateTime.parse(map['updated_at']) : null,
+      id: map['QuotationID'] ?? map['id'],
+      quotationNumber: map['QuotationNumber'] ?? map['quotation_number'] ?? '',
+      customerId: map['CustomerID'] ?? map['customer_id'],
+      customerName:
+          map['CustomerName'] ?? map['customer_name'] ?? map['customerName'],
+      totalAmount: (map['TotalAmount'] ?? map['total_amount'] ?? 0).toDouble(),
+      discount: (map['Discount'] ?? map['discount'] ?? 0).toDouble(),
+      tax: (map['Tax'] ?? map['tax'] ?? 0).toDouble(),
+      finalAmount: (map['FinalAmount'] ?? map['final_amount'] ?? 0).toDouble(),
+      status: map['Status'] ?? map['status'] ?? 'pending',
+      notes: map['Notes'] ?? map['notes'],
+      validUntil: map['ValidUntil'] != null
+          ? DateTime.parse(map['ValidUntil'])
+          : (map['valid_until'] != null
+              ? DateTime.parse(map['valid_until'])
+              : DateTime.now().add(const Duration(days: 30))),
+      createdAt: map['CreatedDate'] != null
+          ? DateTime.parse(map['CreatedDate'])
+          : (map['created_at'] != null
+              ? DateTime.parse(map['created_at'])
+              : DateTime.now()),
+      updatedAt: map['UpdatedDate'] != null
+          ? DateTime.parse(map['UpdatedDate'])
+          : (map['updated_at'] != null
+              ? DateTime.parse(map['updated_at'])
+              : null),
+      items: itemsList,
     );
   }
 
@@ -129,29 +148,27 @@ class QuotationItem {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'quotation_id': quotationId,
-      'product_id': productId,
-      'product_name': productName,
-      'product_barcode': productBarcode,
+      'productId': productId,
+      'productName': productName,
+      'productBarcode': productBarcode,
       'quantity': quantity,
-      'unit_price': unitPrice,
-      'total_price': totalPrice,
+      'unitPrice': unitPrice,
+      'totalPrice': totalPrice,
       'discount': discount,
     };
   }
 
   factory QuotationItem.fromMap(Map<String, dynamic> map) {
     return QuotationItem(
-      id: map['id'],
-      quotationId: map['quotation_id'],
-      productId: map['product_id'],
-      productName: map['product_name'],
-      productBarcode: map['product_barcode'],
-      quantity: map['quantity'],
-      unitPrice: map['unit_price'].toDouble(),
-      totalPrice: map['total_price'].toDouble(),
-      discount: map['discount']?.toDouble(),
+      id: map['QuotationItemID'] ?? map['id'],
+      quotationId: map['QuotationID'] ?? map['quotation_id'],
+      productId: map['ProductID'] ?? map['product_id'] ?? 0,
+      productName: map['ProductName'] ?? map['product_name'] ?? '',
+      productBarcode: map['ProductBarcode'] ?? map['product_barcode'] ?? '',
+      quantity: map['Quantity'] ?? map['quantity'] ?? 0,
+      unitPrice: (map['UnitPrice'] ?? map['unit_price'] ?? 0).toDouble(),
+      totalPrice: (map['TotalPrice'] ?? map['total_price'] ?? 0).toDouble(),
+      discount: (map['Discount'] ?? map['discount'] ?? 0).toDouble(),
     );
   }
 

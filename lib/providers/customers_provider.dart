@@ -7,11 +7,22 @@ class CustomersProvider extends ChangeNotifier {
   List<Customer> _filteredCustomers = [];
   bool _isLoading = false;
   String _searchQuery = '';
+  DateTime? _lastLoadTime;
+  static const cacheDuration = Duration(minutes: 5); // Cache لمدة 5 دقائق
 
   List<Customer> get customers => _filteredCustomers;
   bool get isLoading => _isLoading;
 
-  Future<void> loadCustomers() async {
+  Future<void> loadCustomers({bool forceRefresh = false}) async {
+    // استخدام الـ cache إذا كانت البيانات حديثة
+    if (!forceRefresh &&
+        _lastLoadTime != null &&
+        DateTime.now().difference(_lastLoadTime!) < cacheDuration &&
+        _customers.isNotEmpty) {
+      debugPrint('📦 Using cached customers data');
+      return;
+    }
+
     _isLoading = true;
     notifyListeners();
 
@@ -19,6 +30,7 @@ class CustomersProvider extends ChangeNotifier {
       final data = await ApiClient.get('/customers');
       _customers =
           (data as List).map((json) => Customer.fromMap(json)).toList();
+      _lastLoadTime = DateTime.now(); // تحديث وقت آخر تحميل
       _filterCustomers();
     } catch (e) {
       debugPrint('Error loading customers: $e');

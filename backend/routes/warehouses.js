@@ -6,8 +6,8 @@ const { asyncHandler } = require('../middleware/errorHandler');
 // GET - جلب جميع المستودعات
 router.get('/', asyncHandler(async (req, res) => {
   const pool = await getConnection();
-  const result = await pool.request().query('SELECT * FROM Warehouses ORDER BY Name');
-  res.json(result.recordset);
+  const result = await pool.request().query('SELECT * FROM Warehouses ORDER BY name');
+  res.json({ data: result.recordset });
 }));
 
 // GET - جلب مستودع واحد
@@ -16,7 +16,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
   const pool = await getConnection();
   const result = await pool.request()
     .input('id', id)
-    .query('SELECT * FROM Warehouses WHERE WarehouseID = @id');
+    .query('SELECT * FROM Warehouses WHERE id = @id');
   
   if (result.recordset.length === 0) {
     return res.status(404).json({ error: 'المستودع غير موجود' });
@@ -34,8 +34,8 @@ router.get('/:id/stock', asyncHandler(async (req, res) => {
     .query(`
       SELECT ws.*, p.Name as ProductName, p.Barcode
       FROM WarehouseStock ws
-      JOIN Products p ON ws.ProductID = p.ProductID
-      WHERE ws.WarehouseID = @id
+      JOIN Products p ON ws.ProductId = p.ProductID
+      WHERE ws.WarehouseId = @id
       ORDER BY p.Name
     `);
   
@@ -44,17 +44,17 @@ router.get('/:id/stock', asyncHandler(async (req, res) => {
 
 // POST - إضافة مستودع جديد
 router.post('/', asyncHandler(async (req, res) => {
-  const { Name, Location, Description } = req.body;
+  const { name, location, description, notes } = req.body;
   const pool = await getConnection();
   
   const result = await pool.request()
-    .input('Name', Name)
-    .input('Location', Location)
-    .input('Description', Description)
+    .input('name', name)
+    .input('location', location || '')
+    .input('notes', notes || description || null)
     .query(`
-      INSERT INTO Warehouses (Name, Location, Description)
+      INSERT INTO Warehouses (name, location, notes, isActive)
       OUTPUT INSERTED.*
-      VALUES (@Name, @Location, @Description)
+      VALUES (@name, @location, @notes, 1)
     `);
   
   res.status(201).json(result.recordset[0]);
@@ -63,18 +63,18 @@ router.post('/', asyncHandler(async (req, res) => {
 // PUT - تحديث مستودع
 router.put('/:id', asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { Name, Location, Description } = req.body;
+  const { name, location, description, notes } = req.body;
   const pool = await getConnection();
   
   const result = await pool.request()
     .input('id', id)
-    .input('Name', Name)
-    .input('Location', Location)
-    .input('Description', Description)
+    .input('name', name)
+    .input('location', location || '')
+    .input('notes', notes || description || null)
     .query(`
       UPDATE Warehouses 
-      SET Name = @Name, Location = @Location, Description = @Description
-      WHERE WarehouseID = @id
+      SET name = @name, location = @location, notes = @notes, updatedAt = GETDATE()
+      WHERE id = @id
     `);
   
   if (result.rowsAffected[0] === 0) {
@@ -91,7 +91,7 @@ router.delete('/:id', asyncHandler(async (req, res) => {
   
   const result = await pool.request()
     .input('id', id)
-    .query('DELETE FROM Warehouses WHERE WarehouseID = @id');
+    .query('DELETE FROM Warehouses WHERE id = @id');
   
   if (result.rowsAffected[0] === 0) {
     return res.status(404).json({ error: 'المستودع غير موجود' });

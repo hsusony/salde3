@@ -40,6 +40,7 @@ const suppliersRouter = require('./routes/suppliers');
 const warehousesRouter = require('./routes/warehouses');
 const inventoryRouter = require('./routes/inventory');
 const installmentsRouter = require('./routes/installments');
+const quotationsRouter = require('./routes/quotations');
 
 app.use('/api/products', productsRouter);
 app.use('/api/customers', customersRouter);
@@ -49,6 +50,7 @@ app.use('/api/purchases', purchasesRouter);
 app.use('/api/suppliers', suppliersRouter);
 app.use('/api/warehouses', warehousesRouter);
 app.use('/api/inventory', inventoryRouter);
+app.use('/api/quotations', quotationsRouter);
 app.use('/api/installments', installmentsRouter);
 
 // ============ API ENDPOINTS ============

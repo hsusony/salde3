@@ -56,24 +56,36 @@ class Product {
 
   factory Product.fromMap(Map<String, dynamic> map) {
     return Product(
-      id: map['id'],
-      name: map['name'],
-      barcode: map['barcode'],
+      id: map['id'] ?? map['ProductID'],
+      name: map['name'] ?? map['Name'] ?? '',
+      barcode: map['barcode'] ?? map['Barcode'] ?? '',
       additionalBarcodes: map['additional_barcodes'] != null &&
               map['additional_barcodes'].toString().isNotEmpty
           ? map['additional_barcodes'].toString().split(',')
           : null,
-      category: map['category'],
-      purchasePrice: map['purchase_price'].toDouble(),
-      sellingPrice: map['selling_price'].toDouble(),
-      quantity: map['quantity'],
-      minQuantity: map['min_quantity'] ?? 5,
-      cartonQuantity: map['carton_quantity'],
-      description: map['description'],
-      imageUrl: map['image_url'],
-      createdAt: DateTime.parse(map['created_at']),
-      updatedAt:
-          map['updated_at'] != null ? DateTime.parse(map['updated_at']) : null,
+      category: map['category'] ??
+          map['Category'] ??
+          map['CategoryID']?.toString() ??
+          '',
+      purchasePrice:
+          (map['purchase_price'] ?? map['BuyingPrice'] ?? 0).toDouble(),
+      sellingPrice:
+          (map['selling_price'] ?? map['SellingPrice'] ?? 0).toDouble(),
+      quantity: (map['quantity'] ?? map['Stock'] ?? 0).toInt(),
+      minQuantity: (map['min_quantity'] ?? map['MinStock'] ?? 5).toInt(),
+      cartonQuantity: map['carton_quantity'] ?? map['CartonQuantity'],
+      description: map['description'] ?? map['Description'],
+      imageUrl: map['image_url'] ?? map['ImageUrl'],
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'])
+          : (map['CreatedAt'] != null
+              ? DateTime.parse(map['CreatedAt'])
+              : DateTime.now()),
+      updatedAt: map['updated_at'] != null
+          ? DateTime.parse(map['updated_at'])
+          : (map['UpdatedAt'] != null
+              ? DateTime.parse(map['UpdatedAt'])
+              : null),
     );
   }
 

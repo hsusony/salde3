@@ -19,25 +19,33 @@ class Warehouse {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
+      if (id != null) 'id': id,
       'name': name,
       'location': location,
       'description': description,
+      'notes': description, // للتوافق مع DB
       'manager': manager,
       'is_active': isActive ? 1 : 0,
+      'isActive': isActive,
       'created_at': createdAt.toIso8601String(),
     };
   }
 
   factory Warehouse.fromMap(Map<String, dynamic> map) {
     return Warehouse(
-      id: map['id'],
-      name: map['name'],
-      location: map['location'],
-      description: map['description'],
-      manager: map['manager'],
-      isActive: map['is_active'] == 1,
-      createdAt: DateTime.parse(map['created_at']),
+      id: map['id'] ?? map['WarehouseID'],
+      name: map['name'] ?? map['Name'] ?? '',
+      location: map['location'] ?? map['Location'] ?? '',
+      description: map['description'] ?? map['Description'] ?? map['notes'],
+      manager: map['manager'] ?? map['Manager'],
+      isActive: map['is_active'] == 1 ||
+          map['isActive'] == true ||
+          map['isActive'] == 1,
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'])
+          : (map['createdAt'] != null
+              ? DateTime.parse(map['createdAt'])
+              : DateTime.now()),
     );
   }
 }

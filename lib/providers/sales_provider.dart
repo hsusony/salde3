@@ -8,6 +8,9 @@ class SalesProvider extends ChangeNotifier {
   List<Sale> _filteredSales = [];
   bool _isLoading = false;
   String _searchQuery = '';
+  DateTime? _lastLoadTime;
+  static const cacheDuration =
+      Duration(minutes: 2); // Cache أقصر للمبيعات (بيانات تتغير بسرعة)
 
   static const String baseUrl = 'http://localhost:3000/api';
 
@@ -34,7 +37,16 @@ class SalesProvider extends ChangeNotifier {
         'salesChart': _salesChart,
       };
 
-  Future<void> loadSales() async {
+  Future<void> loadSales({bool forceRefresh = false}) async {
+    // استخدام الـ cache إذا كانت البيانات حديثة
+    if (!forceRefresh &&
+        _lastLoadTime != null &&
+        DateTime.now().difference(_lastLoadTime!) < cacheDuration &&
+        _sales.isNotEmpty) {
+      debugPrint('📦 Using cached sales data');
+      return;
+    }
+
     _isLoading = true;
     notifyListeners();
 
@@ -44,6 +56,7 @@ class SalesProvider extends ChangeNotifier {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
         _sales = data.map((json) => Sale.fromMap(json)).toList();
+        _lastLoadTime = DateTime.now(); // تحديث وقت آخر تحميل
       } else {
         throw Exception('فشل تحميل المبيعات');
       }
@@ -120,7 +133,7 @@ class SalesProvider extends ChangeNotifier {
       final saleData = {
         'InvoiceNumber': sale.invoiceNumber,
         'SaleDate': sale.createdAt.toIso8601String(),
-        'CustomerId': sale.customerId,
+        'CustomerID': sale.customerId,
         'TotalAmount': sale.totalAmount,
         'Discount': sale.discount,
         'Tax': sale.tax,
@@ -132,7 +145,7 @@ class SalesProvider extends ChangeNotifier {
         'Notes': sale.notes,
         'Items': sale.items
             .map((item) => {
-                  'ProductId': item.productId,
+                  'ProductID': item.productId,
                   'Quantity': item.quantity,
                   'UnitPrice': item.unitPrice,
                   'Discount': item.discount ?? 0,
@@ -167,7 +180,7 @@ class SalesProvider extends ChangeNotifier {
       final saleData = {
         'InvoiceNumber': sale.invoiceNumber,
         'SaleDate': sale.createdAt.toIso8601String(),
-        'CustomerId': sale.customerId,
+        'CustomerID': sale.customerId,
         'TotalAmount': sale.totalAmount,
         'Discount': sale.discount,
         'Tax': sale.tax,

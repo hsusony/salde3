@@ -56,23 +56,40 @@ class Sale {
   }
 
   factory Sale.fromMap(Map<String, dynamic> map) {
+    // تحويل items من JSON إلى List<SaleItem>
+    List<SaleItem> items = [];
+    if (map['items'] != null && map['items'] is List) {
+      items = (map['items'] as List)
+          .map((item) => SaleItem.fromMap(item as Map<String, dynamic>))
+          .toList();
+    }
+
     return Sale(
-      id: map['id'],
-      invoiceNumber: map['invoice_number'],
-      customerId: map['customer_id'],
-      customerName: map['customer_name'],
-      totalAmount: map['total_amount'].toDouble(),
-      discount: map['discount']?.toDouble() ?? 0.0,
-      tax: map['tax']?.toDouble() ?? 0.0,
-      finalAmount: map['final_amount'].toDouble(),
-      paidAmount: map['paid_amount'].toDouble(),
-      remainingAmount: map['remaining_amount'].toDouble(),
-      paymentMethod: map['payment_method'],
-      status: map['status'],
-      notes: map['notes'],
-      createdAt: DateTime.parse(map['created_at']),
-      updatedAt:
-          map['updated_at'] != null ? DateTime.parse(map['updated_at']) : null,
+      id: map['id'] ?? map['SaleID'],
+      invoiceNumber: map['invoice_number'] ?? map['InvoiceNumber'] ?? '',
+      customerId: map['customer_id'] ?? map['CustomerID'],
+      customerName: map['customer_name'] ?? map['CustomerName'],
+      totalAmount: (map['total_amount'] ?? map['TotalAmount'] ?? 0).toDouble(),
+      discount: (map['discount'] ?? map['Discount'] ?? 0).toDouble(),
+      tax: (map['tax'] ?? map['Tax'] ?? 0).toDouble(),
+      finalAmount: (map['final_amount'] ?? map['FinalAmount'] ?? 0).toDouble(),
+      paidAmount: (map['paid_amount'] ?? map['PaidAmount'] ?? 0).toDouble(),
+      remainingAmount:
+          (map['remaining_amount'] ?? map['RemainingAmount'] ?? 0).toDouble(),
+      paymentMethod: map['payment_method'] ?? map['PaymentMethod'] ?? 'cash',
+      status: map['status'] ?? map['Status'] ?? 'completed',
+      notes: map['notes'] ?? map['Notes'],
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'])
+          : (map['CreatedAt'] != null
+              ? DateTime.parse(map['CreatedAt'])
+              : DateTime.now()),
+      updatedAt: map['updated_at'] != null
+          ? DateTime.parse(map['updated_at'])
+          : (map['UpdatedAt'] != null
+              ? DateTime.parse(map['UpdatedAt'])
+              : null),
+      items: items,
     );
   }
 

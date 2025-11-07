@@ -11,12 +11,18 @@ const config = {
     encrypt: process.env.DB_ENCRYPT === 'true',
     trustServerCertificate: process.env.DB_TRUST_CERTIFICATE === 'true',
     enableArithAbort: true,
+    // تحسينات إضافية للسرعة
+    useUTC: false,           // استخدام التوقيت المحلي بدلاً من UTC لتوفير التحويل
+    abortTransactionOnError: true,  // إيقاف التعاملات عند الخطأ مباشرة
   },
   pool: {
-    max: 10,
-    min: 0,
-    idleTimeoutMillis: 30000
-  }
+    max: 50,        // زيادة الاتصالات المتزامنة للسرعة القصوى
+    min: 5,         // حد أدنى أكبر من الاتصالات الجاهزة دائماً
+    idleTimeoutMillis: 30000,  // إبقاء الاتصالات أطول لتقليل إعادة الإنشاء
+    acquireTimeoutMillis: 15000, // وقت أطول للحصول على اتصال من الـ pool
+  },
+  connectionTimeout: 15000,  // timeout أطول للاتصال بالداتابيس
+  requestTimeout: 15000      // timeout أطول لتنفيذ الاستعلامات المعقدة
 };
 
 // Add authentication based on mode

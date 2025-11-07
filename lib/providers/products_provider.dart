@@ -45,6 +45,13 @@ class ProductsProvider extends ChangeNotifier {
 
   Future<void> addProduct(Product product) async {
     try {
+      debugPrint('📝 إضافة منتج جديد');
+      debugPrint('   الاسم: ${product.name}');
+      debugPrint('   الباركود: ${product.barcode}');
+      debugPrint('   سعر الشراء: ${product.purchasePrice}');
+      debugPrint('   سعر البيع: ${product.sellingPrice}');
+      debugPrint('   الكمية: ${product.quantity}');
+
       // استخدام API لإضافة المنتج
       final response = await http
           .post(
@@ -58,19 +65,41 @@ class ProductsProvider extends ChangeNotifier {
               'Stock': product.quantity,
               'MinStock': product.minQuantity,
               'Description': product.description,
+              'CategoryID': null,
+              'SupplierID': null,
             }),
           )
           .timeout(const Duration(seconds: 10));
 
+      debugPrint('📡 رد الخادم: ${response.statusCode}');
+      debugPrint('   الرد: ${utf8.decode(response.bodyBytes)}');
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(utf8.decode(response.bodyBytes));
-        product = Product.fromMap(data);
+        // إذا كان الرد يحتوي على ID جديد، نستخدمه
+        if (data['id'] != null) {
+          product = Product(
+            id: data['id'],
+            name: product.name,
+            barcode: product.barcode,
+            category: product.category,
+            purchasePrice: product.purchasePrice,
+            sellingPrice: product.sellingPrice,
+            quantity: product.quantity,
+            minQuantity: product.minQuantity,
+            description: product.description,
+            imageUrl: product.imageUrl,
+            createdAt: DateTime.now(),
+          );
+        }
         _products.add(product);
         _filterProducts();
         notifyListeners();
-        debugPrint('✅ تم إضافة المنتج بنجاح');
+        debugPrint('✅ تم إضافة المنتج بنجاح - ID: ${product.id}');
       } else {
-        throw Exception('فشل إضافة المنتج: ${response.statusCode}');
+        final errorBody = utf8.decode(response.bodyBytes);
+        throw Exception(
+            'فشل إضافة المنتج: ${response.statusCode} - $errorBody');
       }
     } catch (e) {
       debugPrint('❌ خطأ في إضافة المنتج: $e');
@@ -80,6 +109,13 @@ class ProductsProvider extends ChangeNotifier {
 
   Future<void> updateProduct(Product product) async {
     try {
+      debugPrint('🔄 تحديث المنتج ID: ${product.id}');
+      debugPrint('   الاسم: ${product.name}');
+      debugPrint('   الباركود: ${product.barcode}');
+      debugPrint('   سعر الشراء: ${product.purchasePrice}');
+      debugPrint('   سعر البيع: ${product.sellingPrice}');
+      debugPrint('   الكمية: ${product.quantity}');
+
       // استخدام API لتحديث المنتج
       final response = await http
           .put(
@@ -93,9 +129,14 @@ class ProductsProvider extends ChangeNotifier {
               'Stock': product.quantity,
               'MinStock': product.minQuantity,
               'Description': product.description,
+              'CategoryID': null, // يمكن إضافة دعم الفئات لاحقاً
+              'SupplierID': null, // يمكن إضافة دعم الموردين لاحقاً
             }),
           )
           .timeout(const Duration(seconds: 10));
+
+      debugPrint('📡 رد الخادم: ${response.statusCode}');
+      debugPrint('   الرد: ${utf8.decode(response.bodyBytes)}');
 
       if (response.statusCode == 200) {
         final index = _products.indexWhere((p) => p.id == product.id);
@@ -104,9 +145,11 @@ class ProductsProvider extends ChangeNotifier {
           _filterProducts();
           notifyListeners();
         }
-        debugPrint('✅ تم تحديث المنتج بنجاح');
+        debugPrint('✅ تم تحديث المنتج بنجاح في القائمة المحلية');
       } else {
-        throw Exception('فشل تحديث المنتج: ${response.statusCode}');
+        final errorBody = utf8.decode(response.bodyBytes);
+        throw Exception(
+            'فشل تحديث المنتج: ${response.statusCode} - $errorBody');
       }
     } catch (e) {
       debugPrint('❌ خطأ في تحديث المنتج: $e');

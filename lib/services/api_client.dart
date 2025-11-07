@@ -6,7 +6,8 @@ import 'error_handler.dart';
 /// HTTP Client مع معالجة أخطاء متقدمة
 class ApiClient {
   static const String baseUrl = 'http://localhost:3000/api';
-  static const Duration timeout = Duration(seconds: 30);
+  static const Duration timeout =
+      Duration(seconds: 5); // تقليل من 30 إلى 5 ثوانٍ للأداء الأفضل
 
   /// GET request
   static Future<dynamic> get(String endpoint) async {

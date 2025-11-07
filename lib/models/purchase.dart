@@ -57,23 +57,31 @@ class Purchase {
 
   factory Purchase.fromMap(Map<String, dynamic> map) {
     return Purchase(
-      id: map['id'],
-      invoiceNumber: map['invoice_number'],
-      createdAt: DateTime.parse(map['created_at']),
-      supplierId: map['supplier_id'],
-      supplierName: map['supplier_name'],
+      id: map['id'] ?? map['PurchaseID'],
+      invoiceNumber: map['invoice_number'] ?? map['InvoiceNumber'] ?? '',
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'])
+          : (map['PurchaseDate'] != null
+              ? DateTime.parse(map['PurchaseDate'])
+              : DateTime.now()),
+      supplierId: map['supplier_id'] ?? map['SupplierID'],
+      supplierName: map['supplier_name'] ?? map['SupplierName'],
       items: [], // سيتم جلبها من جدول منفصل
-      totalAmount: map['total_amount'].toDouble(),
-      discount: map['discount']?.toDouble() ?? 0,
-      tax: map['tax']?.toDouble() ?? 0,
-      finalAmount: map['final_amount'].toDouble(),
-      paymentMethod: map['payment_method'],
-      paidAmount: map['paid_amount'].toDouble(),
-      remainingAmount: map['remaining_amount']?.toDouble() ?? 0,
-      status: map['status'],
-      notes: map['notes'],
-      updatedAt:
-          map['updated_at'] != null ? DateTime.parse(map['updated_at']) : null,
+      totalAmount: (map['total_amount'] ?? map['TotalAmount'] ?? 0).toDouble(),
+      discount: (map['discount'] ?? map['Discount'] ?? 0).toDouble(),
+      tax: (map['tax'] ?? map['Tax'] ?? 0).toDouble(),
+      finalAmount: (map['final_amount'] ?? map['FinalAmount'] ?? 0).toDouble(),
+      paymentMethod: map['payment_method'] ?? map['PaymentMethod'] ?? 'cash',
+      paidAmount: (map['paid_amount'] ?? map['PaidAmount'] ?? 0).toDouble(),
+      remainingAmount:
+          (map['remaining_amount'] ?? map['RemainingAmount'] ?? 0).toDouble(),
+      status: map['status'] ?? map['Status'] ?? 'completed',
+      notes: map['notes'] ?? map['Notes'],
+      updatedAt: map['updated_at'] != null
+          ? DateTime.parse(map['updated_at'])
+          : (map['UpdatedAt'] != null
+              ? DateTime.parse(map['UpdatedAt'])
+              : null),
     );
   }
 

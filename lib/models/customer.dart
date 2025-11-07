@@ -43,18 +43,25 @@ class Customer {
 
   factory Customer.fromMap(Map<String, dynamic> map) {
     return Customer(
-      id: map['id'],
-      name: map['name'],
+      id: map['id'] ?? map['CustomerID'],
+      name: map['name'] ?? map['Name'] ?? '',
       customerCode: map['customer_code'], // سيكون null إذا لم يكن موجود
-      phone: map['phone'],
-      email: map['email'],
-      address: map['address'],
-      company: map['company'],
-      balance: map['balance']?.toDouble() ?? 0.0,
-      notes: map['notes'],
-      createdAt: DateTime.parse(map['created_at']),
-      updatedAt:
-          map['updated_at'] != null ? DateTime.parse(map['updated_at']) : null,
+      phone: map['phone'] ?? map['Phone'] ?? '',
+      email: map['email'] ?? map['Email'],
+      address: map['address'] ?? map['Address'],
+      company: map['company'] ?? map['Company'],
+      balance: (map['balance'] ?? map['Balance'] ?? 0).toDouble(),
+      notes: map['notes'] ?? map['Notes'],
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'])
+          : (map['CreatedAt'] != null
+              ? DateTime.parse(map['CreatedAt'])
+              : DateTime.now()),
+      updatedAt: map['updated_at'] != null
+          ? DateTime.parse(map['updated_at'])
+          : (map['UpdatedAt'] != null
+              ? DateTime.parse(map['UpdatedAt'])
+              : null),
     );
   }
 
