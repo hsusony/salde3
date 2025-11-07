@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Tester - Sales Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .endpoint {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .endpoint h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .endpoint-info {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .method {
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .get { background: #28a745; }
+        .post { background: #007bff; }
+        .put { background: #ffc107; }
+        .delete { background: #dc3545; }
+        
+        .url {
+            flex: 1;
+            padding: 5px 15px;
+            background: white;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        
+        button {
+            padding: 8px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background: #5568d3;
+        }
+        
+        .response {
+            margin-top: 10px;
+            padding: 15px;
+            background: #1e1e1e;
+            color: #00ff00;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        .status-200 { background: #28a745; color: white; }
+        .status-error { background: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Sales Management API Tester</h1>
+        
+        <div class="endpoint">
+            <h3>Health Check</h3>
+            <div class="endpoint-info">
+                <span class="method get">GET</span>
+                <span class="url">/api/health</span>
+                <button onclick="testEndpoint('GET', '/api/health', this)">Test</button>
+            </div>
+            <div class="response"></div>
+        </div>
+        
+        <div class="endpoint">
+            <h3>Get All Customers</h3>
+            <div class="endpoint-info">
+                <span class="method get">GET</span>
+                <span class="url">/api/customers</span>
+                <button onclick="testEndpoint('GET', '/api/customers', this)">Test</button>
+            </div>
+            <div class="response"></div>
+        </div>
+        
+        <div class="endpoint">
+            <h3>Get All Products</h3>
+            <div class="endpoint-info">
+                <span class="method get">GET</span>
+                <span class="url">/api/products</span>
+                <button onclick="testEndpoint('GET', '/api/products', this)">Test</button>
+            </div>
+            <div class="response"></div>
+        </div>
+        
+        <div class="endpoint">
+            <h3>Get All Categories</h3>
+            <div class="endpoint-info">
+                <span class="method get">GET</span>
+                <span class="url">/api/categories</span>
+                <button onclick="testEndpoint('GET', '/api/categories', this)">Test</button>
+            </div>
+            <div class="response"></div>
+        </div>
+        
+        <div class="endpoint">
+            <h3>Get All Units</h3>
+            <div class="endpoint-info">
+                <span class="method get">GET</span>
+                <span class="url">/api/units</span>
+                <button onclick="testEndpoint('GET', '/api/units', this)">Test</button>
+            </div>
+            <div class="response"></div>
+        </div>
+        
+        <div class="endpoint">
+            <h3>Get All Sales</h3>
+            <div class="endpoint-info">
+                <span class="method get">GET</span>
+                <span class="url">/api/sales</span>
+                <button onclick="testEndpoint('GET', '/api/sales', this)">Test</button>
+            </div>
+            <div class="response"></div>
+        </div>
+        
+        <div class="endpoint">
+            <h3>Dashboard Statistics</h3>
+            <div class="endpoint-info">
+                <span class="method get">GET</span>
+                <span class="url">/api/dashboard/stats</span>
+                <button onclick="testEndpoint('GET', '/api/dashboard/stats', this)">Test</button>
+            </div>
+            <div class="response"></div>
+        </div>
+        
+        <div class="endpoint">
+            <h3>Daily Sales Report</h3>
+            <div class="endpoint-info">
+                <span class="method get">GET</span>
+                <span class="url">/api/reports/daily-sales</span>
+                <button onclick="testEndpoint('GET', '/api/reports/daily-sales', this)">Test</button>
+            </div>
+            <div class="response"></div>
+        </div>
+        
+        <div class="endpoint">
+            <h3>Top Selling Products</h3>
+            <div class="endpoint-info">
+                <span class="method get">GET</span>
+                <span class="url">/api/reports/top-selling</span>
+                <button onclick="testEndpoint('GET', '/api/reports/top-selling', this)">Test</button>
+            </div>
+            <div class="response"></div>
+        </div>
+        
+        <div class="endpoint">
+            <h3>Inventory Report</h3>
+            <div class="endpoint-info">
+                <span class="method get">GET</span>
+                <span class="url">/api/reports/inventory</span>
+                <button onclick="testEndpoint('GET', '/api/reports/inventory', this)">Test</button>
+            </div>
+            <div class="response"></div>
+        </div>
+    </div>
+    
+    <script>
+        const baseUrl = 'http://localhost:8000';
+        
+        async function testEndpoint(method, endpoint, button) {
+            const responseDiv = button.parentElement.nextElementSibling;
+            responseDiv.style.display = 'block';
+            responseDiv.textContent = 'Loading...';
+            
+            try {
+                const response = await fetch(baseUrl + endpoint, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                const statusSpan = document.createElement('span');
+                statusSpan.className = 'status ' + (response.ok ? 'status-200' : 'status-error');
+                statusSpan.textContent = `Status: ${response.status}`;
+                
+                responseDiv.innerHTML = '';
+                responseDiv.appendChild(statusSpan);
+                responseDiv.appendChild(document.createTextNode('\n\n' + JSON.stringify(data, null, 2)));
+                
+            } catch (error) {
+                responseDiv.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
