@@ -28,6 +28,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // Autoload helpers and models
 require_once __DIR__ . '/helpers/Response.php';
 require_once __DIR__ . '/helpers/Request.php';
+require_once __DIR__ . '/helpers/Auth.php';
+require_once __DIR__ . '/helpers/Logger.php';
+require_once __DIR__ . '/helpers/Cache.php';
 require_once __DIR__ . '/models/Customer.php';
 require_once __DIR__ . '/models/Product.php';
 require_once __DIR__ . '/models/Sale.php';
@@ -35,11 +38,16 @@ require_once __DIR__ . '/models/Category.php';
 require_once __DIR__ . '/models/Unit.php';
 require_once __DIR__ . '/models/Installment.php';
 require_once __DIR__ . '/models/Report.php';
+require_once __DIR__ . '/models/User.php';
+require_once __DIR__ . '/models/Backup.php';
 
 // Initialize request
 $request = new Request();
 $method = $request->getMethod();
 $uri = $request->getUri();
+
+// Log request
+Logger::logRequest($method, $uri, $request->getParams());
 
 // Remove base path
 $uri = str_replace('/backend-php', '', $uri);
@@ -56,19 +64,24 @@ try {
     // ===========================================
     // API INFO
     // ===========================================
-    if ($endpoint === '' || $endpoint === 'api') {
+    if (($endpoint === '' || $endpoint === 'api') && empty($resource)) {
         Response::success([
             'name' => 'Sales Management System API',
             'version' => '1.0.0',
             'description' => 'Professional REST API with PHP and SQL Server 2008',
             'endpoints' => [
                 '/api/health' => 'Health check',
+                '/api/auth/login' => 'User login',
+                '/api/auth/register' => 'User registration',
                 '/api/customers' => 'Customer management',
                 '/api/products' => 'Product management',
                 '/api/sales' => 'Sales management',
                 '/api/categories' => 'Category management',
                 '/api/units' => 'Unit management',
                 '/api/installments' => 'Installment management',
+                '/api/backup/create' => 'Create database backup',
+                '/api/backup/list' => 'List all backups',
+                '/api/backup/export' => 'Export data as JSON',
                 '/api/reports/daily-sales' => 'Daily sales report',
                 '/api/reports/monthly-sales' => 'Monthly sales report',
                 '/api/reports/top-selling' => 'Top selling products',
@@ -94,6 +107,91 @@ try {
             'database' => 'SalesManagementDB',
             'timestamp' => date('Y-m-d H:i:s')
         ]);
+    }
+    
+    // ===========================================
+    // AUTHENTICATION
+    // ===========================================
+    if ($endpoint === 'api' && $resource === 'auth') {
+        $userModel = new User();
+        
+        // Login
+        if ($method === 'POST' && $id === 'login') {
+            $request->validate([
+                'username' => 'required',
+                'password' => 'required'
+            ]);
+            
+            $result = $userModel->login(
+                $request->input('username'),
+                $request->input('password')
+            );
+            
+            if ($result['success']) {
+                Response::success($result);
+            } else {
+                Response::error($result['message'], 401);
+            }
+        }
+        
+        // Register
+        if ($method === 'POST' && $id === 'register') {
+            Auth::authenticate(); // Only authenticated users can register new users
+            
+            $request->validate([
+                'Username' => 'required',
+                'Password' => 'required',
+                'FullName' => 'required'
+            ]);
+            
+            $user = $userModel->create($request->getBody());
+            Response::created($user, 'تم إنشاء المستخدم بنجاح');
+        }
+        
+        // Get current user info
+        if ($method === 'GET' && $id === 'me') {
+            $currentUser = Auth::authenticate();
+            $user = $userModel->getById($currentUser['user_id']);
+            Response::success($user);
+        }
+    }
+    
+    // ===========================================
+    // BACKUP & RESTORE
+    // ===========================================
+    if ($endpoint === 'api' && $resource === 'backup') {
+        Auth::authenticate(); // Require authentication
+        
+        $backupModel = new Backup();
+        
+        // Create backup
+        if ($method === 'POST' && $id === 'create') {
+            $result = $backupModel->createBackup();
+            Response::created($result, 'تم إنشاء النسخة الاحتياطية بنجاح');
+        }
+        
+        // List backups
+        if ($method === 'GET' && $id === 'list') {
+            $backups = $backupModel->listBackups();
+            Response::success($backups);
+        }
+        
+        // Delete backup
+        if ($method === 'DELETE' && $id) {
+            $success = $backupModel->deleteBackup($id);
+            if ($success) {
+                Response::success(null, 'تم حذف النسخة الاحتياطية بنجاح');
+            } else {
+                Response::notFound('النسخة الاحتياطية غير موجودة');
+            }
+        }
+        
+        // Export as JSON
+        if ($method === 'POST' && $id === 'export') {
+            $tables = $request->input('tables', []);
+            $result = $backupModel->exportJSON($tables);
+            Response::created($result, 'تم تصدير البيانات بنجاح');
+        }
     }
     
     // ===========================================
@@ -529,5 +627,8 @@ try {
     Response::notFound('Endpoint not found');
     
 } catch (Exception $e) {
+    Logger::error('Server Error: ' . $e->getMessage(), [
+        'trace' => $e->getTraceAsString()
+    ]);
     Response::serverError('خطأ: ' . $e->getMessage());
 }

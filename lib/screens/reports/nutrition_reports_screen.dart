@@ -12,12 +12,140 @@ import 'nutrition/agents_report_screen.dart';
 import 'nutrition/delivery_payments_screen.dart';
 import 'nutrition/price_quotes_report_screen.dart';
 
-class NutritionReportsScreen extends StatelessWidget {
+class NutritionReportsScreen extends StatefulWidget {
   const NutritionReportsScreen({super.key});
+
+  @override
+  State<NutritionReportsScreen> createState() => _NutritionReportsScreenState();
+}
+
+class _NutritionReportsScreenState extends State<NutritionReportsScreen>
+    with TickerProviderStateMixin {
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final reports = [
+      {
+        'title': 'كشف عرض السعر',
+        'icon': Icons.request_quote_rounded,
+        'color': const Color(0xFF8B5CF6),
+        'gradient': [const Color(0xFF8B5CF6), const Color(0xFF7C3AED)],
+        'screen': const PriceQuotesReportScreen(),
+        'description': 'عرض أسعار المنتجات والخدمات',
+      },
+      {
+        'title': 'تسديد القوائم',
+        'icon': Icons.receipt_long_rounded,
+        'color': const Color(0xFFEC4899),
+        'gradient': [const Color(0xFFEC4899), const Color(0xFFDB2777)],
+        'screen': const PaymentListsReportScreen(),
+        'description': 'متابعة تسديد الفواتير',
+      },
+      {
+        'title': 'تقرير السندات',
+        'icon': Icons.description_rounded,
+        'color': const Color(0xFF10B981),
+        'gradient': [const Color(0xFF10B981), const Color(0xFF059669)],
+        'screen': const BondsReportScreen(),
+        'description': 'سندات القبض والصرف',
+      },
+      {
+        'title': 'النقد اليومي',
+        'icon': Icons.account_balance_wallet_rounded,
+        'color': const Color(0xFFF59E0B),
+        'gradient': [const Color(0xFFF59E0B), const Color(0xFFD97706)],
+        'screen': const DailyCashReportScreen(),
+        'description': 'حركة النقد اليومية',
+      },
+      {
+        'title': 'المطابقة اليومية',
+        'icon': Icons.checklist_rounded,
+        'color': const Color(0xFF3B82F6),
+        'gradient': [const Color(0xFF3B82F6), const Color(0xFF2563EB)],
+        'screen': const DailyReconciliationReportScreen(),
+        'description': 'مطابقة الحسابات',
+      },
+      {
+        'title': 'كشف المسحوبات',
+        'icon': Icons.people_outline_rounded,
+        'color': const Color(0xFF06B6D4),
+        'gradient': [const Color(0xFF06B6D4), const Color(0xFF0891B2)],
+        'screen': const WithdrawalsStatementScreen(),
+        'description': 'متابعة المسحوبات',
+      },
+      {
+        'title': 'عرض مستند',
+        'icon': Icons.preview_rounded,
+        'color': const Color(0xFFF97316),
+        'gradient': [const Color(0xFFF97316), const Color(0xFFEA580C)],
+        'screen': const DocumentViewScreen(),
+        'description': 'عرض وطباعة المستندات',
+      },
+      {
+        'title': 'تفاصيل مالية',
+        'icon': Icons.attach_money_rounded,
+        'color': const Color(0xFFEF4444),
+        'gradient': [const Color(0xFFEF4444), const Color(0xFFDC2626)],
+        'screen': const FinancialDetailsScreen(),
+        'description': 'تفاصيل العمليات المالية',
+      },
+      {
+        'title': 'تسديد المندوبين',
+        'icon': Icons.assignment_turned_in_rounded,
+        'color': const Color(0xFF14B8A6),
+        'gradient': [const Color(0xFF14B8A6), const Color(0xFF0D9488)],
+        'screen': const AgentsPaymentsScreen(),
+        'description': 'مدفوعات المندوبين',
+      },
+      {
+        'title': 'تقرير سندات الحوالة',
+        'icon': Icons.sync_alt_rounded,
+        'color': const Color(0xFFA855F7),
+        'gradient': [const Color(0xFFA855F7), const Color(0xFF9333EA)],
+        'screen': const TransferBondsReportScreen(),
+        'description': 'سندات التحويل',
+      },
+      {
+        'title': 'تقرير المندوبين',
+        'icon': Icons.groups_rounded,
+        'color': const Color(0xFF6366F1),
+        'gradient': [const Color(0xFF6366F1), const Color(0xFF4F46E5)],
+        'screen': const AgentsReportScreen(),
+        'description': 'تقارير نشاط المندوبين',
+      },
+      {
+        'title': 'تسديد قوائم التوصيل',
+        'icon': Icons.local_shipping_rounded,
+        'color': const Color(0xFFEC4899),
+        'gradient': [const Color(0xFFEC4899), const Color(0xFFDB2777)],
+        'screen': const DeliveryPaymentsScreen(),
+        'description': 'مدفوعات التوصيل',
+      },
+    ];
+
+    final filteredReports = _searchQuery.isEmpty
+        ? reports
+        : reports
+            .where((report) =>
+                report['title']
+                    .toString()
+                    .toLowerCase()
+                    .contains(_searchQuery.toLowerCase()) ||
+                report['description']
+                    .toString()
+                    .toLowerCase()
+                    .contains(_searchQuery.toLowerCase()))
+            .toList();
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -30,7 +158,7 @@ class NutritionReportsScreen extends StatelessWidget {
                     const Color(0xFF1E293B),
                   ]
                 : [
-                    Colors.grey[50]!,
+                    const Color(0xFFFAFAFA),
                     Colors.white,
                   ],
             begin: Alignment.topCenter,
@@ -39,6 +167,7 @@ class NutritionReportsScreen extends StatelessWidget {
         ),
         child: Column(
           children: [
+            // Header المحسن
             Container(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
@@ -53,9 +182,9 @@ class NutritionReportsScreen extends StatelessWidget {
                 boxShadow: [
                   BoxShadow(
                     color: const Color(0xFFEC4899).withOpacity(0.4),
-                    blurRadius: 20,
+                    blurRadius: 24,
                     spreadRadius: 0,
-                    offset: const Offset(0, 8),
+                    offset: const Offset(0, 10),
                   ),
                 ],
               ),
@@ -88,149 +217,205 @@ class NutritionReportsScreen extends StatelessWidget {
                   ),
                   // Content
                   Padding(
-                    padding: const EdgeInsets.all(28),
-                    child: Row(
+                    padding: const EdgeInsets.fromLTRB(32, 32, 32, 28),
+                    child: Column(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.white.withOpacity(0.25),
-                                Colors.white.withOpacity(0.15),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
+                        Row(
+                          children: [
+                            // Icon
+                            Container(
+                              padding: const EdgeInsets.all(18),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.white.withOpacity(0.25),
+                                    Colors.white.withOpacity(0.15),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                  width: 2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 15,
+                                    offset: const Offset(0, 5),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.payments_rounded,
+                                color: Colors.white,
+                                size: 42,
+                              ),
                             ),
+                            const SizedBox(width: 24),
+                            // Title and description
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'التقارير النقدية',
+                                    style: TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white,
+                                      letterSpacing: -0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 14,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.2),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          border: Border.all(
+                                            color:
+                                                Colors.white.withOpacity(0.3),
+                                            width: 1.5,
+                                          ),
+                                        ),
+                                        child: const Row(
+                                          children: [
+                                            Icon(
+                                              Icons.folder_special_rounded,
+                                              color: Colors.white,
+                                              size: 16,
+                                            ),
+                                            SizedBox(width: 8),
+                                            Text(
+                                              '12 تقرير',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      const Text(
+                                        'إدارة ومتابعة التقارير النقدية والمالية',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          color: Colors.white70,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                            // Action buttons
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  _buildHeaderButton(
+                                    Icons.print_rounded,
+                                    'طباعة',
+                                    () {},
+                                  ),
+                                  Container(
+                                    width: 1,
+                                    height: 28,
+                                    color: Colors.white.withOpacity(0.2),
+                                  ),
+                                  _buildHeaderButton(
+                                    Icons.download_rounded,
+                                    'تحميل',
+                                    () {},
+                                  ),
+                                  Container(
+                                    width: 1,
+                                    height: 28,
+                                    color: Colors.white.withOpacity(0.2),
+                                  ),
+                                  _buildHeaderButton(
+                                    Icons.share_rounded,
+                                    'مشاركة',
+                                    () {},
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        // Search bar
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.15),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: Colors.white.withOpacity(0.3),
                               width: 1.5,
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
                           ),
-                          child: const Icon(
-                            Icons.payments_rounded,
-                            color: Colors.white,
-                            size: 40,
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'التقارير النقدية',
-                                style: TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                        color: Colors.white.withOpacity(0.3),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: const Row(
-                                      children: [
-                                        Icon(
-                                          Icons.folder_rounded,
-                                          color: Colors.white,
-                                          size: 14,
-                                        ),
-                                        SizedBox(width: 6),
-                                        Text(
-                                          '12 تقرير',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  const Text(
-                                    'عرض وإدارة التقارير النقدية والمالية',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.white70,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.3),
-                              width: 1,
+                          child: TextField(
+                            controller: _searchController,
+                            onChanged: (value) {
+                              setState(() {
+                                _searchQuery = value;
+                              });
+                            },
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
                             ),
-                          ),
-                          child: Row(
-                            children: [
-                              IconButton(
-                                onPressed: () {},
-                                icon: const Icon(Icons.print_rounded),
-                                style: IconButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                ),
-                                tooltip: 'طباعة',
+                            decoration: InputDecoration(
+                              hintText: 'ابحث عن تقرير...',
+                              hintStyle: TextStyle(
+                                color: Colors.white.withOpacity(0.6),
+                                fontSize: 15,
                               ),
-                              Container(
-                                width: 1,
-                                height: 24,
-                                color: Colors.white.withOpacity(0.2),
+                              prefixIcon: const Icon(
+                                Icons.search_rounded,
+                                color: Colors.white,
+                                size: 24,
                               ),
-                              IconButton(
-                                onPressed: () {},
-                                icon: const Icon(Icons.download_rounded),
-                                style: IconButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                ),
-                                tooltip: 'تحميل',
+                              suffixIcon: _searchQuery.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(
+                                        Icons.clear_rounded,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        setState(() {
+                                          _searchQuery = '';
+                                        });
+                                      },
+                                    )
+                                  : null,
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 16,
                               ),
-                              Container(
-                                width: 1,
-                                height: 24,
-                                color: Colors.white.withOpacity(0.2),
-                              ),
-                              IconButton(
-                                onPressed: () {},
-                                icon: const Icon(Icons.share_rounded),
-                                style: IconButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                ),
-                                tooltip: 'مشاركة',
-                              ),
-                            ],
+                            ),
                           ),
                         ),
                       ],
@@ -239,6 +424,7 @@ class NutritionReportsScreen extends StatelessWidget {
                 ],
               ),
             ),
+            // Content
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
@@ -249,204 +435,90 @@ class NutritionReportsScreen extends StatelessWidget {
                             const Color(0xFF1E293B),
                           ]
                         : [
-                            Colors.grey[50]!,
-                            Colors.grey[100]!,
+                            const Color(0xFFF8FAFC),
+                            const Color(0xFFF1F5F9),
                           ],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(28),
-                  child: GridView.count(
-                    crossAxisCount: 4,
-                    crossAxisSpacing: 24,
-                    mainAxisSpacing: 24,
-                    childAspectRatio: 0.95,
-                    children: [
-                      _buildReportCard(
-                        context,
-                        'كشف عرض السعر',
-                        Icons.request_quote_rounded,
-                        const Color(0xFF8B5CF6),
-                        () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const PriceQuotesReportScreen(),
+                child: filteredReports.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.search_off_rounded,
+                              size: 80,
+                              color: Colors.grey.withOpacity(0.5),
                             ),
-                          );
-                        },
-                      ),
-                      _buildReportCard(
-                        context,
-                        'تسديد القوائم',
-                        Icons.receipt_long_rounded,
-                        const Color(0xFFEC4899),
-                        () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const PaymentListsReportScreen(),
+                            const SizedBox(height: 16),
+                            Text(
+                              'لا توجد نتائج للبحث',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey[600],
+                              ),
                             ),
-                          );
-                        },
-                      ),
-                      _buildReportCard(
-                        context,
-                        'تقرير السندات',
-                        Icons.description_rounded,
-                        const Color(0xFFEC4899),
-                        () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const BondsReportScreen(),
+                            const SizedBox(height: 8),
+                            Text(
+                              'جرب البحث بكلمات مختلفة',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[500],
+                              ),
                             ),
-                          );
-                        },
+                          ],
+                        ),
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: GridView.builder(
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 4,
+                            crossAxisSpacing: 24,
+                            mainAxisSpacing: 24,
+                            childAspectRatio: 1.0, // زيادة الارتفاع
+                          ),
+                          itemCount: filteredReports.length,
+                          itemBuilder: (context, index) {
+                            final report = filteredReports[index];
+                            return _buildReportCard(
+                              context,
+                              report['title'] as String,
+                              report['icon'] as IconData,
+                              report['color'] as Color,
+                              report['gradient'] as List<Color>,
+                              report['description'] as String,
+                              report['screen'] as Widget,
+                              index,
+                            );
+                          },
+                        ),
                       ),
-                      _buildReportCard(
-                        context,
-                        'النقد اليومي',
-                        Icons.account_balance_wallet_rounded,
-                        const Color(0xFFEC4899),
-                        () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const DailyCashReportScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildReportCard(
-                        context,
-                        'المطابقة اليومية',
-                        Icons.checklist_rounded,
-                        const Color(0xFFEC4899),
-                        () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const DailyReconciliationReportScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildReportCard(
-                        context,
-                        'كشف المسحوبات',
-                        Icons.people_outline_rounded,
-                        const Color(0xFFEC4899),
-                        () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const WithdrawalsStatementScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildReportCard(
-                        context,
-                        'عرض مستند',
-                        Icons.preview_rounded,
-                        const Color(0xFFEC4899),
-                        () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const DocumentViewScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildReportCard(
-                        context,
-                        'تفاصيل مالية',
-                        Icons.attach_money_rounded,
-                        const Color(0xFFEC4899),
-                        () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const FinancialDetailsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildReportCard(
-                        context,
-                        'تسديد المندوبين',
-                        Icons.assignment_turned_in_rounded,
-                        const Color(0xFFEC4899),
-                        () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const AgentsPaymentsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildReportCard(
-                        context,
-                        'تقرير سندات الحوالة',
-                        Icons.sync_alt_rounded,
-                        const Color(0xFFEC4899),
-                        () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const TransferBondsReportScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildReportCard(
-                        context,
-                        'تقرير المندوبين',
-                        Icons.groups_rounded,
-                        const Color(0xFFEC4899),
-                        () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const AgentsReportScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildReportCard(
-                        context,
-                        'تسديد قوائم التوصيل',
-                        Icons.local_shipping_rounded,
-                        const Color(0xFFEC4899),
-                        () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const DeliveryPaymentsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderButton(IconData icon, String tooltip, VoidCallback onTap) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Icon(
+            icon,
+            color: Colors.white,
+            size: 22,
+          ),
         ),
       ),
     );
@@ -457,160 +529,234 @@ class NutritionReportsScreen extends StatelessWidget {
     String title,
     IconData icon,
     Color color,
-    VoidCallback onTap,
+    List<Color> gradient,
+    String description,
+    Widget screen,
+    int index,
   ) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                const Color(0xFF1E4D45),
-                const Color(0xFF1E4D45).withOpacity(0.9),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF1E4D45).withOpacity(0.3),
-                blurRadius: 15,
-                spreadRadius: 0,
-                offset: const Offset(0, 8),
-              ),
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 5,
-                spreadRadius: 0,
-                offset: const Offset(0, 2),
-              ),
-            ],
-            border: Border.all(
-              color: Colors.white.withOpacity(0.1),
-              width: 1,
-            ),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return TweenAnimationBuilder<double>(
+      duration: Duration(milliseconds: 300 + (index * 50)),
+      tween: Tween(begin: 0.0, end: 1.0),
+      builder: (context, value, child) {
+        return Transform.translate(
+          offset: Offset(0, 30 * (1 - value)),
+          child: Opacity(
+            opacity: value,
+            child: child,
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Stack(
-              children: [
-                // Background pattern
-                Positioned(
-                  top: -20,
-                  right: -20,
-                  child: Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.03),
-                    ),
-                  ),
+        );
+      },
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => screen),
+            );
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [
+                        const Color(0xFF1E293B),
+                        const Color(0xFF0F172A),
+                      ]
+                    : [
+                        Colors.white,
+                        const Color(0xFFFAFAFA),
+                      ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.15),
+                  blurRadius: 20,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 8),
                 ),
-                Positioned(
-                  bottom: -30,
-                  left: -30,
-                  child: Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: color.withOpacity(0.05),
-                    ),
-                  ),
+                BoxShadow(
+                  color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                  blurRadius: 10,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 2),
                 ),
-                // Content
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(18),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              color.withOpacity(0.2),
-                              color.withOpacity(0.1),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: color.withOpacity(0.3),
-                            width: 1.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: color.withOpacity(0.2),
-                              blurRadius: 12,
-                              spreadRadius: 0,
-                            ),
+              ],
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withOpacity(0.05)
+                    : Colors.grey.withOpacity(0.1),
+                width: 1,
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Stack(
+                children: [
+                  // Background pattern
+                  Positioned(
+                    top: -30,
+                    right: -30,
+                    child: Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            color.withOpacity(0.08),
+                            color.withOpacity(0.02),
+                            Colors.transparent,
                           ],
                         ),
-                        child: Icon(
-                          icon,
-                          size: 48,
-                          color: color,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: -40,
+                    left: -40,
+                    child: Container(
+                      width: 140,
+                      height: 140,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            color.withOpacity(0.06),
+                            color.withOpacity(0.01),
+                            Colors.transparent,
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      Text(
-                        title,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          height: 1.3,
-                          letterSpacing: 0.3,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: color.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: color.withOpacity(0.3),
-                            width: 1,
+                    ),
+                  ),
+                  // Content
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Icon container
+                        Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: gradient,
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: color.withOpacity(0.4),
+                                blurRadius: 20,
+                                spreadRadius: 0,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            icon,
+                            size: 45,
+                            color: Colors.white,
                           ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.arrow_back_ios_rounded,
-                              size: 12,
-                              color: color,
+                        const SizedBox(height: 16),
+                        // Title
+                        Text(
+                          title,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color:
+                                isDark ? Colors.white : const Color(0xFF1E293B),
+                            height: 1.2,
+                            letterSpacing: -0.3,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 6),
+                        // Description
+                        Text(
+                          description,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                            height: 1.3,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 12),
+                        // Action button
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 7,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                color.withOpacity(0.15),
+                                color.withOpacity(0.1),
+                              ],
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'عرض التقرير',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: color.withOpacity(0.3),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.arrow_back_ios_rounded,
+                                size: 12,
                                 color: color,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 4),
+                              Text(
+                                'عرض التقرير',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: color,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Hover indicator
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      height: 4,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(colors: gradient),
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(24),
+                          topRight: Radius.circular(24),
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

@@ -12,7 +12,7 @@ class SalesProvider extends ChangeNotifier {
   static const cacheDuration =
       Duration(minutes: 2); // Cache أقصر للمبيعات (بيانات تتغير بسرعة)
 
-  static const String baseUrl = 'http://localhost:3000/api';
+  static const String baseUrl = 'http://localhost/backend-php/api';
 
   // Dashboard stats
   double _todaySales = 0.0;

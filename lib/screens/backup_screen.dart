@@ -15,7 +15,7 @@ class _BackupScreenState extends State<BackupScreen> {
   bool _isBackingUp = false;
   bool _isRestoring = false;
   String _backupStatus = '';
-  final String _apiBaseUrl = 'http://localhost:3000/api';
+  final String _apiBaseUrl = 'http://localhost/backend-php/api';
 
   Future<void> _createBackup() async {
     setState(() {

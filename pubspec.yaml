@@ -29,7 +29,7 @@ dependencies:
   # PDF & Excel
   pdf: ^3.10.7
   excel: ^4.0.1
-  printing: ^5.11.1
+  # printing: ^5.11.1  # تم تعطيلها مؤقتاً
   
   # Barcode
   barcode_widget: ^2.0.4
@@ -38,8 +38,9 @@ dependencies:
   # Date & Time
   intl: ^0.19.0
   
-  # File Picker
-  file_picker: ^6.1.1
+  # File Picker (for desktop only)
+  file_picker: 
+    ^6.1.1
   
   # URL Launcher
   url_launcher: ^6.2.2

@@ -90,7 +90,7 @@ class Product {
         $this->db->execute($sql, [$id]);
         return true;
     }
-    
+     
     public function search($query) {
         $sql = "SELECT p.*, c.CategoryName, u.UnitName
                 FROM Products p

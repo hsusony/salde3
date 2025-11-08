@@ -4,7 +4,7 @@ import 'dart:convert';
 import '../models/quotation.dart';
 
 class QuotationsProvider with ChangeNotifier {
-  static const String baseUrl = 'http://localhost:3000/api';
+  static const String baseUrl = 'http://localhost/backend-php/api';
   List<Quotation> _quotations = [];
   bool _isLoading = false;
 

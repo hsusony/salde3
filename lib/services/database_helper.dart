@@ -12,7 +12,7 @@ class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._internal();
 
   // API Base URL - يمكن تغييرها حسب الحاجة
-  static const String baseUrl = 'http://localhost:3000/api';
+  static const String baseUrl = 'http://localhost/backend-php/api';
 
   DatabaseHelper._internal();
 

@@ -21,12 +21,21 @@ class ProductsProvider extends ChangeNotifier {
     try {
       // استخدام API بدلاً من SQLite
       final response = await http.get(
-        Uri.parse('http://localhost:3000/api/products'),
+        Uri.parse('http://localhost/backend-php/api/products'),
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        final responseData = jsonDecode(utf8.decode(response.bodyBytes));
+        // PHP API يرجع البيانات في data
+        List<dynamic> data;
+        if (responseData is Map && responseData.containsKey('data')) {
+          data = responseData['data'];
+        } else if (responseData is List) {
+          data = responseData;
+        } else {
+          throw Exception('صيغة غير متوقعة للبيانات');
+        }
         _products = data.map((json) => Product.fromMap(json)).toList();
         debugPrint('✅ تم تحميل ${_products.length} منتج من API');
       } else {
@@ -55,7 +64,7 @@ class ProductsProvider extends ChangeNotifier {
       // استخدام API لإضافة المنتج
       final response = await http
           .post(
-            Uri.parse('http://localhost:3000/api/products'),
+            Uri.parse('http://localhost/backend-php/api/products'),
             headers: {'Content-Type': 'application/json; charset=UTF-8'},
             body: jsonEncode({
               'Name': product.name,
@@ -119,7 +128,8 @@ class ProductsProvider extends ChangeNotifier {
       // استخدام API لتحديث المنتج
       final response = await http
           .put(
-            Uri.parse('http://localhost:3000/api/products/${product.id}'),
+            Uri.parse(
+                'http://localhost/backend-php/api/products/${product.id}'),
             headers: {'Content-Type': 'application/json; charset=UTF-8'},
             body: jsonEncode({
               'Name': product.name,
@@ -161,7 +171,7 @@ class ProductsProvider extends ChangeNotifier {
     try {
       // استخدام API لحذف المنتج
       final response = await http.delete(
-        Uri.parse('http://localhost:3000/api/products/$id'),
+        Uri.parse('http://localhost/backend-php/api/products/$id'),
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
       ).timeout(const Duration(seconds: 10));
 

@@ -173,6 +173,229 @@ class _CustomersScreenState extends State<CustomersScreen> {
     });
   }
 
+  void _showCustomerDetails(Customer customer) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            width: 600,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.person_rounded,
+                        color: Color(0xFF10B981),
+                        size: 32,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'تفاصيل الحساب',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'معلومات الزبون الكاملة',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded),
+                      onPressed: () => Navigator.pop(context),
+                      tooltip: 'إغلاق',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                const Divider(),
+                const SizedBox(height: 24),
+
+                // Customer Details
+                _buildDetailRow(
+                  icon: Icons.badge_rounded,
+                  label: 'رقم الحساب',
+                  value: customer.id?.toString() ?? '-',
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 16),
+                _buildDetailRow(
+                  icon: Icons.person_rounded,
+                  label: 'الاسم',
+                  value: customer.name,
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 16),
+                _buildDetailRow(
+                  icon: Icons.qr_code_rounded,
+                  label: 'كود الزبون',
+                  value: customer.customerCode ?? '-',
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 16),
+                _buildDetailRow(
+                  icon: Icons.phone_rounded,
+                  label: 'رقم الهاتف',
+                  value: customer.phone,
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 16),
+                _buildDetailRow(
+                  icon: Icons.location_on_rounded,
+                  label: 'العنوان',
+                  value: customer.address ?? '-',
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 16),
+                _buildDetailRow(
+                  icon: Icons.notes_rounded,
+                  label: 'الملاحظات',
+                  value: customer.notes ?? '-',
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 16),
+                _buildDetailRow(
+                  icon: Icons.account_balance_wallet_rounded,
+                  label: 'الرصيد الحالي',
+                  value: '0 د.ع',
+                  isDark: isDark,
+                  valueColor: const Color(0xFF10B981),
+                ),
+
+                const SizedBox(height: 24),
+                const Divider(),
+                const SizedBox(height: 16),
+
+                // Action Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                      child: const Text(
+                        'إغلاق',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _editCustomer(customer);
+                      },
+                      icon: const Icon(Icons.edit_rounded),
+                      label: const Text(
+                        'تعديل',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF10B981),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    required bool isDark,
+    Color? valueColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF334155) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: const Color(0xFF10B981),
+            size: 24,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: valueColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showAddDistributorDialog() {
     final TextEditingController distributorNameController =
         TextEditingController();
@@ -1555,9 +1778,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                           child: IconButton(
                                             icon: const Icon(Icons.info_rounded,
                                                 color: Color(0xFF10B981)),
-                                            onPressed: () {
-                                              // Show details functionality
-                                            },
+                                            onPressed: () =>
+                                                _showCustomerDetails(customer),
+                                            tooltip: 'عرض التفاصيل',
                                           ),
                                         ),
                                       ),

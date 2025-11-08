@@ -12,7 +12,7 @@ class PurchasesProvider with ChangeNotifier {
   bool _isLoading = false;
   String _searchQuery = '';
 
-  static const String baseUrl = 'http://localhost:3000/api';
+  static const String baseUrl = 'http://localhost/backend-php/api';
 
   List<Purchase> get purchases => _filteredPurchases;
   List<PurchaseReturn> get returns => _filteredReturns;

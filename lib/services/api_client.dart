@@ -5,7 +5,7 @@ import 'error_handler.dart';
 
 /// HTTP Client مع معالجة أخطاء متقدمة
 class ApiClient {
-  static const String baseUrl = 'http://localhost:3000/api';
+  static const String baseUrl = 'http://localhost/backend-php/api';
   static const Duration timeout =
       Duration(seconds: 5); // تقليل من 30 إلى 5 ثوانٍ للأداء الأفضل
 
@@ -96,7 +96,12 @@ class ApiClient {
         return null;
       }
       try {
-        return json.decode(utf8.decode(response.bodyBytes));
+        final jsonResponse = json.decode(utf8.decode(response.bodyBytes));
+        // PHP Backend يرجع البيانات في {success: true, data: [...]}
+        if (jsonResponse is Map && jsonResponse.containsKey('data')) {
+          return jsonResponse['data'];
+        }
+        return jsonResponse;
       } catch (e) {
         throw AppException('خطأ في تحليل البيانات من الخادم');
       }

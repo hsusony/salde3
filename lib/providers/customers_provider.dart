@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/customer.dart';
 import '../services/api_client.dart';
 
@@ -28,8 +29,20 @@ class CustomersProvider extends ChangeNotifier {
 
     try {
       final data = await ApiClient.get('/customers');
-      _customers =
-          (data as List).map((json) => Customer.fromMap(json)).toList();
+      // التعامل مع response سواء كان List أو Map
+      List<dynamic> customersList;
+      if (data is List) {
+        customersList = data;
+      } else if (data is Map && data.containsKey('data')) {
+        customersList = data['data'] as List;
+      } else if (data is Map) {
+        // ربما يكون Map فاضي - نرجع list فاضي
+        customersList = [];
+      } else {
+        customersList = [];
+      }
+
+      _customers = customersList.map((json) => Customer.fromMap(json)).toList();
       _lastLoadTime = DateTime.now(); // تحديث وقت آخر تحميل
       _filterCustomers();
     } catch (e) {
