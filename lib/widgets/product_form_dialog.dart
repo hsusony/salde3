@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import '../models/product.dart';
 import '../providers/products_provider.dart';
+import '../providers/warehouses_provider.dart';
 import '../providers/theme_provider.dart';
 
 class ProductFormDialog extends StatefulWidget {
@@ -22,8 +23,6 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   late TextEditingController _purchasePriceController;
   late TextEditingController _sellingPriceController;
   late TextEditingController _wholesalePriceController;
-  late TextEditingController _piecePurchasePriceController;
-  late TextEditingController _pieceSellingPriceController;
   late TextEditingController _quantityController;
   late TextEditingController _minQuantityController;
   late TextEditingController _cartonQuantityController;
@@ -36,6 +35,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   late TextEditingController _descriptionController;
   bool _isLoading = false;
   String? _selectedCategory;
+  String? _selectedWarehouse;
   String _materialType = 'اعتيادية'; // اعتيادية، معبئة، أو خدمية
   String _packagingType = 'كارتونة';
   bool _showInPos = false;
@@ -43,10 +43,8 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   bool _sellByWeight = false;
   bool _isUsed = false;
   Uint8List? _imageBytes;
-  String? _imageName;
   List<String> _additionalBarcodes = [];
   double _profitMargin = 0.0;
-  double _pieceProfitMargin = 0.0;
   double _cartonProfitMargin = 0.0; // نسبة ربح الكارتونة
 
   final List<String> _categories = [
@@ -64,6 +62,11 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   @override
   void initState() {
     super.initState();
+    // تحميل المخازن
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<WarehousesProvider>(context, listen: false).loadWarehouses();
+    });
+
     _nameController = TextEditingController(text: widget.product?.name ?? '');
     _barcodeController = TextEditingController(
         text: widget.product?.barcode ?? _generateBarcode());
@@ -74,8 +77,6 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     _sellingPriceController = TextEditingController(
         text: widget.product?.sellingPrice.toString() ?? '');
     _wholesalePriceController = TextEditingController(text: '');
-    _piecePurchasePriceController = TextEditingController(text: '');
-    _pieceSellingPriceController = TextEditingController(text: '');
     _quantityController =
         TextEditingController(text: widget.product?.quantity.toString() ?? '0');
     _minQuantityController = TextEditingController(
@@ -98,14 +99,11 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
 
     // حساب نسبة الربح عند التعديل
     _calculateProfitMargin();
-    _calculatePieceProfitMargin();
     _calculateCartonProfitMargin();
 
     // إضافة listeners لحساب نسبة الربح تلقائياً
     _purchasePriceController.addListener(_calculateProfitMargin);
     _sellingPriceController.addListener(_calculateProfitMargin);
-    _piecePurchasePriceController.addListener(_calculatePieceProfitMargin);
-    _pieceSellingPriceController.addListener(_calculatePieceProfitMargin);
     _cartonPurchasePriceController.addListener(_calculateCartonProfitMargin);
     _cartonSellingPriceController.addListener(_calculateCartonProfitMargin);
   }
@@ -121,21 +119,6 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     } else {
       setState(() {
         _profitMargin = 0.0;
-      });
-    }
-  }
-
-  void _calculatePieceProfitMargin() {
-    final purchase = double.tryParse(_piecePurchasePriceController.text) ?? 0;
-    final selling = double.tryParse(_pieceSellingPriceController.text) ?? 0;
-
-    if (purchase > 0) {
-      setState(() {
-        _pieceProfitMargin = ((selling - purchase) / purchase) * 100;
-      });
-    } else {
-      setState(() {
-        _pieceProfitMargin = 0.0;
       });
     }
   }
@@ -175,7 +158,6 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         if (file.bytes != null) {
           setState(() {
             _imageBytes = file.bytes;
-            _imageName = file.name;
           });
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -216,8 +198,6 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     _purchasePriceController.dispose();
     _sellingPriceController.dispose();
     _wholesalePriceController.dispose();
-    _piecePurchasePriceController.dispose();
-    _pieceSellingPriceController.dispose();
     _quantityController.dispose();
     _minQuantityController.dispose();
     _cartonQuantityController.dispose();
@@ -500,255 +480,53 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                       ),
                       const SizedBox(height: 16),
 
-                      // نوع المادة
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey[300]!),
-                          borderRadius: BorderRadius.circular(8),
-                          color: Colors.grey[50],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'نوع المادة',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: RadioListTile<String>(
-                                    title: const Text('اعتيادية'),
-                                    value: 'اعتيادية',
-                                    groupValue: _materialType,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _materialType = value!;
-                                      });
-                                    },
-                                    dense: true,
-                                    contentPadding: EdgeInsets.zero,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: RadioListTile<String>(
-                                    title: const Text('معبئة'),
-                                    value: 'معبئة',
-                                    groupValue: _materialType,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _materialType = value!;
-                                      });
-                                    },
-                                    dense: true,
-                                    contentPadding: EdgeInsets.zero,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: RadioListTile<String>(
-                                    title: const Text('خدمية'),
-                                    value: 'خدمية',
-                                    groupValue: _materialType,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _materialType = value!;
-                                      });
-                                    },
-                                    dense: true,
-                                    contentPadding: EdgeInsets.zero,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            if (_materialType == 'معبئة') ...[
-                              const SizedBox(height: 12),
-                              const Divider(),
-                              const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: DropdownButtonFormField<String>(
-                                      value: _packagingType,
-                                      decoration: const InputDecoration(
-                                        labelText: 'نوع التعبئة',
-                                        prefixIcon: Icon(Icons.widgets_rounded),
-                                        filled: true,
-                                        fillColor: Colors.white,
-                                      ),
-                                      hint: const Text('اختر نوع التعبئة'),
-                                      items: ['كارتونة', 'مرتبة', 'مترية']
-                                          .map((type) {
-                                        return DropdownMenuItem(
-                                          value: type,
-                                          child: Text(type),
-                                        );
-                                      }).toList(),
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _packagingType = value!;
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: TextFormField(
-                                      controller: _packagingCountController,
-                                      decoration: const InputDecoration(
-                                        labelText: 'عدد العبئة',
-                                        prefixIcon: Icon(Icons.numbers_rounded),
-                                        filled: true,
-                                        fillColor: Colors.white,
-                                        hintText: 'عدد الوحدات',
-                                      ),
-                                      keyboardType: TextInputType.number,
-                                      inputFormatters: [
-                                        FilteringTextInputFormatter.digitsOnly
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: TextFormField(
-                                      controller: _packagingQuantityController,
-                                      decoration: const InputDecoration(
-                                        labelText: 'العدد في التعبئة',
-                                        prefixIcon:
-                                            Icon(Icons.inventory_2_rounded),
-                                        filled: true,
-                                        fillColor: Colors.white,
-                                        hintText: 'عدد القطع',
-                                      ),
-                                      keyboardType: TextInputType.number,
-                                      inputFormatters: [
-                                        FilteringTextInputFormatter.digitsOnly
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              // باركود الكارتونة
-                              TextFormField(
-                                controller: _cartonBarcodeController,
-                                decoration: const InputDecoration(
-                                  labelText: 'باركود الكارتونة',
-                                  prefixIcon: Icon(Icons.qr_code_2_rounded),
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                  hintText: 'أدخل باركود الكارتونة',
-                                ),
-                                keyboardType: TextInputType.text,
-                              ),
-                              const SizedBox(height: 12),
-                              // أسعار الكارتونة
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: TextFormField(
-                                      controller:
-                                          _cartonPurchasePriceController,
-                                      decoration: const InputDecoration(
-                                        labelText: 'سعر شراء الكارتونة',
-                                        prefixIcon:
-                                            Icon(Icons.shopping_cart_rounded),
-                                        suffixText: 'د.ع',
-                                        filled: true,
-                                        fillColor: Colors.white,
-                                      ),
-                                      keyboardType: TextInputType.number,
-                                      inputFormatters: [
-                                        FilteringTextInputFormatter.allow(
-                                            RegExp(r'^\d+\.?\d{0,2}')),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: TextFormField(
-                                      controller: _cartonSellingPriceController,
-                                      decoration: const InputDecoration(
-                                        labelText: 'سعر بيع الكارتونة',
-                                        prefixIcon:
-                                            Icon(Icons.attach_money_rounded),
-                                        suffixText: 'د.ع',
-                                        filled: true,
-                                        fillColor: Colors.white,
-                                      ),
-                                      keyboardType: TextInputType.number,
-                                      inputFormatters: [
-                                        FilteringTextInputFormatter.allow(
-                                            RegExp(r'^\d+\.?\d{0,2}')),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              // نسبة ربح الكارتونة
-                              if (_cartonProfitMargin != 0.0)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 8),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 8),
-                                    decoration: BoxDecoration(
-                                      color: _cartonProfitMargin >= 0
-                                          ? ThemeProvider.successColor
-                                              .withOpacity(0.1)
-                                          : ThemeProvider.errorColor
-                                              .withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                        color: _cartonProfitMargin >= 0
-                                            ? ThemeProvider.successColor
-                                            : ThemeProvider.errorColor,
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          _cartonProfitMargin >= 0
-                                              ? Icons.trending_up_rounded
-                                              : Icons.trending_down_rounded,
-                                          color: _cartonProfitMargin >= 0
-                                              ? ThemeProvider.successColor
-                                              : ThemeProvider.errorColor,
-                                          size: 18,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'نسبة ربح الكارتونة: ${_cartonProfitMargin.toStringAsFixed(1)}%',
-                                          style: TextStyle(
-                                            color: _cartonProfitMargin >= 0
-                                                ? ThemeProvider.successColor
-                                                : ThemeProvider.errorColor,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
+                      // اختيار المخزن (يظهر فقط للسلع والمعبئة)
+                      if (_materialType != 'خدمية')
+                        Consumer<WarehousesProvider>(
+                          builder: (context, warehousesProvider, child) {
+                            final warehouses =
+                                warehousesProvider.activeWarehouses;
 
+                            return DropdownButtonFormField<String>(
+                              value: _selectedWarehouse,
+                              decoration: const InputDecoration(
+                                labelText: 'المخزن *',
+                                prefixIcon: Icon(Icons.warehouse_rounded),
+                              ),
+                              items: warehouses.map((warehouse) {
+                                return DropdownMenuItem(
+                                  value: warehouse.name,
+                                  child: Text(warehouse.name),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedWarehouse = value;
+                                });
+                              },
+                              validator: (value) {
+                                if (_materialType != 'خدمية' &&
+                                    (value == null || value.isEmpty)) {
+                                  return 'الرجاء اختيار المخزن';
+                                }
+                                return null;
+                              },
+                              hint: const Text('اختر المخزن'),
+                            );
+                          },
+                        ),
+                      if (_materialType != 'خدمية') const SizedBox(height: 16),
+
+                      // حقول الأسعار (تظهر لجميع الأنواع)
                       Row(
                         children: [
                           Expanded(
                             child: TextFormField(
                               controller: _purchasePriceController,
-                              decoration: const InputDecoration(
-                                labelText: 'سعر الشراء *',
+                              decoration: InputDecoration(
+                                labelText: _materialType == 'خدمية'
+                                    ? 'سعر التكلفة *'
+                                    : 'سعر الشراء *',
                                 prefixIcon: Icon(Icons.shopping_cart_rounded),
                                 suffixText: 'د.ع',
                               ),
@@ -759,7 +537,9 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                               ],
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'الرجاء إدخال سعر الشراء';
+                                  return _materialType == 'خدمية'
+                                      ? 'الرجاء إدخال سعر التكلفة'
+                                      : 'الرجاء إدخال سعر الشراء';
                                 }
                                 if (double.tryParse(value) == null) {
                                   return 'الرجاء إدخال رقم صحيح';
@@ -905,47 +685,148 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                         ),
                       const SizedBox(height: 16),
 
-                      // شراء وبيع القطعة (يظهر فقط للنوع معبئة)
-                      if (_materialType == 'معبئة')
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.blue[300]!),
-                            borderRadius: BorderRadius.circular(8),
-                            color: Colors.blue[50],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
+                      // نوع المادة
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey[300]!),
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.grey[50],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'نوع المادة',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: RadioListTile<String>(
+                                    title: const Text('اعتيادية'),
+                                    value: 'اعتيادية',
+                                    groupValue: _materialType,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _materialType = value!;
+                                      });
+                                    },
+                                    dense: true,
+                                    contentPadding: EdgeInsets.zero,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: RadioListTile<String>(
+                                    title: const Text('معبئة'),
+                                    value: 'معبئة',
+                                    groupValue: _materialType,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _materialType = value!;
+                                      });
+                                    },
+                                    dense: true,
+                                    contentPadding: EdgeInsets.zero,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: RadioListTile<String>(
+                                    title: const Text('خدمية'),
+                                    value: 'خدمية',
+                                    groupValue: _materialType,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _materialType = value!;
+                                      });
+                                    },
+                                    dense: true,
+                                    contentPadding: EdgeInsets.zero,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (_materialType == 'معبئة') ...[
+                              const SizedBox(height: 12),
+                              const Divider(),
+                              const SizedBox(height: 12),
                               Row(
                                 children: [
-                                  Icon(Icons.splitscreen_rounded,
-                                      color: Colors.blue[700], size: 20),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'أسعار القطعة',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.blue[700],
+                                  Expanded(
+                                    child: DropdownButtonFormField<String>(
+                                      value: _packagingType,
+                                      decoration: const InputDecoration(
+                                        labelText: 'نوع التعبئة',
+                                        prefixIcon: Icon(Icons.widgets_rounded),
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                      ),
+                                      hint: const Text('اختر نوع التعبئة'),
+                                      items: ['كارتونة', 'مرتبة', 'مترية']
+                                          .map((type) {
+                                        return DropdownMenuItem(
+                                          value: type,
+                                          child: Text(type),
+                                        );
+                                      }).toList(),
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _packagingType = value!;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _packagingCountController,
+                                      decoration: const InputDecoration(
+                                        labelText: 'عدد العبئة',
+                                        prefixIcon: Icon(Icons.numbers_rounded),
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                        hintText: 'عدد الوحدات',
+                                      ),
+                                      keyboardType: TextInputType.number,
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly
+                                      ],
                                     ),
                                   ),
                                 ],
                               ),
                               const SizedBox(height: 12),
+                              // باركود الكارتونة
+                              TextFormField(
+                                controller: _cartonBarcodeController,
+                                decoration: const InputDecoration(
+                                  labelText: 'باركود الكارتونة',
+                                  prefixIcon: Icon(Icons.qr_code_2_rounded),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  hintText: 'أدخل باركود الكارتونة',
+                                ),
+                                keyboardType: TextInputType.text,
+                              ),
+                              const SizedBox(height: 12),
+                              // أسعار الكارتونة
                               Row(
                                 children: [
                                   Expanded(
                                     child: TextFormField(
-                                      controller: _piecePurchasePriceController,
+                                      controller:
+                                          _cartonPurchasePriceController,
                                       decoration: const InputDecoration(
-                                        labelText: 'شراء قطعة',
+                                        labelText: 'سعر شراء الكارتونة',
                                         prefixIcon:
-                                            Icon(Icons.shopping_bag_outlined),
+                                            Icon(Icons.shopping_cart_rounded),
                                         suffixText: 'د.ع',
                                         filled: true,
                                         fillColor: Colors.white,
-                                        hintText: 'سعر شراء القطعة',
                                       ),
                                       keyboardType: TextInputType.number,
                                       inputFormatters: [
@@ -954,17 +835,17 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                                       ],
                                     ),
                                   ),
-                                  const SizedBox(width: 16),
+                                  const SizedBox(width: 12),
                                   Expanded(
                                     child: TextFormField(
-                                      controller: _pieceSellingPriceController,
+                                      controller: _cartonSellingPriceController,
                                       decoration: const InputDecoration(
-                                        labelText: 'بيع قطعة',
-                                        prefixIcon: Icon(Icons.sell_outlined),
+                                        labelText: 'سعر بيع الكارتونة',
+                                        prefixIcon:
+                                            Icon(Icons.attach_money_rounded),
                                         suffixText: 'د.ع',
                                         filled: true,
                                         fillColor: Colors.white,
-                                        hintText: 'سعر بيع القطعة',
                                       ),
                                       keyboardType: TextInputType.number,
                                       inputFormatters: [
@@ -975,81 +856,58 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                                   ),
                                 ],
                               ),
-                              if (_pieceProfitMargin != 0) ...[
-                                const SizedBox(height: 12),
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: _pieceProfitMargin > 0
-                                          ? [
-                                              Colors.green[100]!,
-                                              Colors.green[200]!
-                                            ]
-                                          : [Colors.red[100]!, Colors.red[200]!],
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: _pieceProfitMargin > 0
-                                          ? Colors.green[400]!
-                                          : Colors.red[400]!,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: [
-                                      Column(
-                                        children: [
-                                          Text(
-                                            'نسبة الربح',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey[700],
-                                            ),
-                                          ),
-                                          Text(
-                                            '${_pieceProfitMargin.toStringAsFixed(2)}%',
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                              color: _pieceProfitMargin > 0
-                                                  ? Colors.green[700]
-                                                  : Colors.red[700],
-                                            ),
-                                          ),
-                                        ],
+                              // نسبة ربح الكارتونة
+                              if (_cartonProfitMargin != 0.0)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: _cartonProfitMargin >= 0
+                                          ? ThemeProvider.successColor
+                                              .withOpacity(0.1)
+                                          : ThemeProvider.errorColor
+                                              .withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: _cartonProfitMargin >= 0
+                                            ? ThemeProvider.successColor
+                                            : ThemeProvider.errorColor,
+                                        width: 1,
                                       ),
-                                      Column(
-                                        children: [
-                                          Text(
-                                            'الربح للقطعة',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey[700],
-                                            ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          _cartonProfitMargin >= 0
+                                              ? Icons.trending_up_rounded
+                                              : Icons.trending_down_rounded,
+                                          color: _cartonProfitMargin >= 0
+                                              ? ThemeProvider.successColor
+                                              : ThemeProvider.errorColor,
+                                          size: 18,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'نسبة ربح الكارتونة: ${_cartonProfitMargin.toStringAsFixed(1)}%',
+                                          style: TextStyle(
+                                            color: _cartonProfitMargin >= 0
+                                                ? ThemeProvider.successColor
+                                                : ThemeProvider.errorColor,
+                                            fontWeight: FontWeight.bold,
                                           ),
-                                          Text(
-                                            '${(double.tryParse(_pieceSellingPriceController.text) ?? 0) - (double.tryParse(_piecePurchasePriceController.text) ?? 0)} د.ع',
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                              color: _pieceProfitMargin > 0
-                                                  ? Colors.green[700]
-                                                  : Colors.red[700],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ],
                             ],
-                          ),
+                          ],
                         ),
-                      if (_materialType == 'معبئة')
-                        const SizedBox(height: 16),
+                      ),
+                      const SizedBox(height: 16),
 
                       // الخيارات الأربعة
                       Container(
@@ -1075,7 +933,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                               runSpacing: 8,
                               children: [
                                 _buildCheckboxOption(
-                                  'إظهار في القبس',
+                                  'إظهار في المس',
                                   _showInPos,
                                   Icons.point_of_sale_rounded,
                                   (value) {
@@ -1085,25 +943,27 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                                   },
                                 ),
                                 _buildCheckboxOption(
-                                  'معبأة',
+                                  'مفضلة',
                                   _isPacked,
-                                  Icons.inventory_rounded,
+                                  Icons.star_rounded,
                                   (value) {
                                     setState(() {
                                       _isPacked = value!;
                                     });
                                   },
                                 ),
-                                _buildCheckboxOption(
-                                  'منع السحب بالسالب',
-                                  _sellByWeight,
-                                  Icons.block_rounded,
-                                  (value) {
-                                    setState(() {
-                                      _sellByWeight = value!;
-                                    });
-                                  },
-                                ),
+                                // إخفاء "منع السحب بالسالب" للخدمات
+                                if (_materialType != 'خدمية')
+                                  _buildCheckboxOption(
+                                    'منع السحب بالسالب',
+                                    _sellByWeight,
+                                    Icons.block_rounded,
+                                    (value) {
+                                      setState(() {
+                                        _sellByWeight = value!;
+                                      });
+                                    },
+                                  ),
                                 _buildCheckboxOption(
                                   'غير متاحة',
                                   _isUsed,
@@ -1159,24 +1019,6 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                                 ],
                               ),
                             ),
-                            // حقل تعبئة الكارتون (يظهر فقط للنوع معبئة)
-                            if (_materialType == 'معبئة') ...[
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: TextFormField(
-                                  controller: _cartonQuantityController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'تعبئة الكارتون',
-                                    prefixIcon: Icon(Icons.widgets_rounded),
-                                    hintText: 'عدد القطع في الكارتون',
-                                  ),
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly
-                                  ],
-                                ),
-                              ),
-                            ],
                           ],
                         ),
 

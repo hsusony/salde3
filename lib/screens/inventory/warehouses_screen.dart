@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/inventory_provider.dart';
+import '../../providers/warehouses_provider.dart';
 import '../../models/warehouse.dart';
 
 class WarehousesScreen extends StatefulWidget {
@@ -17,7 +17,7 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<InventoryProvider>().loadWarehouses();
+      context.read<WarehousesProvider>().loadWarehouses();
     });
   }
 
@@ -174,7 +174,7 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
   }
 
   Widget _buildWarehousesList(bool isDark) {
-    return Consumer<InventoryProvider>(
+    return Consumer<WarehousesProvider>(
       builder: (context, provider, child) {
         if (provider.isLoading) {
           return Center(
@@ -585,11 +585,11 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
                           bool success;
                           if (warehouse == null) {
                             success = await context
-                                .read<InventoryProvider>()
+                                .read<WarehousesProvider>()
                                 .addWarehouse(newWarehouse);
                           } else {
                             success = await context
-                                .read<InventoryProvider>()
+                                .read<WarehousesProvider>()
                                 .updateWarehouse(newWarehouse);
                           }
 
@@ -777,7 +777,7 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
                       child: ElevatedButton(
                         onPressed: () async {
                           final success = await context
-                              .read<InventoryProvider>()
+                              .read<WarehousesProvider>()
                               .deleteWarehouse(id);
                           if (success && mounted) {
                             Navigator.pop(context);

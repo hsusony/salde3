@@ -27,12 +27,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
   final _percentAfterLimitController =
       TextEditingController(); // النسبة بعد تجاوز الحد
   final _referenceNumberController = TextEditingController(); // رقم الاستناد
+  final _openingBalanceController = TextEditingController(); // رصيد افتتاحي
 
   String _accountType = 'حسابات الزبائن';
   String _linkedAccount = 'لا يوجد';
   String _priceLink = 'يوم'; // ربط الزبون بالأسعار
   String _distributorLink = 'لا يوجد'; // ربط بموزع
   bool _isSpecificDate = false; // حسابات تاريخ محددة
+  bool _isAccountFrozen = false; // تجميد الحساب
 
   // قوائم ديناميكية
   List<String> _distributorsList = ['لا يوجد', 'موزع 1', 'موزع 2', 'موزع 3'];
@@ -66,6 +68,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     _maxCreditController.dispose();
     _percentAfterLimitController.dispose();
     _referenceNumberController.dispose();
+    _openingBalanceController.dispose();
     super.dispose();
   }
 
@@ -83,6 +86,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     _maxCreditController.clear();
     _percentAfterLimitController.clear();
     _referenceNumberController.clear();
+    _openingBalanceController.clear();
     setState(() {
       _selectedCustomer = null;
       _isEditing = false;
@@ -91,6 +95,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
       _priceLink = 'يوم';
       _distributorLink = 'لا يوجد';
       _isSpecificDate = false;
+      _isAccountFrozen = false;
     });
   }
 
@@ -114,6 +119,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
             : _customerCodeController.text,
         phone: _phoneController.text,
         address: _cityController.text, // استخدام المدينة كعنوان
+        balance: _openingBalanceController.text.isEmpty
+            ? 0.0
+            : double.tryParse(_openingBalanceController.text) ?? 0.0,
         notes: _notesController.text.isEmpty ? null : _notesController.text,
       );
 
@@ -168,8 +176,10 @@ class _CustomersScreenState extends State<CustomersScreen> {
       _emailController.text = '';
       _discountController.text = '';
       _workplaceController.text = '';
+      _openingBalanceController.text = customer.balance.toString();
       _notesController.text = customer.notes ?? '';
       _accountNumberController.text = customer.id?.toString() ?? '';
+      _isAccountFrozen = false; // يمكن تحميلها من قاعدة البيانات لاحقاً
     });
   }
 
@@ -392,6 +402,66 @@ class _CustomersScreenState extends State<CustomersScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTableHeaderCell(String text,
+      {required int flex, bool center = false}) {
+    return Expanded(
+      flex: flex,
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 14,
+          letterSpacing: 0.3,
+        ),
+        textAlign: center ? TextAlign.center : TextAlign.start,
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onPressed,
+    required int flex,
+  }) {
+    return Expanded(
+      flex: flex,
+      child: Center(
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: TweenAnimationBuilder<double>(
+            duration: const Duration(milliseconds: 200),
+            tween: Tween(begin: 1.0, end: 1.0),
+            builder: (context, value, child) {
+              return Transform.scale(
+                scale: value,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: color.withOpacity(0.3),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: IconButton(
+                    icon: Icon(icon, color: color, size: 20),
+                    onPressed: onPressed,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    splashRadius: 20,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -757,9 +827,10 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                         : const Color(0xFFF1F5F9),
                                   ),
                                   items: [
+                                    'حسابات الزبائن',
+                                    'المورد',
                                     'مخزون المنافع بعرض البيع',
                                     'مراكز العمليات / صيرفة',
-                                    'حسابات الزبائن',
                                     'حسابات متعهدين',
                                     'حسابات موقع',
                                     'حسابات ربح نقدي',
@@ -1041,7 +1112,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
                       const SizedBox(height: 20),
 
-                      // Row 5: Discount & Linked Account
+                      // Row 5: Discount & Opening Balance
                       Row(
                         children: [
                           Expanded(
@@ -1077,6 +1148,47 @@ class _CustomersScreenState extends State<CustomersScreen> {
                             ),
                           ),
                           const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'رصيد افتتاحي',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: _openingBalanceController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: InputDecoration(
+                                    hintText: '0',
+                                    prefixIcon: const Icon(
+                                        Icons.account_balance_wallet_rounded,
+                                        color: Color(0xFF10B981)),
+                                    suffixText: 'د.ع',
+                                    filled: true,
+                                    fillColor: isDark
+                                        ? const Color(0xFF334155)
+                                        : const Color(0xFFF1F5F9),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Row 6: Linked Account
+                      // Row 6: Linked Account
+                      Row(
+                        children: [
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1390,6 +1502,78 @@ class _CustomersScreenState extends State<CustomersScreen> {
                         ],
                       ),
 
+                      const SizedBox(height: 20),
+
+                      // Freeze Account Checkbox
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: _isAccountFrozen
+                                ? const Color(0xFFEF4444)
+                                : (isDark
+                                    ? Colors.grey[700]!
+                                    : Colors.grey[300]!),
+                            width: 2,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Checkbox(
+                              value: _isAccountFrozen,
+                              onChanged: (value) {
+                                setState(() {
+                                  _isAccountFrozen = value ?? false;
+                                });
+                              },
+                              activeColor: const Color(0xFFEF4444),
+                            ),
+                            const SizedBox(width: 12),
+                            Icon(
+                              _isAccountFrozen
+                                  ? Icons.lock_rounded
+                                  : Icons.lock_open_rounded,
+                              color: _isAccountFrozen
+                                  ? const Color(0xFFEF4444)
+                                  : const Color(0xFF10B981),
+                              size: 24,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'تجميد الحساب',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: _isAccountFrozen
+                                          ? const Color(0xFFEF4444)
+                                          : (isDark
+                                              ? Colors.white
+                                              : Colors.black),
+                                    ),
+                                  ),
+                                  if (_isAccountFrozen)
+                                    Text(
+                                      'الحساب مجمّد ولا يمكن استخدامه',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
                       const SizedBox(height: 32),
 
                       // Action Buttons Bottom
@@ -1550,26 +1734,86 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   const SizedBox(height: 24),
 
                   // Search Bar
-                  TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'بحث عن زبون...',
-                      prefixIcon: const Icon(Icons.search_rounded,
-                          color: Color(0xFF6366F1)),
-                      filled: true,
-                      fillColor: isDark
-                          ? const Color(0xFF334155)
-                          : const Color(0xFFF1F5F9),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF6366F1).withOpacity(0.1),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value.toLowerCase();
-                      });
-                    },
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: '🔍 بحث عن زبون...',
+                        hintStyle: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 15,
+                        ),
+                        prefixIcon: TweenAnimationBuilder<double>(
+                          duration: const Duration(milliseconds: 300),
+                          tween: Tween(begin: 0.0, end: 1.0),
+                          builder: (context, value, child) {
+                            return Transform.scale(
+                              scale: 0.8 + (0.2 * value),
+                              child: Icon(
+                                Icons.search_rounded,
+                                color:
+                                    const Color(0xFF6366F1).withOpacity(value),
+                                size: 26,
+                              ),
+                            );
+                          },
+                        ),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear_rounded,
+                                    color: Color(0xFFEF4444)),
+                                onPressed: () {
+                                  setState(() {
+                                    _searchController.clear();
+                                    _searchQuery = '';
+                                  });
+                                },
+                              )
+                            : null,
+                        filled: true,
+                        fillColor:
+                            isDark ? const Color(0xFF334155) : Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(
+                            color: (isDark
+                                ? Colors.grey[700]!
+                                : Colors.grey[200]!),
+                            width: 2,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF6366F1),
+                            width: 2.5,
+                          ),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 18,
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value.toLowerCase();
+                        });
+                      },
+                    ),
                   ),
 
                   const SizedBox(height: 24),
@@ -1577,67 +1821,38 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   // Table Header
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
+                        horizontal: 20, vertical: 16),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                        colors: [
+                          Color(0xFF6366F1),
+                          Color(0xFF7C3AED),
+                          Color(0xFF8B5CF6)
+                        ],
+                        begin: Alignment.centerRight,
+                        end: Alignment.centerLeft,
                       ),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF6366F1).withOpacity(0.4),
+                          blurRadius: 12,
+                          spreadRadius: 1,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Expanded(
-                            flex: 1,
-                            child: Text('ت',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold))),
-                        Expanded(
-                            flex: 3,
-                            child: Text('الأسم',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold))),
-                        Expanded(
-                            flex: 2,
-                            child: Text('العنوان',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold))),
-                        Expanded(
-                            flex: 2,
-                            child: Text('حذف',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
-                                textAlign: TextAlign.center)),
-                        Expanded(
-                            flex: 2,
-                            child: Text('تحويل الحساب',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
-                                textAlign: TextAlign.center)),
-                        Expanded(
-                            flex: 2,
-                            child: Text('تعديل',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
-                                textAlign: TextAlign.center)),
-                        Expanded(
-                            flex: 2,
-                            child: Text('تفاصيل',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
-                                textAlign: TextAlign.center)),
-                        Expanded(
-                            flex: 2,
-                            child: Text('الرصيد',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold))),
+                        _buildTableHeaderCell('ت', flex: 1),
+                        _buildTableHeaderCell('الأسم', flex: 3),
+                        _buildTableHeaderCell('العنوان', flex: 2),
+                        _buildTableHeaderCell('حذف', flex: 2, center: true),
+                        _buildTableHeaderCell('تحويل الحساب',
+                            flex: 2, center: true),
+                        _buildTableHeaderCell('تعديل', flex: 2, center: true),
+                        _buildTableHeaderCell('تفاصيل', flex: 2, center: true),
+                        _buildTableHeaderCell('الرصيد', flex: 2),
                       ],
                     ),
                   ),
@@ -1678,126 +1893,303 @@ class _CustomersScreenState extends State<CustomersScreen> {
                           itemCount: filteredCustomers.length,
                           itemBuilder: (context, index) {
                             final customer = filteredCustomers[index];
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? const Color(0xFF334155)
-                                    : const Color(0xFFF8FAFC),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: _selectedCustomer?.id == customer.id
-                                      ? const Color(0xFF10B981)
-                                      : Colors.transparent,
-                                  width: 2,
-                                ),
-                              ),
-                              child: InkWell(
-                                onTap: () => _editCustomer(customer),
-                                borderRadius: BorderRadius.circular(12),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 12),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text(
-                                          '${index + 1}',
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold),
+                            final isSelected =
+                                _selectedCustomer?.id == customer.id;
+                            return TweenAnimationBuilder<double>(
+                              duration:
+                                  Duration(milliseconds: 300 + (index * 50)),
+                              tween: Tween(begin: 0.0, end: 1.0),
+                              curve: Curves.easeOutCubic,
+                              builder: (context, animValue, child) {
+                                return Opacity(
+                                  opacity: animValue,
+                                  child: Transform.translate(
+                                    offset: Offset(0, 20 * (1 - animValue)),
+                                    child: Container(
+                                      margin: const EdgeInsets.only(bottom: 10),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: isDark
+                                              ? [
+                                                  const Color(0xFF334155),
+                                                  const Color(0xFF475569)
+                                                ]
+                                              : [
+                                                  const Color(0xFFFAFAFA),
+                                                  Colors.white
+                                                ],
+                                          begin: Alignment.topRight,
+                                          end: Alignment.bottomLeft,
                                         ),
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? const Color(0xFF10B981)
+                                              : (isDark
+                                                  ? Colors.grey[700]!
+                                                  : Colors.grey[200]!),
+                                          width: isSelected ? 2.5 : 1.5,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: isSelected
+                                                ? const Color(0xFF10B981)
+                                                    .withOpacity(0.3)
+                                                : (isDark
+                                                        ? Colors.black
+                                                        : Colors.grey.shade300)
+                                                    .withOpacity(0.2),
+                                            blurRadius: isSelected ? 12 : 8,
+                                            spreadRadius: isSelected ? 1 : 0,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
                                       ),
-                                      Expanded(
-                                        flex: 3,
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              customer.name,
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.bold),
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          onTap: () => _editCustomer(customer),
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                          splashColor: const Color(0xFF10B981)
+                                              .withOpacity(0.1),
+                                          highlightColor:
+                                              const Color(0xFF10B981)
+                                                  .withOpacity(0.05),
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20, vertical: 16),
+                                            child: Row(
+                                              children: [
+                                                Expanded(
+                                                  flex: 1,
+                                                  child: Container(
+                                                    padding:
+                                                        const EdgeInsets.all(8),
+                                                    decoration: BoxDecoration(
+                                                      gradient:
+                                                          const LinearGradient(
+                                                        colors: [
+                                                          Color(0xFF6366F1),
+                                                          Color(0xFF8B5CF6)
+                                                        ],
+                                                      ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              10),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: const Color(
+                                                                  0xFF6366F1)
+                                                              .withOpacity(0.3),
+                                                          blurRadius: 6,
+                                                          offset: const Offset(
+                                                              0, 2),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    child: Text(
+                                                      '${index + 1}',
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.white,
+                                                        fontSize: 13,
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  flex: 3,
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          Container(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(6),
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              color: const Color(
+                                                                      0xFF10B981)
+                                                                  .withOpacity(
+                                                                      0.1),
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          8),
+                                                            ),
+                                                            child: const Icon(
+                                                              Icons
+                                                                  .person_rounded,
+                                                              color: Color(
+                                                                  0xFF10B981),
+                                                              size: 16,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                              width: 8),
+                                                          Expanded(
+                                                            child: Text(
+                                                              customer.name,
+                                                              style:
+                                                                  const TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                fontSize: 15,
+                                                              ),
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      const SizedBox(height: 6),
+                                                      Row(
+                                                        children: [
+                                                          const Icon(
+                                                            Icons.phone_rounded,
+                                                            color: Colors.grey,
+                                                            size: 14,
+                                                          ),
+                                                          const SizedBox(
+                                                              width: 6),
+                                                          Text(
+                                                            customer.phone,
+                                                            style:
+                                                                const TextStyle(
+                                                              fontSize: 13,
+                                                              color:
+                                                                  Colors.grey,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  flex: 2,
+                                                  child: Row(
+                                                    children: [
+                                                      const Icon(
+                                                        Icons
+                                                            .location_on_rounded,
+                                                        color:
+                                                            Color(0xFF6366F1),
+                                                        size: 16,
+                                                      ),
+                                                      const SizedBox(width: 6),
+                                                      Expanded(
+                                                        child: Text(
+                                                          customer.address ??
+                                                              '-',
+                                                          style:
+                                                              const TextStyle(
+                                                                  fontSize: 13),
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                _buildActionButton(
+                                                  icon: Icons.delete_rounded,
+                                                  color:
+                                                      const Color(0xFFEF4444),
+                                                  onPressed: () =>
+                                                      _deleteCustomer(
+                                                          customer.id!),
+                                                  flex: 2,
+                                                ),
+                                                _buildActionButton(
+                                                  icon:
+                                                      Icons.swap_horiz_rounded,
+                                                  color:
+                                                      const Color(0xFF8B5CF6),
+                                                  onPressed: () {},
+                                                  flex: 2,
+                                                ),
+                                                _buildActionButton(
+                                                  icon: Icons.edit_rounded,
+                                                  color:
+                                                      const Color(0xFF06B6D4),
+                                                  onPressed: () =>
+                                                      _editCustomer(customer),
+                                                  flex: 2,
+                                                ),
+                                                _buildActionButton(
+                                                  icon: Icons.info_rounded,
+                                                  color:
+                                                      const Color(0xFF10B981),
+                                                  onPressed: () =>
+                                                      _showCustomerDetails(
+                                                          customer),
+                                                  flex: 2,
+                                                ),
+                                                Expanded(
+                                                  flex: 2,
+                                                  child: Container(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                      horizontal: 12,
+                                                      vertical: 8,
+                                                    ),
+                                                    decoration: BoxDecoration(
+                                                      gradient:
+                                                          const LinearGradient(
+                                                        colors: [
+                                                          Color(0xFF10B981),
+                                                          Color(0xFF059669)
+                                                        ],
+                                                      ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              10),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: const Color(
+                                                                  0xFF10B981)
+                                                              .withOpacity(0.3),
+                                                          blurRadius: 6,
+                                                          offset: const Offset(
+                                                              0, 2),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    child: const Text(
+                                                      '0 د.ع',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.white,
+                                                        fontSize: 13,
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                            Text(
-                                              customer.phone,
-                                              style: const TextStyle(
-                                                  fontSize: 12,
-                                                  color: Colors.grey),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          customer.address ?? '-',
-                                          style: const TextStyle(fontSize: 13),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Center(
-                                          child: IconButton(
-                                            icon: const Icon(
-                                                Icons.delete_rounded,
-                                                color: Color(0xFFEF4444)),
-                                            onPressed: () =>
-                                                _deleteCustomer(customer.id!),
                                           ),
                                         ),
                                       ),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Center(
-                                          child: IconButton(
-                                            icon: const Icon(
-                                                Icons.swap_horiz_rounded,
-                                                color: Color(0xFF8B5CF6)),
-                                            onPressed: () {
-                                              // Transfer account functionality
-                                            },
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Center(
-                                          child: IconButton(
-                                            icon: const Icon(Icons.edit_rounded,
-                                                color: Color(0xFF06B6D4)),
-                                            onPressed: () =>
-                                                _editCustomer(customer),
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Center(
-                                          child: IconButton(
-                                            icon: const Icon(Icons.info_rounded,
-                                                color: Color(0xFF10B981)),
-                                            onPressed: () =>
-                                                _showCustomerDetails(customer),
-                                            tooltip: 'عرض التفاصيل',
-                                          ),
-                                        ),
-                                      ),
-                                      const Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          '0 د.ع',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF10B981),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              ),
+                                );
+                              },
                             );
                           },
                         );

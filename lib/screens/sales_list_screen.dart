@@ -349,10 +349,6 @@ class _SalesListScreenState extends State<SalesListScreen> {
                                   scrollDirection: Axis.horizontal,
                                   children: [
                                     _buildCategoryChip('الكل'),
-                                    _buildCategoryChip('إلكترونيات'),
-                                    _buildCategoryChip('موبايلات'),
-                                    _buildCategoryChip('حواسيب'),
-                                    _buildCategoryChip('إكسسوارات'),
                                   ],
                                 ),
                               ),

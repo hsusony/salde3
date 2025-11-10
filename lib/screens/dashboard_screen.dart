@@ -15,7 +15,8 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final _currencyFormat = NumberFormat.currency(symbol: 'د.ع ', decimalDigits: 0);
+  final _currencyFormat =
+      NumberFormat.currency(symbol: 'د.ع ', decimalDigits: 0);
 
   @override
   void initState() {
@@ -28,8 +29,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _loadData() async {
     final salesProvider = Provider.of<SalesProvider>(context, listen: false);
-    final productsProvider = Provider.of<ProductsProvider>(context, listen: false);
-    final customersProvider = Provider.of<CustomersProvider>(context, listen: false);
+    final productsProvider =
+        Provider.of<ProductsProvider>(context, listen: false);
+    final customersProvider =
+        Provider.of<CustomersProvider>(context, listen: false);
 
     await Future.wait([
       salesProvider.loadDashboardStats(),
@@ -52,57 +55,204 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               // Header with gradient background
               Container(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(28),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: isDark 
-                      ? [const Color(0xFF1E293B), const Color(0xFF334155)]
-                      : [const Color(0xFF6366F1), const Color(0xFF8B5CF6)],
+                    colors: isDark
+                        ? [
+                            const Color(0xFF1E293B),
+                            const Color(0xFF334155),
+                            const Color(0xFF475569)
+                          ]
+                        : [
+                            const Color(0xFF6366F1),
+                            const Color(0xFF7C3AED),
+                            const Color(0xFF8B5CF6)
+                          ],
                     begin: Alignment.topRight,
                     end: Alignment.bottomLeft,
                   ),
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(28),
                   boxShadow: [
                     BoxShadow(
-                      color: (isDark ? Colors.black : const Color(0xFF6366F1)).withOpacity(0.3),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
+                      color: (isDark ? Colors.black : const Color(0xFF6366F1))
+                          .withOpacity(0.4),
+                      blurRadius: 28,
+                      spreadRadius: 2,
+                      offset: const Offset(0, 10),
+                    ),
+                    BoxShadow(
+                      color: (isDark ? Colors.black : const Color(0xFF8B5CF6))
+                          .withOpacity(0.2),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'لوحة التحكم',
-                          style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TweenAnimationBuilder<double>(
+                            duration: const Duration(milliseconds: 600),
+                            tween: Tween(begin: 0.0, end: 1.0),
+                            builder: (context, value, child) {
+                              return Opacity(
+                                opacity: value,
+                                child: Transform.translate(
+                                  offset: Offset(-20 * (1 - value), 0),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 6,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(3),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color:
+                                                  Colors.white.withOpacity(0.5),
+                                              blurRadius: 8,
+                                              spreadRadius: 2,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Text(
+                                        'لوحة التحكم',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .displaySmall
+                                            ?.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: -0.5,
+                                          shadows: [
+                                            Shadow(
+                                              color:
+                                                  Colors.black.withOpacity(0.3),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 4),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          DateFormat('EEEE, d MMMM yyyy', 'ar').format(DateTime.now()),
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: Colors.white.withOpacity(0.9),
+                          const SizedBox(height: 12),
+                          TweenAnimationBuilder<double>(
+                            duration: const Duration(milliseconds: 800),
+                            tween: Tween(begin: 0.0, end: 1.0),
+                            builder: (context, value, child) {
+                              return Opacity(
+                                opacity: value,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.3),
+                                      width: 1,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.calendar_today_rounded,
+                                        color: Colors.white.withOpacity(0.9),
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        DateFormat('EEEE, d MMMM yyyy', 'ar')
+                                            .format(DateTime.now()),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge
+                                            ?.copyWith(
+                                              color: Colors.white
+                                                  .withOpacity(0.95),
+                                              fontWeight: FontWeight.w600,
+                                              letterSpacing: 0.3,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Icon(
-                        Icons.dashboard_rounded,
-                        color: Colors.white,
-                        size: 32,
-                      ),
+                    TweenAnimationBuilder<double>(
+                      duration: const Duration(milliseconds: 1000),
+                      tween: Tween(begin: 0.0, end: 1.0),
+                      curve: Curves.elasticOut,
+                      builder: (context, value, child) {
+                        return Transform.scale(
+                          scale: value,
+                          child: Transform.rotate(
+                            angle: 0.1 * (1 - value),
+                            child: Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.white.withOpacity(0.25),
+                                    Colors.white.withOpacity(0.15),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                  width: 2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.15),
+                                    blurRadius: 12,
+                                    spreadRadius: 1,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                  BoxShadow(
+                                    color: Colors.white.withOpacity(0.2),
+                                    blurRadius: 8,
+                                    offset: const Offset(-2, -2),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.dashboard_rounded,
+                                color: Colors.white,
+                                size: 38,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -117,9 +267,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     crossAxisCount: 4,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 1.5,
+                    crossAxisSpacing: 20,
+                    mainAxisSpacing: 20,
+                    childAspectRatio: 1.4,
                     children: [
                       _buildStatCard(
                         title: 'مبيعات اليوم',
@@ -163,7 +313,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: _buildSalesChart(),
                   ),
                   const SizedBox(width: 16),
-                  
+
                   // Recent Activity
                   Expanded(
                     child: _buildRecentActivity(),
@@ -200,107 +350,224 @@ class _DashboardScreenState extends State<DashboardScreen> {
     String? trend,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isDark
-              ? [const Color(0xFF1E293B), const Color(0xFF334155)]
-              : [Colors.white, Colors.white],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: (isDark ? Colors.black : Colors.grey.shade300).withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: isDark
+                ? [
+                    const Color(0xFF1E293B),
+                    const Color(0xFF334155),
+                    const Color(0xFF475569)
+                  ]
+                : [Colors.white, const Color(0xFFFAFAFA), Colors.white],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-        ],
-      ),
-      child: Card(
-        elevation: 0,
-        color: Colors.transparent,
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: color.withOpacity(0.2),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.15),
+              blurRadius: 24,
+              spreadRadius: 2,
+              offset: const Offset(0, 8),
+            ),
+            BoxShadow(
+              color: (isDark ? Colors.black : Colors.grey.shade300)
+                  .withOpacity(0.2),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {},
+            borderRadius: BorderRadius.circular(24),
+            splashColor: color.withOpacity(0.1),
+            highlightColor: color.withOpacity(0.05),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [color.withOpacity(0.8), color],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: color.withOpacity(0.4),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Hero(
+                        tag: 'icon_$title',
+                        child: Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                color.withOpacity(0.9),
+                                color,
+                                color.withOpacity(0.8)
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(18),
+                            boxShadow: [
+                              BoxShadow(
+                                color: color.withOpacity(0.5),
+                                blurRadius: 12,
+                                spreadRadius: 1,
+                                offset: const Offset(0, 6),
+                              ),
+                              BoxShadow(
+                                color: Colors.white.withOpacity(0.1),
+                                blurRadius: 8,
+                                offset: const Offset(-2, -2),
+                              ),
+                            ],
+                          ),
+                          child: Icon(icon, color: Colors.white, size: 26),
                         ),
-                      ],
-                    ),
-                    child: Icon(icon, color: Colors.white, size: 26),
+                      ),
+                      if (trend != null)
+                        TweenAnimationBuilder<double>(
+                          duration: const Duration(milliseconds: 600),
+                          tween: Tween(begin: 0.0, end: 1.0),
+                          builder: (context, value, child) {
+                            return Transform.scale(
+                              scale: value,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      ThemeProvider.successColor
+                                          .withOpacity(0.9),
+                                      ThemeProvider.successColor,
+                                      const Color(0xFF059669),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: ThemeProvider.successColor
+                                          .withOpacity(0.4),
+                                      blurRadius: 8,
+                                      spreadRadius: 1,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.trending_up_rounded,
+                                      color: Colors.white,
+                                      size: 14,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      trend,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                    ],
                   ),
-                  if (trend != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            ThemeProvider.successColor.withOpacity(0.8),
-                            ThemeProvider.successColor
+                  const Spacer(),
+                  TweenAnimationBuilder<double>(
+                    duration: const Duration(milliseconds: 800),
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, animValue, child) {
+                      return Opacity(
+                        opacity: animValue,
+                        child: Transform.translate(
+                          offset: Offset(0, 20 * (1 - animValue)),
+                          child: ShaderMask(
+                            shaderCallback: (bounds) => LinearGradient(
+                              colors: [
+                                color,
+                                color.withOpacity(0.8),
+                                color.withOpacity(0.6),
+                              ],
+                            ).createShader(bounds),
+                            child: Text(
+                              value,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 26,
+                                    color: Colors.white,
+                                    letterSpacing: -0.5,
+                                  ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: color.withOpacity(0.6),
+                              blurRadius: 4,
+                              spreadRadius: 1,
+                            ),
                           ],
                         ),
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: ThemeProvider.successColor.withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
                       ),
-                      child: Text(
-                        trend,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          title,
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: isDark
+                                        ? const Color(0xFFCBD5E1)
+                                        : const Color(0xFF475569),
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    letterSpacing: 0.3,
+                                  ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    value,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                      fontWeight: FontWeight.w500,
-                    ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -336,15 +603,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   titlesData: FlTitlesData(
                     show: true,
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false)),
+                    leftTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false)),
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
                         getTitlesWidget: (value, meta) {
-                          const days = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
-                          if (value.toInt() >= 0 && value.toInt() < days.length) {
+                          const days = [
+                            'السبت',
+                            'الأحد',
+                            'الاثنين',
+                            'الثلاثاء',
+                            'الأربعاء',
+                            'الخميس',
+                            'الجمعة'
+                          ];
+                          if (value.toInt() >= 0 &&
+                              value.toInt() < days.length) {
                             return Padding(
                               padding: const EdgeInsets.only(top: 8.0),
                               child: Text(
@@ -372,7 +651,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ],
                       isCurved: true,
                       gradient: const LinearGradient(
-                        colors: [ThemeProvider.primaryColor, ThemeProvider.secondaryColor],
+                        colors: [
+                          ThemeProvider.primaryColor,
+                          ThemeProvider.secondaryColor
+                        ],
                       ),
                       barWidth: 3,
                       isStrokeCapRound: true,
@@ -487,7 +769,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.warning_rounded, color: ThemeProvider.warningColor),
+                    const Icon(Icons.warning_rounded,
+                        color: ThemeProvider.warningColor),
                     const SizedBox(width: 8),
                     Text(
                       'تنبيه المخزون المنخفض',
@@ -529,7 +812,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         title: Text(product.name),
                         subtitle: Text(product.category),
                         trailing: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: ThemeProvider.errorColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
@@ -563,7 +847,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Row(
               children: [
-                const Icon(Icons.star_rounded, color: ThemeProvider.accentColor),
+                const Icon(Icons.star_rounded,
+                    color: ThemeProvider.accentColor),
                 const SizedBox(width: 8),
                 Text(
                   'أكثر المنتجات مبيعاً',
@@ -593,7 +878,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(name, style: const TextStyle(fontWeight: FontWeight.w500)),
-            Text(sales, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+            Text(sales,
+                style: TextStyle(fontSize: 12, color: Colors.grey[600])),
           ],
         ),
         const SizedBox(height: 6),
@@ -602,7 +888,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: LinearProgressIndicator(
             value: progress,
             backgroundColor: Colors.grey[200],
-            valueColor: const AlwaysStoppedAnimation<Color>(ThemeProvider.primaryColor),
+            valueColor:
+                const AlwaysStoppedAnimation<Color>(ThemeProvider.primaryColor),
             minHeight: 6,
           ),
         ),

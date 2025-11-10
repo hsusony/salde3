@@ -291,7 +291,8 @@ class _POSScreenState extends State<POSScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor:
+          isDark ? const Color(0xFF0A0E21) : const Color(0xFFF5F7FA),
       body: Row(
         children: [
           // Right Panel - Products & Search
@@ -303,8 +304,16 @@ class _POSScreenState extends State<POSScreen> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: isDark
-                      ? [const Color(0xFF1A237E), const Color(0xFF0D47A1)]
-                      : [const Color(0xFFE3F2FD), const Color(0xFFBBDEFB)],
+                      ? [
+                          const Color(0xFF1A237E),
+                          const Color(0xFF0D47A1),
+                          const Color(0xFF01579B),
+                        ]
+                      : [
+                          const Color(0xFFFFFFFF),
+                          const Color(0xFFF8F9FA),
+                          const Color(0xFFE8EAF6),
+                        ],
                 ),
               ),
               child: Column(
@@ -321,7 +330,16 @@ class _POSScreenState extends State<POSScreen> {
           Expanded(
             flex: 2,
             child: Container(
-              color: theme.cardColor,
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1C1E33) : Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 30,
+                    offset: const Offset(-5, 0),
+                  ),
+                ],
+              ),
               child: Column(
                 children: [
                   _buildCartHeader(theme),
@@ -339,22 +357,24 @@ class _POSScreenState extends State<POSScreen> {
 
   Widget _buildSearchBar(ThemeData theme, bool isDark) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      margin: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        color: isDark
-            ? Colors.black.withOpacity(0.2)
-            : Colors.white.withOpacity(0.9),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
-        ),
+        color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: isDark
+                ? Colors.black.withOpacity(0.3)
+                : Colors.grey.withOpacity(0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
+        border: Border.all(
+          color: isDark ? Colors.white.withOpacity(0.1) : Colors.transparent,
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
@@ -449,10 +469,6 @@ class _POSScreenState extends State<POSScreen> {
   Widget _buildCategoryTabs(ThemeData theme, bool isDark) {
     final categories = [
       'الكل',
-      'إلكترونيات',
-      'موبايلات',
-      'حواسيب',
-      'إكسسوارات'
     ];
 
     return Container(
@@ -469,49 +485,76 @@ class _POSScreenState extends State<POSScreen> {
               duration: const Duration(milliseconds: 300),
               decoration: BoxDecoration(
                 gradient: isActive
-                    ? LinearGradient(
+                    ? const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                         colors: [
-                          Colors.orange.shade400,
-                          Colors.deepOrange.shade500
+                          Color(0xFF6C63FF),
+                          Color(0xFF5B4FE9),
                         ],
                       )
                     : null,
                 color: isActive
                     ? null
-                    : (isDark ? Colors.white.withOpacity(0.1) : Colors.white),
-                borderRadius: BorderRadius.circular(16),
+                    : (isDark ? Colors.white.withOpacity(0.05) : Colors.white),
+                borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isActive
                       ? Colors.transparent
-                      : theme.primaryColor.withOpacity(0.2),
+                      : (isDark
+                          ? Colors.white.withOpacity(0.1)
+                          : const Color(0xFF6C63FF).withOpacity(0.2)),
                   width: 2,
                 ),
                 boxShadow: isActive
                     ? [
                         BoxShadow(
-                          color: Colors.orange.withOpacity(0.4),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
+                          color: const Color(0xFF6C63FF).withOpacity(0.5),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
                         ),
                       ]
-                    : null,
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
               ),
               child: MaterialButton(
                 onPressed: () {},
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                    const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text(
-                  categories[index],
-                  style: TextStyle(
-                    color: isActive
-                        ? Colors.white
-                        : (isDark ? Colors.white : theme.primaryColor),
-                    fontWeight: isActive ? FontWeight.bold : FontWeight.w600,
-                    fontSize: 16,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.apps_rounded,
+                      color: isActive
+                          ? Colors.white
+                          : (isDark ? Colors.white70 : const Color(0xFF6C63FF)),
+                      size: 22,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      categories[index],
+                      style: TextStyle(
+                        color: isActive
+                            ? Colors.white
+                            : (isDark
+                                ? Colors.white70
+                                : const Color(0xFF6C63FF)),
+                        fontWeight:
+                            isActive ? FontWeight.bold : FontWeight.w600,
+                        fontSize: 17,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -547,20 +590,44 @@ class _POSScreenState extends State<POSScreen> {
   }
 
   Widget _buildProductCard(Product product) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return InkWell(
       onTap: () => _addToCart(product),
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(24),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [
+                    const Color(0xFF2C2F48),
+                    const Color(0xFF1C1E33),
+                  ]
+                : [
+                    Colors.white,
+                    const Color(0xFFFAFBFC),
+                  ],
+          ),
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.blue.withOpacity(0.1),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
+              color: isDark
+                  ? Colors.black.withOpacity(0.4)
+                  : Colors.blue.withOpacity(0.08),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+              spreadRadius: 0,
             ),
           ],
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withOpacity(0.05)
+                : Colors.blue.withOpacity(0.05),
+            width: 1.5,
+          ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -568,16 +635,16 @@ class _POSScreenState extends State<POSScreen> {
             Hero(
               tag: 'product-${product.id}',
               child: Container(
-                width: 80,
-                height: 80,
+                width: 90,
+                height: 90,
                 decoration: BoxDecoration(
                   gradient: product.imageUrl == null
                       ? LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            Colors.blue.shade100,
-                            Colors.blue.shade200,
+                            const Color(0xFF6C63FF),
+                            const Color(0xFF5B4FE9),
                           ],
                         )
                       : null,
@@ -585,17 +652,17 @@ class _POSScreenState extends State<POSScreen> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.blue.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
+                      color: const Color(0xFF6C63FF).withOpacity(0.4),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
                     ),
                   ],
                 ),
                 child: product.imageUrl == null
                     ? Icon(
                         _getProductIcon(product.category),
-                        size: 40,
-                        color: Colors.blue.shade700,
+                        size: 45,
+                        color: Colors.white,
                       )
                     : ClipOval(
                         child: product.imageUrl!.startsWith('http')
@@ -605,80 +672,148 @@ class _POSScreenState extends State<POSScreen> {
                                 errorBuilder: (context, error, stackTrace) {
                                   return Icon(
                                     _getProductIcon(product.category),
-                                    size: 40,
-                                    color: Colors.blue.shade700,
+                                    size: 45,
+                                    color: Colors.white,
                                   );
                                 },
                               )
                             : Icon(
                                 _getProductIcon(product.category),
-                                size: 40,
-                                color: Colors.blue.shade700,
+                                size: 45,
+                                color: Colors.white,
                               ),
                       ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
                 product.name,
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  height: 1.2,
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.green.shade400, Colors.green.shade600],
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                _currencyFormat.format(product.sellingPrice),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+                style: TextStyle(
                   fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  height: 1.3,
+                  color: isDark ? Colors.white : const Color(0xFF2D3142),
                 ),
               ),
             ),
             const SizedBox(height: 8),
+            // Category badge
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: product.quantity < product.minQuantity
-                    ? Colors.red.shade50
-                    : Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8),
+                color: isDark
+                    ? Colors.white.withOpacity(0.1)
+                    : const Color(0xFFEEF2FF),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF6C63FF).withOpacity(0.3),
+                  width: 1,
+                ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    Icons.inventory_2_rounded,
+                    _getProductIcon(product.category),
                     size: 14,
-                    color: product.quantity < product.minQuantity
-                        ? Colors.red
-                        : Colors.grey.shade700,
+                    color: const Color(0xFF6C63FF),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 6),
                   Text(
-                    '${product.quantity}',
-                    style: TextStyle(
-                      color: product.quantity < product.minQuantity
-                          ? Colors.red
-                          : Colors.grey.shade700,
-                      fontSize: 12,
+                    product.category,
+                    style: const TextStyle(
+                      color: Color(0xFF6C63FF),
+                      fontSize: 11,
                       fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Price badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF00D4AA), Color(0xFF00B894)],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF00D4AA).withOpacity(0.4),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.monetization_on_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    _currencyFormat.format(product.sellingPrice),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            // Stock indicator
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: product.quantity < product.minQuantity
+                      ? [const Color(0xFFFF6B6B), const Color(0xFFEE5A6F)]
+                      : product.quantity < 20
+                          ? [const Color(0xFFFFA502), const Color(0xFFFF8C00)]
+                          : [const Color(0xFF00D4AA), const Color(0xFF00B894)],
+                ),
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: (product.quantity < product.minQuantity
+                            ? const Color(0xFFFF6B6B)
+                            : const Color(0xFF00D4AA))
+                        .withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    product.quantity < product.minQuantity
+                        ? Icons.warning_amber_rounded
+                        : Icons.check_circle_rounded,
+                    size: 16,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'متوفر: ${product.quantity}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
@@ -706,70 +841,146 @@ class _POSScreenState extends State<POSScreen> {
   }
 
   Widget _buildCartHeader(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [theme.primaryColor, theme.primaryColor.withOpacity(0.8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFF6C63FF),
+            const Color(0xFF5B4FE9),
+          ],
         ),
         boxShadow: [
           BoxShadow(
-            color: theme.primaryColor.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: const Color(0xFF6C63FF).withOpacity(0.4),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.3),
+                width: 2,
+              ),
             ),
-            child: const Icon(Icons.shopping_cart_rounded,
-                color: Colors.white, size: 28),
+            child: const Icon(
+              Icons.shopping_cart_rounded,
+              color: Colors.white,
+              size: 32,
+            ),
           ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'سلة المشتريات',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'سلة المشتريات',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
                 ),
-              ),
-              Text(
-                '${_cart.length} منتج',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.9),
-                  fontSize: 14,
+                const SizedBox(height: 4),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.inventory_2_rounded,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${_cart.length} منتج',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const Spacer(),
           if (_cart.isNotEmpty)
             Container(
               decoration: BoxDecoration(
-                color: Colors.red.shade400,
-                borderRadius: BorderRadius.circular(12),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFF6B6B), Color(0xFFEE5A6F)],
+                ),
+                borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.red.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
+                    color: const Color(0xFFFF6B6B).withOpacity(0.4),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
               child: IconButton(
-                onPressed: _clearCart,
-                icon:
-                    const Icon(Icons.delete_sweep_rounded, color: Colors.white),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      title: const Row(
+                        children: [
+                          Icon(Icons.warning_amber_rounded,
+                              color: Color(0xFFFF6B6B), size: 32),
+                          SizedBox(width: 12),
+                          Text('تأكيد الإفراغ'),
+                        ],
+                      ),
+                      content: const Text(
+                        'هل أنت متأكد من إفراغ سلة المشتريات؟',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('إلغاء'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _clearCart();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFF6B6B),
+                          ),
+                          child: const Text('إفراغ السلة'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.delete_sweep_rounded,
+                    color: Colors.white, size: 26),
                 tooltip: 'إفراغ السلة',
               ),
             ),
@@ -1187,12 +1398,18 @@ class _POSScreenState extends State<POSScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? Colors.black : Colors.white,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: isDark
+              ? [const Color(0xFF1C1E33), const Color(0xFF14162A)]
+              : [Colors.white, const Color(0xFFF8F9FA)],
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -4),
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 30,
+            offset: const Offset(0, -10),
           ),
         ],
       ),
@@ -1203,41 +1420,43 @@ class _POSScreenState extends State<POSScreen> {
             children: [
               Expanded(
                 child: _buildPaymentMethodButton(
-                    'نقدي', Icons.payments_rounded, Colors.green),
+                    'نقدي', Icons.payments_rounded, const Color(0xFF00D4AA)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildPaymentMethodButton('بطاقة',
+                    Icons.credit_card_rounded, const Color(0xFF6C63FF)),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildPaymentMethodButton(
-                    'بطاقة', Icons.credit_card_rounded, Colors.blue),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildPaymentMethodButton(
-                    'آجل', Icons.schedule_rounded, Colors.orange),
+                    'آجل', Icons.schedule_rounded, const Color(0xFFFF6B6B)),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
           // Complete sale button
           Container(
             width: double.infinity,
-            height: 60,
+            height: 70,
             decoration: BoxDecoration(
               gradient: _cart.isEmpty
                   ? null
-                  : LinearGradient(
-                      colors: [Colors.green.shade400, Colors.green.shade600],
+                  : const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF00D4AA), Color(0xFF00B894)],
                     ),
               color: _cart.isEmpty ? Colors.grey.shade300 : null,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
               boxShadow: _cart.isEmpty
                   ? null
                   : [
                       BoxShadow(
-                        color: Colors.green.withOpacity(0.4),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
+                        color: const Color(0xFF00D4AA).withOpacity(0.5),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
                       ),
                     ],
             ),
@@ -1247,7 +1466,7 @@ class _POSScreenState extends State<POSScreen> {
                 backgroundColor: Colors.transparent,
                 shadowColor: Colors.transparent,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(20),
                 ),
               ),
               child: Row(
@@ -1255,17 +1474,18 @@ class _POSScreenState extends State<POSScreen> {
                 children: [
                   Icon(
                     Icons.check_circle_rounded,
-                    size: 32,
+                    size: 36,
                     color: _cart.isEmpty ? Colors.grey.shade600 : Colors.white,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                   Text(
                     'إتمام عملية البيع',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color:
                           _cart.isEmpty ? Colors.grey.shade600 : Colors.white,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ],
@@ -1279,27 +1499,37 @@ class _POSScreenState extends State<POSScreen> {
 
   Widget _buildPaymentMethodButton(String label, IconData icon, Color color) {
     final isSelected = _paymentMethod == label;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       decoration: BoxDecoration(
         gradient: isSelected
             ? LinearGradient(
-                colors: [color.withOpacity(0.8), color],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [color, color.withOpacity(0.8)],
               )
             : null,
-        color: isSelected ? null : color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+        color: isSelected
+            ? null
+            : (isDark
+                ? Colors.white.withOpacity(0.05)
+                : color.withOpacity(0.08)),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isSelected ? Colors.transparent : color.withOpacity(0.3),
+          color: isSelected
+              ? Colors.transparent
+              : color.withOpacity(isDark ? 0.2 : 0.3),
           width: 2,
         ),
         boxShadow: isSelected
             ? [
                 BoxShadow(
-                  color: color.withOpacity(0.4),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
+                  color: color.withOpacity(0.5),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
                 ),
               ]
             : null,
@@ -1310,24 +1540,36 @@ class _POSScreenState extends State<POSScreen> {
             _paymentMethod = label;
           });
         },
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 18),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.white : color,
-              size: 28,
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? Colors.white.withOpacity(0.2)
+                    : Colors.transparent,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: isSelected ? Colors.white : color,
+                size: 32,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? Colors.white : color,
-                fontSize: 14,
+                color: isSelected
+                    ? Colors.white
+                    : (isDark ? Colors.white70 : color),
+                fontSize: 15,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                letterSpacing: 0.5,
               ),
             ),
           ],

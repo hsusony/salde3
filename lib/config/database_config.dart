@@ -2,14 +2,13 @@
 /// إعدادات الاتصال بقاعدة بيانات SQL Server 2008
 class DatabaseConfig {
   // SQL Server 2008 Connection Settings
-  static const String server = 'localhost';
+  static const String server = '.\\MORABSQLE';
   static const String database = 'SalesManagementDB';
-  static const bool useWindowsAuth = true; // استخدام Windows Authentication
+  static const bool useWindowsAuth = false; // استخدام SQL Server Authentication
 
-  // إذا كنت تستخدم SQL Server Authentication، قم بتعيين useWindowsAuth = false
-  // وأدخل اسم المستخدم وكلمة المرور
+  // SQL Server Authentication
   static const String username = 'sa';
-  static const String password = 'your_password';
+  static const String password = '123@a';
 
   static const int port = 1433;
   static const int timeout = 30;

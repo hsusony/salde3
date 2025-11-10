@@ -9,10 +9,10 @@ class Database {
     private $connection;
     
     // SQL Server Configuration
-    private $serverName = "localhost\\MORABSQLE";
+    private $serverName = ".\\MORABSQLE";
     private $database = "SalesManagementDB";
     private $username = "sa";
-    private $password = "";
+    private $password = "123@a";
     
     private function __construct() {
         try {

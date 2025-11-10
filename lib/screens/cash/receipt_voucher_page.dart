@@ -253,74 +253,204 @@ class _ReceiptVoucherPageState extends State<ReceiptVoucherPage> {
               key: _formKey,
               child: Column(
                 children: [
-                  // Header
-                  Container(
-                    padding: const EdgeInsets.all(32),
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color(0xFF27AE60), Color(0xFF229954)],
-                        begin: Alignment.topRight,
-                        end: Alignment.bottomLeft,
-                      ),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(24),
-                        topRight: Radius.circular(24),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Icon(
-                            Icons.receipt_long_rounded,
-                            color: Colors.white,
-                            size: 36,
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _editingVoucher == null
-                                    ? 'سند قبض جديد'
-                                    : 'تعديل سند قبض',
-                                style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                  letterSpacing: 0.5,
-                                ),
+                  // Modern Animated Header
+                  TweenAnimationBuilder<double>(
+                    duration: const Duration(milliseconds: 800),
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, child) {
+                      return Opacity(
+                        opacity: value,
+                        child: Transform.translate(
+                          offset: Offset(0, -20 * (1 - value)),
+                          child: Container(
+                            padding: const EdgeInsets.all(32),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [
+                                  Color(0xFF10B981),
+                                  Color(0xFF059669),
+                                  Color(0xFF047857),
+                                ],
+                                begin: Alignment.topRight,
+                                end: Alignment.bottomLeft,
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                DateFormat('yyyy/MM/dd - hh:mm a')
-                                    .format(DateTime.now()),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white.withOpacity(0.9),
-                                ),
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(24),
+                                topRight: Radius.circular(24),
                               ),
-                            ],
-                          ),
-                        ),
-                        if (_editingVoucher != null)
-                          IconButton(
-                            onPressed: _clearForm,
-                            icon: const Icon(
-                              Icons.add_circle_outline,
-                              color: Colors.white,
-                              size: 32,
+                              boxShadow: [
+                                BoxShadow(
+                                  color:
+                                      const Color(0xFF10B981).withOpacity(0.4),
+                                  blurRadius: 20,
+                                  spreadRadius: 2,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
                             ),
-                            tooltip: 'سند جديد',
+                            child: Row(
+                              children: [
+                                Hero(
+                                  tag: 'receipt_icon',
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Colors.white.withOpacity(0.3),
+                                          Colors.white.withOpacity(0.15),
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(18),
+                                      border: Border.all(
+                                        color: Colors.white.withOpacity(0.4),
+                                        width: 2,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.15),
+                                          blurRadius: 12,
+                                          offset: const Offset(0, 6),
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Icon(
+                                      Icons.receipt_long_rounded,
+                                      color: Colors.white,
+                                      size: 40,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 20),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Container(
+                                            width: 6,
+                                            height: 36,
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(3),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.white
+                                                      .withOpacity(0.5),
+                                                  blurRadius: 8,
+                                                  spreadRadius: 2,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            _editingVoucher == null
+                                                ? 'سند قبض جديد'
+                                                : 'تعديل سند قبض',
+                                            style: const TextStyle(
+                                              fontSize: 30,
+                                              fontWeight: FontWeight.w900,
+                                              color: Colors.white,
+                                              letterSpacing: -0.5,
+                                              shadows: [
+                                                Shadow(
+                                                  color: Colors.black26,
+                                                  offset: Offset(0, 2),
+                                                  blurRadius: 4,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 14, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.2),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          border: Border.all(
+                                            color:
+                                                Colors.white.withOpacity(0.3),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(
+                                              Icons.access_time_rounded,
+                                              color: Colors.white,
+                                              size: 16,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              DateFormat('yyyy/MM/dd - hh:mm a')
+                                                  .format(DateTime.now()),
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (_editingVoucher != null)
+                                  TweenAnimationBuilder<double>(
+                                    duration: const Duration(milliseconds: 500),
+                                    tween: Tween(begin: 0.0, end: 1.0),
+                                    curve: Curves.elasticOut,
+                                    builder: (context, scale, child) {
+                                      return Transform.scale(
+                                        scale: scale,
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                Colors.white.withOpacity(0.3),
+                                                Colors.white.withOpacity(0.15),
+                                              ],
+                                            ),
+                                            borderRadius:
+                                                BorderRadius.circular(14),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black
+                                                    .withOpacity(0.15),
+                                                blurRadius: 10,
+                                                offset: const Offset(0, 4),
+                                              ),
+                                            ],
+                                          ),
+                                          child: IconButton(
+                                            onPressed: _clearForm,
+                                            icon: const Icon(
+                                              Icons.add_circle_rounded,
+                                              color: Colors.white,
+                                              size: 32,
+                                            ),
+                                            tooltip: 'سند جديد',
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                              ],
+                            ),
                           ),
-                      ],
-                    ),
+                        ),
+                      );
+                    },
                   ),
 
                   // Form Fields
@@ -404,76 +534,135 @@ class _ReceiptVoucherPageState extends State<ReceiptVoucherPage> {
 
                           // معلومات الشيك
                           if (_paymentMethod == 'شيك') ...[
-                            Container(
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                color:
-                                    const Color(0xFF27AE60).withOpacity(0.05),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color:
-                                      const Color(0xFF27AE60).withOpacity(0.3),
-                                  width: 2,
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF27AE60)
-                                              .withOpacity(0.2),
-                                          borderRadius:
-                                              BorderRadius.circular(12),
+                            TweenAnimationBuilder<double>(
+                              duration: const Duration(milliseconds: 600),
+                              curve: Curves.easeOutBack,
+                              tween: Tween(begin: 0.0, end: 1.0),
+                              builder: (context, value, child) {
+                                return Transform.scale(
+                                  scale: value,
+                                  child: Opacity(
+                                    opacity: value,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(28),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            const Color(0xFF06B6D4)
+                                                .withOpacity(0.12),
+                                            const Color(0xFF0891B2)
+                                                .withOpacity(0.08),
+                                          ],
+                                          begin: Alignment.topRight,
+                                          end: Alignment.bottomLeft,
                                         ),
-                                        child: const Icon(
-                                          Icons.receipt_long_rounded,
-                                          size: 24,
-                                          color: Color(0xFF27AE60),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: const Color(0xFF06B6D4)
+                                              .withOpacity(0.4),
+                                          width: 2.5,
                                         ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: const Color(0xFF06B6D4)
+                                                .withOpacity(0.15),
+                                            blurRadius: 20,
+                                            offset: const Offset(0, 8),
+                                          ),
+                                        ],
                                       ),
-                                      const SizedBox(width: 12),
-                                      const Text(
-                                        'معلومات الشيك',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF27AE60),
-                                        ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 18,
+                                              vertical: 12,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              gradient: const LinearGradient(
+                                                colors: [
+                                                  Color(0xFF06B6D4),
+                                                  Color(0xFF0891B2),
+                                                ],
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(14),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: const Color(0xFF06B6D4)
+                                                      .withOpacity(0.4),
+                                                  blurRadius: 12,
+                                                  offset: const Offset(0, 4),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.all(8),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white
+                                                        .withOpacity(0.25),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10),
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.receipt_long_rounded,
+                                                    size: 26,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                const Text(
+                                                  'معلومات الشيك',
+                                                  style: TextStyle(
+                                                    fontSize: 19,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: Colors.white,
+                                                    letterSpacing: 0.5,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(height: 24),
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: _buildTextField(
+                                                  controller:
+                                                      _checkNumberController,
+                                                  label: 'رقم الشيك',
+                                                  icon: Icons.numbers_rounded,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 16),
+                                              Expanded(
+                                                child: _buildDateField(
+                                                  label: 'تاريخ الشيك',
+                                                  date: _checkDate,
+                                                  onTap: _selectCheckDate,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 20),
+                                          _buildTextField(
+                                            controller: _bankNameController,
+                                            label: 'اسم البنك',
+                                            icon: Icons.account_balance_rounded,
+                                          ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                  const SizedBox(height: 20),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: _buildTextField(
-                                          controller: _checkNumberController,
-                                          label: 'رقم الشيك',
-                                          icon: Icons.numbers_rounded,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: _buildDateField(
-                                          label: 'تاريخ الشيك',
-                                          date: _checkDate,
-                                          onTap: _selectCheckDate,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 16),
-                                  _buildTextField(
-                                    controller: _bankNameController,
-                                    label: 'اسم البنك',
-                                    icon: Icons.account_balance_rounded,
-                                  ),
-                                ],
-                              ),
+                                );
+                              },
                             ),
                             const SizedBox(height: 24),
                           ],
@@ -556,77 +745,232 @@ class _ReceiptVoucherPageState extends State<ReceiptVoucherPage> {
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? const Color(0xFF0F172A)
-                          : const Color(0xFFF8FAFC),
+                      color: isDark ? const Color(0xFF0F172A) : Colors.white,
                       border: Border(
-                        top: BorderSide(color: Colors.grey.shade200),
+                        top: BorderSide(
+                          color: const Color(0xFF10B981).withOpacity(0.1),
+                          width: 2,
+                        ),
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, -3),
+                        ),
+                      ],
                     ),
                     child: Row(
                       children: [
                         Expanded(
                           flex: 2,
-                          child: ElevatedButton.icon(
-                            onPressed: _isSaving ? null : _save,
-                            icon: _isSaving
-                                ? const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.5,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.white),
+                          child: TweenAnimationBuilder<double>(
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.elasticOut,
+                            tween: Tween(begin: 0.9, end: 1.0),
+                            builder: (context, scale, child) {
+                              return Transform.scale(
+                                scale: scale,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      colors: [
+                                        Color(0xFF10B981),
+                                        Color(0xFF059669),
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
                                     ),
-                                  )
-                                : const Icon(Icons.save_rounded, size: 24),
-                            label: Text(
-                              _isSaving
-                                  ? 'جاري الحفظ...'
-                                  : (_editingVoucher == null
-                                      ? 'حفظ السند'
-                                      : 'تحديث السند'),
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF27AE60),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 0,
-                            ),
+                                    borderRadius: BorderRadius.circular(18),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF10B981)
+                                            .withOpacity(0.4),
+                                        blurRadius: 20,
+                                        offset: const Offset(0, 8),
+                                      ),
+                                    ],
+                                  ),
+                                  child: ElevatedButton.icon(
+                                    onPressed: _isSaving ? null : _save,
+                                    icon: _isSaving
+                                        ? const SizedBox(
+                                            width: 24,
+                                            height: 24,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2.5,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                      Colors.white),
+                                            ),
+                                          )
+                                        : const Icon(Icons.save_rounded,
+                                            size: 26),
+                                    label: Text(
+                                      _isSaving
+                                          ? 'جاري الحفظ...'
+                                          : (_editingVoucher == null
+                                              ? 'حفظ السند'
+                                              : 'تحديث السند'),
+                                      style: const TextStyle(
+                                        fontSize: 19,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.8,
+                                      ),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.transparent,
+                                      foregroundColor: Colors.white,
+                                      shadowColor: Colors.transparent,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 22),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(18),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
                         const SizedBox(width: 16),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('الطباعة قريباً')),
+                        TweenAnimationBuilder<double>(
+                          duration: const Duration(milliseconds: 500),
+                          curve: Curves.elasticOut,
+                          tween: Tween(begin: 0.9, end: 1.0),
+                          builder: (context, scale, child) {
+                            return Transform.scale(
+                              scale: scale,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      const Color(0xFFF97316).withOpacity(0.9),
+                                      const Color(0xFFEA580C).withOpacity(0.9),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(18),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFFF97316)
+                                          .withOpacity(0.3),
+                                      blurRadius: 15,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
+                                ),
+                                child: ElevatedButton.icon(
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text('الطباعة قريباً')),
+                                    );
+                                  },
+                                  icon:
+                                      const Icon(Icons.print_rounded, size: 24),
+                                  label: const Text(
+                                    'طباعة',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.transparent,
+                                    foregroundColor: Colors.white,
+                                    shadowColor: Colors.transparent,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 32,
+                                      vertical: 22,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(18),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                ),
+                              ),
                             );
                           },
-                          icon: const Icon(Icons.print_outlined, size: 22),
-                          label: const Text(
-                            'طباعة',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w600),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFECF0F1),
-                            foregroundColor: const Color(0xFF333333),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 32, vertical: 20),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            elevation: 0,
-                          ),
                         ),
+                        const SizedBox(width: 16),
+                        if (_editingVoucher != null)
+                          TweenAnimationBuilder<double>(
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.elasticOut,
+                            tween: Tween(begin: 0.9, end: 1.0),
+                            builder: (context, scale, child) {
+                              return Transform.scale(
+                                scale: scale,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        const Color(0xFF8B5CF6)
+                                            .withOpacity(0.9),
+                                        const Color(0xFF7C3AED)
+                                            .withOpacity(0.9),
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    borderRadius: BorderRadius.circular(18),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF8B5CF6)
+                                            .withOpacity(0.3),
+                                        blurRadius: 15,
+                                        offset: const Offset(0, 6),
+                                      ),
+                                    ],
+                                  ),
+                                  child: ElevatedButton.icon(
+                                    onPressed: () {
+                                      setState(() {
+                                        _editingVoucher = null;
+                                        _voucherNumberController.clear();
+                                        _customerNameController.clear();
+                                        _amountController.clear();
+                                        _checkNumberController.clear();
+                                        _bankNameController.clear();
+                                        _selectedDate = DateTime.now();
+                                        _checkDate = null;
+                                        _paymentMethod = 'نقدي';
+                                      });
+                                    },
+                                    icon: const Icon(Icons.add_circle_rounded,
+                                        size: 24),
+                                    label: const Text(
+                                      'سند جديد',
+                                      style: TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.transparent,
+                                      foregroundColor: Colors.white,
+                                      shadowColor: Colors.transparent,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 32,
+                                        vertical: 22,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(18),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                       ],
                     ),
                   ),
@@ -892,67 +1236,136 @@ class _ReceiptVoucherPageState extends State<ReceiptVoucherPage> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(icon, size: 22, color: const Color(0xFF27AE60)),
-            const SizedBox(width: 10),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF333333),
-              ),
+    return TweenAnimationBuilder<double>(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
+      tween: Tween(begin: 0.0, end: 1.0),
+      builder: (context, value, child) {
+        return Transform.translate(
+          offset: Offset(0, 20 * (1 - value)),
+          child: Opacity(
+            opacity: value,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFF10B981).withOpacity(0.15),
+                        const Color(0xFF059669).withOpacity(0.08),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFF10B981).withOpacity(0.3),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF10B981), Color(0xFF059669)],
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF10B981).withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Icon(icon, size: 18, color: Colors.white),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        label,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF047857),
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF10B981).withOpacity(0.1),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: TextFormField(
+                    controller: controller,
+                    keyboardType: keyboardType,
+                    maxLines: maxLines,
+                    style: TextStyle(
+                      fontSize: isBold ? 22 : 17,
+                      fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+                      color: isDark ? Colors.white : const Color(0xFF1F2937),
+                      letterSpacing: isBold ? 0.8 : 0.3,
+                    ),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: isDark
+                          ? const Color(0xFF1E293B)
+                          : const Color(0xFFFFFFFF),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide(
+                          color: const Color(0xFF10B981).withOpacity(0.2),
+                          width: 2,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF10B981),
+                          width: 2.5,
+                        ),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(
+                            color: Color(0xFFEF4444), width: 2),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(
+                            color: Color(0xFFEF4444), width: 2.5),
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: maxLines > 1 ? 18 : 20,
+                      ),
+                    ),
+                    validator: validator,
+                    onChanged: onChanged,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          maxLines: maxLines,
-          style: TextStyle(
-            fontSize: isBold ? 20 : 16,
-            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            color: const Color(0xFF333333),
           ),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor:
-                isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide:
-                  const BorderSide(color: Color(0xFF27AE60), width: 2.5),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Colors.red, width: 2),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Colors.red, width: 2.5),
-            ),
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: maxLines > 1 ? 16 : 18,
-            ),
-          ),
-          validator: validator,
-          onChanged: onChanged,
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -963,56 +1376,134 @@ class _ReceiptVoucherPageState extends State<ReceiptVoucherPage> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Icon(Icons.calendar_today_rounded,
-                size: 22, color: Color(0xFF27AE60)),
-            const SizedBox(width: 10),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF333333),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        InkWell(
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            child: Row(
+    return TweenAnimationBuilder<double>(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
+      tween: Tween(begin: 0.0, end: 1.0),
+      builder: (context, value, child) {
+        return Transform.translate(
+          offset: Offset(0, 20 * (1 - value)),
+          child: Opacity(
+            opacity: value,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Text(
-                    date != null
-                        ? DateFormat('yyyy/MM/dd').format(date)
-                        : 'اختر التاريخ',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: date != null
-                          ? const Color(0xFF333333)
-                          : Colors.grey.shade500,
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFF6366F1).withOpacity(0.15),
+                        const Color(0xFF4F46E5).withOpacity(0.08),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFF6366F1).withOpacity(0.3),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF6366F1).withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(Icons.calendar_today_rounded,
+                            size: 18, color: Colors.white),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        label,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF4338CA),
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                InkWell(
+                  onTap: onTap,
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 20),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF1E293B)
+                          : const Color(0xFFFFFFFF),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: const Color(0xFF6366F1).withOpacity(0.2),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF6366F1).withOpacity(0.1),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            date != null
+                                ? DateFormat('yyyy-MM-dd', 'ar').format(date)
+                                : 'اختر التاريخ',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                              color: date != null
+                                  ? (isDark
+                                      ? Colors.white
+                                      : const Color(0xFF1F2937))
+                                  : Colors.grey,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.event_rounded,
+                            size: 20,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                Icon(Icons.arrow_drop_down_rounded,
-                    size: 28, color: Colors.grey.shade600),
               ],
             ),
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -1025,59 +1516,143 @@ class _ReceiptVoucherPageState extends State<ReceiptVoucherPage> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(icon, size: 22, color: const Color(0xFF27AE60)),
-            const SizedBox(width: 10),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF333333),
-              ),
+    return TweenAnimationBuilder<double>(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
+      tween: Tween(begin: 0.0, end: 1.0),
+      builder: (context, animValue, child) {
+        return Transform.translate(
+          offset: Offset(0, 20 * (1 - animValue)),
+          child: Opacity(
+            opacity: animValue,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFF06B6D4).withOpacity(0.15),
+                        const Color(0xFF0891B2).withOpacity(0.08),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFF06B6D4).withOpacity(0.3),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF06B6D4), Color(0xFF0891B2)],
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF06B6D4).withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Icon(icon, size: 18, color: Colors.white),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        label,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF0E7490),
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF06B6D4).withOpacity(0.1),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: DropdownButtonFormField<String>(
+                    value: value,
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : const Color(0xFF1F2937),
+                      letterSpacing: 0.3,
+                    ),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: isDark
+                          ? const Color(0xFF1E293B)
+                          : const Color(0xFFFFFFFF),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide(
+                          color: const Color(0xFF06B6D4).withOpacity(0.2),
+                          width: 2,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF06B6D4),
+                          width: 2.5,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 20,
+                      ),
+                    ),
+                    icon: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF06B6D4), Color(0xFF0891B2)],
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_drop_down_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    items: items.map((String item) {
+                      return DropdownMenuItem<String>(
+                        value: item,
+                        child: Text(item),
+                      );
+                    }).toList(),
+                    onChanged: onChanged,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        DropdownButtonFormField<String>(
-          initialValue: value,
-          style: const TextStyle(
-            fontSize: 16,
-            color: Color(0xFF333333),
           ),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor:
-                isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide:
-                  const BorderSide(color: Color(0xFF27AE60), width: 2.5),
-            ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-          ),
-          items: items
-              .map((item) => DropdownMenuItem(
-                    value: item,
-                    child: Text(item),
-                  ))
-              .toList(),
-          onChanged: onChanged,
-        ),
-      ],
+        );
+      },
     );
   }
 }

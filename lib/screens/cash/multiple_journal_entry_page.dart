@@ -107,92 +107,275 @@ class _MultipleJournalEntryPageState extends State<MultipleJournalEntryPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.grey[100],
+      backgroundColor:
+          isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       body: Form(
         key: _formKey,
         child: Column(
           children: [
-            // Top bar with buttons
+            // Professional Header
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              color: isDark ? const Color(0xFF334155) : Colors.white,
-              child: Row(
-                children: [
-                  // Left side buttons
-                  Row(
-                    children: [
-                      _buildTopButton('الفرع', Colors.blue[900]!),
-                      const SizedBox(width: 8),
-                      _buildTopButton('مركز الكلفة', Colors.blue[700]!),
-                      const SizedBox(width: 8),
-                      _buildTopButton('طبع', Colors.grey[600]!),
-                      const SizedBox(width: 8),
-                      _buildTopButton('أطلب', Colors.blue[800]!),
-                      const SizedBox(width: 8),
-                      _buildTopButton('اطلب', Colors.blue[800]!),
-                    ],
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isDark
+                      ? [
+                          const Color(0xFF1E293B),
+                          const Color(0xFF334155),
+                          const Color(0xFF475569)
+                        ]
+                      : [
+                          const Color(0xFF6366F1),
+                          const Color(0xFF7C3AED),
+                          const Color(0xFF8B5CF6)
+                        ],
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: (isDark ? Colors.black : const Color(0xFF6366F1))
+                        .withOpacity(0.3),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 8),
                   ),
-
-                  const Spacer(),
-
-                  // Right side - Date and Document number
+                ],
+              ),
+              child: Column(
+                children: [
+                  // Title Row
                   Row(
                     children: [
-                      SizedBox(
-                        width: 150,
-                        child: InkWell(
-                          onTap: () async {
-                            final date = await showDatePicker(
-                              context: context,
-                              initialDate: _selectedDate,
-                              firstDate: DateTime(2020),
-                              lastDate: DateTime(2030),
-                            );
-                            if (date != null) {
-                              setState(() => _selectedDate = date);
-                            }
-                          },
-                          child: AbsorbPointer(
-                            child: TextFormField(
-                              controller: TextEditingController(
-                                text:
-                                    '${_selectedDate.day.toString().padLeft(2, '0')}/${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}',
-                              ),
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor: isDark
-                                    ? const Color(0xFF1E293B)
-                                    : Colors.white,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 8),
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.white.withOpacity(0.25),
+                              Colors.white.withOpacity(0.15),
+                            ],
                           ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 2,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.receipt_long_rounded,
+                          color: Colors.white,
+                          size: 32,
                         ),
                       ),
                       const SizedBox(width: 16),
-                      const Text('من تاريخ', style: TextStyle(fontSize: 14)),
-                      const SizedBox(width: 24),
-                      SizedBox(
-                        width: 100,
-                        child: TextFormField(
-                          controller: _voucherNumberController,
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor:
-                                isDark ? const Color(0xFF1E293B) : Colors.white,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(4),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(3),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.white.withOpacity(0.5),
+                                        blurRadius: 8,
+                                        spreadRadius: 2,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                const Text(
+                                  'سند قيد محاسبي متعدد',
+                                  style: TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                              ],
                             ),
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
-                          ),
-                          textAlign: TextAlign.center,
+                            const SizedBox(height: 4),
+                            Text(
+                              'Multiple Journal Entry Voucher',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white.withOpacity(0.85),
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ],
                         ),
+                      ),
+                      // Date and Document Number
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(Icons.calendar_today_rounded,
+                                        color: Colors.white, size: 16),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      'التاريخ',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  width: 150,
+                                  child: InkWell(
+                                    onTap: () async {
+                                      final date = await showDatePicker(
+                                        context: context,
+                                        initialDate: _selectedDate,
+                                        firstDate: DateTime(2020),
+                                        lastDate: DateTime(2030),
+                                      );
+                                      if (date != null) {
+                                        setState(() => _selectedDate = date);
+                                      }
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(10),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.1),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Text(
+                                        '${_selectedDate.day.toString().padLeft(2, '0')}/${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}',
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(width: 24),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(Icons.numbers_rounded,
+                                        color: Colors.white, size: 16),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      'رقم السند',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  width: 120,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(10),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.1),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: TextFormField(
+                                      controller: _voucherNumberController,
+                                      decoration: const InputDecoration(
+                                        border: InputBorder.none,
+                                        contentPadding: EdgeInsets.zero,
+                                        isDense: true,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  // Action Buttons Row
+                  Row(
+                    children: [
+                      _buildModernButton(
+                        label: 'الفرع',
+                        icon: Icons.account_tree_rounded,
+                        color: const Color(0xFF0EA5E9),
+                        count: '0',
+                      ),
+                      const SizedBox(width: 12),
+                      _buildModernButton(
+                        label: 'مركز الكلفة',
+                        icon: Icons.account_balance_rounded,
+                        color: const Color(0xFF8B5CF6),
+                        count: '0',
+                      ),
+                      const SizedBox(width: 12),
+                      _buildModernButton(
+                        label: 'طبع',
+                        icon: Icons.print_rounded,
+                        color: const Color(0xFF10B981),
+                        count: null,
+                      ),
+                      const SizedBox(width: 12),
+                      _buildModernButton(
+                        label: 'تصدير',
+                        icon: Icons.file_download_rounded,
+                        color: const Color(0xFFF59E0B),
+                        count: null,
                       ),
                     ],
                   ),
@@ -200,183 +383,450 @@ class _MultipleJournalEntryPageState extends State<MultipleJournalEntryPage> {
               ),
             ),
 
-            // Table Header
+            // Modern Table Header
             Container(
-              color: Colors.green,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Row(
-                children: [
-                  _buildHeaderCell('لسم الحساب', flex: 3, color: Colors.green),
-                  _buildHeaderCell('المبلغ', flex: 1, color: Colors.green),
-                  _buildHeaderCell('دائنية',
-                      flex: 1, color: Colors.green[700]!),
-                  _buildHeaderCell('كلف الحسابي', flex: 2, color: Colors.blue),
-                  _buildHeaderCell('تفار', flex: 1, color: Colors.cyan),
+              margin: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFF6366F1),
+                    Color(0xFF7C3AED),
+                    Color(0xFF8B5CF6)
+                  ],
+                ),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF6366F1).withOpacity(0.3),
+                    blurRadius: 12,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 4),
+                  ),
                 ],
+              ),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                child: Row(
+                  children: [
+                    _buildModernHeaderCell('ت',
+                        flex: 1, icon: Icons.tag_rounded),
+                    _buildModernHeaderCell('ملاحظات',
+                        flex: 2, icon: Icons.notes_rounded),
+                    _buildModernHeaderCell('المبلغ الدائن',
+                        flex: 1, icon: Icons.arrow_downward_rounded),
+                    _buildModernHeaderCell('المبلغ المدين',
+                        flex: 1, icon: Icons.arrow_upward_rounded),
+                    _buildModernHeaderCell('اسم الحساب',
+                        flex: 3, icon: Icons.account_circle_rounded),
+                    const SizedBox(width: 50), // للزر الحذف
+                  ],
+                ),
               ),
             ),
 
-            // Table Rows
+            // Modern Table Rows
             Expanded(
-              child: ListView.builder(
-                itemCount: _rows.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(color: Colors.grey[300]!),
-                      ),
-                      color: index % 2 == 0
-                          ? (isDark ? const Color(0xFF1E293B) : Colors.white)
-                          : (isDark
-                              ? const Color(0xFF334155)
-                              : Colors.grey[50]),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(16),
+                    bottomRight: Radius.circular(16),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
                     ),
-                    child: Row(
-                      children: [
-                        // Delete button
-                        SizedBox(
-                          width: 50,
-                          child: IconButton(
-                            icon: const Icon(Icons.close,
-                                color: Colors.red, size: 20),
-                            onPressed: () => _removeRow(index),
-                          ),
-                        ),
-
-                        // Account name dropdown
-                        Expanded(
-                          flex: 3,
-                          child: Padding(
-                            padding: const EdgeInsets.all(4),
-                            child: DropdownButtonFormField<String>(
-                              decoration: const InputDecoration(
-                                border: InputBorder.none,
-                                contentPadding:
-                                    EdgeInsets.symmetric(horizontal: 8),
+                  ],
+                ),
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: _rows.length,
+                  itemBuilder: (context, index) {
+                    return TweenAnimationBuilder<double>(
+                      duration: Duration(milliseconds: 300 + (index * 50)),
+                      tween: Tween(begin: 0.0, end: 1.0),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, animValue, child) {
+                        return Opacity(
+                          opacity: animValue,
+                          child: Transform.translate(
+                            offset: Offset(0, 20 * (1 - animValue)),
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: isDark
+                                      ? [
+                                          const Color(0xFF334155),
+                                          const Color(0xFF475569)
+                                        ]
+                                      : [const Color(0xFFFAFAFA), Colors.white],
+                                  begin: Alignment.topRight,
+                                  end: Alignment.bottomLeft,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isDark
+                                      ? Colors.grey[700]!
+                                      : Colors.grey[200]!,
+                                  width: 1.5,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
-                              items: <String>[].map((account) {
-                                return DropdownMenuItem(
-                                    value: account, child: Text(account));
-                              }).toList(),
-                              onChanged: (value) {},
-                            ),
-                          ),
-                        ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Row(
+                                  children: [
+                                    // Row Number
+                                    Expanded(
+                                      flex: 1,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          gradient: const LinearGradient(
+                                            colors: [
+                                              Color(0xFF6366F1),
+                                              Color(0xFF8B5CF6)
+                                            ],
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: const Color(0xFF6366F1)
+                                                  .withOpacity(0.3),
+                                              blurRadius: 6,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Text(
+                                          '${index + 1}',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                            fontSize: 14,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
 
-                        // Debit amount
-                        Expanded(
-                          flex: 1,
-                          child: Padding(
-                            padding: const EdgeInsets.all(4),
-                            child: TextFormField(
-                              controller: _rows[index].debitController,
-                              keyboardType: TextInputType.number,
-                              textAlign: TextAlign.center,
-                              decoration: const InputDecoration(
-                                border: InputBorder.none,
+                                    // Notes
+                                    Expanded(
+                                      flex: 2,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: isDark
+                                              ? const Color(0xFF1E293B)
+                                              : const Color(0xFFF1F5F9),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: TextFormField(
+                                          controller:
+                                              _rows[index].noteController,
+                                          decoration: const InputDecoration(
+                                            border: InputBorder.none,
+                                            hintText: 'ملاحظات...',
+                                            isDense: true,
+                                          ),
+                                          style: const TextStyle(fontSize: 14),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+
+                                    // Credit amount
+                                    Expanded(
+                                      flex: 1,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              const Color(0xFFEF4444)
+                                                  .withOpacity(0.1),
+                                              const Color(0xFFDC2626)
+                                                  .withOpacity(0.05),
+                                            ],
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          border: Border.all(
+                                            color: const Color(0xFFEF4444)
+                                                .withOpacity(0.3),
+                                            width: 1.5,
+                                          ),
+                                        ),
+                                        child: TextFormField(
+                                          controller:
+                                              _rows[index].creditController,
+                                          keyboardType: TextInputType.number,
+                                          textAlign: TextAlign.center,
+                                          decoration: const InputDecoration(
+                                            border: InputBorder.none,
+                                            hintText: '0',
+                                            isDense: true,
+                                          ),
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFFEF4444),
+                                          ),
+                                          onChanged: (value) =>
+                                              _calculateTotals(),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+
+                                    // Debit amount
+                                    Expanded(
+                                      flex: 1,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              const Color(0xFF10B981)
+                                                  .withOpacity(0.1),
+                                              const Color(0xFF059669)
+                                                  .withOpacity(0.05),
+                                            ],
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          border: Border.all(
+                                            color: const Color(0xFF10B981)
+                                                .withOpacity(0.3),
+                                            width: 1.5,
+                                          ),
+                                        ),
+                                        child: TextFormField(
+                                          controller:
+                                              _rows[index].debitController,
+                                          keyboardType: TextInputType.number,
+                                          textAlign: TextAlign.center,
+                                          decoration: const InputDecoration(
+                                            border: InputBorder.none,
+                                            hintText: '0',
+                                            isDense: true,
+                                          ),
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF10B981),
+                                          ),
+                                          onChanged: (value) =>
+                                              _calculateTotals(),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+
+                                    // Account name dropdown
+                                    Expanded(
+                                      flex: 3,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: isDark
+                                              ? const Color(0xFF1E293B)
+                                              : const Color(0xFFF1F5F9),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: DropdownButtonFormField<String>(
+                                          decoration: const InputDecoration(
+                                            border: InputBorder.none,
+                                            hintText: 'اختر الحساب...',
+                                            isDense: true,
+                                            contentPadding: EdgeInsets.zero,
+                                          ),
+                                          items: <String>[].map((account) {
+                                            return DropdownMenuItem(
+                                                value: account,
+                                                child: Text(account));
+                                          }).toList(),
+                                          onChanged: (value) {},
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+
+                                    // Delete button
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        gradient: const LinearGradient(
+                                          colors: [
+                                            Color(0xFFEF4444),
+                                            Color(0xFFDC2626)
+                                          ],
+                                        ),
+                                        borderRadius: BorderRadius.circular(10),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: const Color(0xFFEF4444)
+                                                .withOpacity(0.3),
+                                            blurRadius: 6,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: IconButton(
+                                        icon: const Icon(Icons.close_rounded,
+                                            color: Colors.white, size: 20),
+                                        onPressed: () => _removeRow(index),
+                                        tooltip: 'حذف',
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              onChanged: (value) => _calculateTotals(),
                             ),
                           ),
-                        ),
-
-                        // Credit amount
-                        Expanded(
-                          flex: 1,
-                          child: Padding(
-                            padding: const EdgeInsets.all(4),
-                            child: TextFormField(
-                              controller: _rows[index].creditController,
-                              keyboardType: TextInputType.number,
-                              textAlign: TextAlign.center,
-                              decoration: const InputDecoration(
-                                border: InputBorder.none,
-                              ),
-                              onChanged: (value) => _calculateTotals(),
-                            ),
-                          ),
-                        ),
-
-                        // Notes
-                        Expanded(
-                          flex: 2,
-                          child: Padding(
-                            padding: const EdgeInsets.all(4),
-                            child: TextFormField(
-                              controller: _rows[index].noteController,
-                              decoration: const InputDecoration(
-                                border: InputBorder.none,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // Number
-                        Expanded(
-                          flex: 1,
-                          child: Center(
-                            child: Text(
-                              '${index + 1}',
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
             ),
 
-            // Totals Section
+            // Professional Totals Section
             Container(
-              padding: const EdgeInsets.all(16),
-              color: isDark ? const Color(0xFF334155) : Colors.grey[200],
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isDark
+                      ? [
+                          const Color(0xFF1E293B),
+                          const Color(0xFF334155),
+                        ]
+                      : [
+                          Colors.white,
+                          const Color(0xFFF8FAFC),
+                        ],
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
+                ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildTotalBox(
-                      'مجموع البيانات الدائن:', _totalCredit, Colors.red),
-                  _buildTotalBox('عدد البيانات الدائن:',
-                      _rows.length.toDouble(), Colors.blue),
-                  _buildTotalBox(
-                      'مجموع مبالغ المدين:', _totalDebit, Colors.green),
+                  _buildModernTotalCard(
+                    title: 'مجموع المدين',
+                    value: _totalDebit,
+                    icon: Icons.arrow_upward_rounded,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF10B981), Color(0xFF059669)],
+                    ),
+                    shadowColor: const Color(0xFF10B981),
+                  ),
+                  _buildModernTotalCard(
+                    title: 'عدد الحركات',
+                    value: _rows.length.toDouble(),
+                    icon: Icons.format_list_numbered_rounded,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                    ),
+                    shadowColor: const Color(0xFF6366F1),
+                    isCount: true,
+                  ),
+                  _buildModernTotalCard(
+                    title: 'مجموع الدائن',
+                    value: _totalCredit,
+                    icon: Icons.arrow_downward_rounded,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                    ),
+                    shadowColor: const Color(0xFFEF4444),
+                  ),
+                  // Balance Indicator
+                  _buildBalanceCard(
+                    isDark: isDark,
+                    isBalanced: (_totalDebit - _totalCredit).abs() < 0.01,
+                    difference: (_totalDebit - _totalCredit).abs(),
+                  ),
                 ],
               ),
             ),
 
-            // Bottom buttons
+            // Modern Bottom Action Buttons
             Container(
-              padding: const EdgeInsets.all(16),
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 12,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
+              ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  SizedBox(
-                    width: 120,
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: _saveEntry,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2C3E50),
-                        foregroundColor: Colors.white,
+                  Expanded(
+                    child: _buildActionButton(
+                      label: 'إضافة صف جديد',
+                      icon: Icons.add_circle_rounded,
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF10B981), Color(0xFF059669)],
                       ),
-                      child: const Text('حفظ', style: TextStyle(fontSize: 16)),
+                      onPressed: _addRow,
                     ),
                   ),
                   const SizedBox(width: 16),
-                  SizedBox(
-                    width: 120,
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: _addRow,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2C3E50),
-                        foregroundColor: Colors.white,
+                  Expanded(
+                    child: _buildActionButton(
+                      label: 'مسح الكل',
+                      icon: Icons.refresh_rounded,
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
                       ),
-                      child: const Text('جديد', style: TextStyle(fontSize: 16)),
+                      onPressed: _clearForm,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildActionButton(
+                      label: 'حفظ القيد',
+                      icon: Icons.save_rounded,
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                      ),
+                      onPressed: _saveEntry,
                     ),
                   ),
                 ],
@@ -388,84 +838,254 @@ class _MultipleJournalEntryPageState extends State<MultipleJournalEntryPage> {
     );
   }
 
-  Widget _buildTopButton(String label, Color color) {
+  Widget _buildModernButton({
+    required String label,
+    required IconData icon,
+    required Color color,
+    String? count,
+  }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(4),
+        gradient: LinearGradient(
+          colors: [color, color.withOpacity(0.8)],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          Icon(icon, color: Colors.white, size: 18),
+          const SizedBox(width: 8),
           Text(
             label,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
-          ),
-          const SizedBox(width: 4),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.red,
-              borderRadius: BorderRadius.circular(3),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
             ),
-            child: const Text(
-              '0',
-              style: TextStyle(
+          ),
+          if (count != null) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                count,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 12,
-                  fontWeight: FontWeight.bold),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildHeaderCell(String text,
-      {required int flex, required Color color}) {
+  Widget _buildModernHeaderCell(String text,
+      {required int flex, required IconData icon}) {
     return Expanded(
       flex: flex,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        color: color,
-        child: Center(
-          child: Text(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: Colors.white, size: 18),
+          const SizedBox(width: 8),
+          Text(
             text,
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
               fontSize: 14,
+              letterSpacing: 0.3,
             ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildTotalBox(String label, double value, Color color) {
+  Widget _buildModernTotalCard({
+    required String title,
+    required double value,
+    required IconData icon,
+    required LinearGradient gradient,
+    required Color shadowColor,
+    bool isCount = false,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(8),
+        gradient: gradient,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: shadowColor.withOpacity(0.4),
+            blurRadius: 12,
+            spreadRadius: 1,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
+          Icon(icon, color: Colors.white, size: 32),
+          const SizedBox(height: 12),
           Text(
-            label,
-            style: const TextStyle(color: Colors.white, fontSize: 12),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value.toStringAsFixed(0),
+            title,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            isCount
+                ? value.toStringAsFixed(0)
+                : '${value.toStringAsFixed(2)} د.ع',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBalanceCard({
+    required bool isDark,
+    required bool isBalanced,
+    required double difference,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isBalanced
+              ? [const Color(0xFF10B981), const Color(0xFF059669)]
+              : [const Color(0xFFEF4444), const Color(0xFFDC2626)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color:
+                (isBalanced ? const Color(0xFF10B981) : const Color(0xFFEF4444))
+                    .withOpacity(0.4),
+            blurRadius: 12,
+            spreadRadius: 1,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Icon(
+            isBalanced ? Icons.check_circle_rounded : Icons.warning_rounded,
+            color: Colors.white,
+            size: 32,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            isBalanced ? 'القيد متوازن' : 'القيد غير متوازن',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          if (!isBalanced)
+            Text(
+              'الفرق: ${difference.toStringAsFixed(2)} د.ع',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          if (isBalanced)
+            const Text(
+              '✓',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required String label,
+    required IconData icon,
+    required LinearGradient gradient,
+    required VoidCallback onPressed,
+  }) {
+    return SizedBox(
+      height: 56,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: gradient,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: gradient.colors.first.withOpacity(0.4),
+                blurRadius: 12,
+                spreadRadius: 1,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Container(
+            alignment: Alignment.center,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 22),
+                const SizedBox(width: 12),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

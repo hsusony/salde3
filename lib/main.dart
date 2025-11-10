@@ -11,6 +11,7 @@ import 'providers/theme_provider.dart';
 import 'providers/quotations_provider.dart';
 import 'providers/pending_orders_provider.dart';
 import 'providers/inventory_provider.dart';
+import 'providers/warehouses_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/pos_screen.dart';
 import 'screens/sales_screen.dart';
@@ -47,6 +48,7 @@ class SalesManagementApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => PendingOrdersProvider()),
         ChangeNotifierProvider(create: (_) => InventoryProvider()),
         ChangeNotifierProvider(create: (_) => CashProvider()),
+        ChangeNotifierProvider(create: (_) => WarehousesProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
