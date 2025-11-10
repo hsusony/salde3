@@ -35,13 +35,14 @@ class _CashboxToCashboxTransferPageState
     }
   }
 
-  void _clearForm() {
-    _voucherNumberController.text = '1';
-    _sourceCashboxBalanceController.text = '0';
-    _destinationCashboxBalanceController.text = '0';
-    _transferAmountController.clear();
-    setState(() => _selectedDate = DateTime.now());
-  }
+  // TODO: تفعيل دالة مسح النموذج عند الحاجة
+  // void _clearForm() {
+  //   _voucherNumberController.text = '1';
+  //   _sourceCashboxBalanceController.text = '0';
+  //   _destinationCashboxBalanceController.text = '0';
+  //   _transferAmountController.clear();
+  //   setState(() => _selectedDate = DateTime.now());
+  // }
 
   @override
   void dispose() {

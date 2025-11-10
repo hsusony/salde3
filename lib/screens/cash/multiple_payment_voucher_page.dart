@@ -21,7 +21,7 @@ class _MultiplePaymentVoucherPageState
   // مجاميع الأعمدة
   double _totalCurrentAmount = 0.0;
   double _totalPreviousAmount = 0.0;
-  double _totalTotalAmount = 0.0;
+  // double _totalTotalAmount = 0.0; // معطل مؤقتاً - غير مستخدم
 
   @override
   void initState() {
@@ -68,7 +68,7 @@ class _MultiplePaymentVoucherPageState
     setState(() {
       _totalCurrentAmount = currentTotal;
       _totalPreviousAmount = previousTotal;
-      _totalTotalAmount = currentTotal + previousTotal;
+      // _totalTotalAmount = currentTotal + previousTotal; // معطل مؤقتاً
     });
   }
 

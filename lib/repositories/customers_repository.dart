@@ -2,18 +2,20 @@
 /// مستودع العملاء - Repository Pattern
 /// Customers Repository
 /// ========================================
+/// ⚠️ ملف معطل مؤقتاً - يتطلب إصلاح النموذج والاتصال بقاعدة البيانات
+/// TODO: إعادة بناء هذا الملف بعد تفعيل الاتصال بـ SQL Server
 
+/*
 import 'dart:convert';
-import '../core/enhanced_database_manager.dart';
+import '../config/database_config.dart';
 import '../models/customer.dart';
 
 class CustomersRepository {
-  final EnhancedDatabaseManager _db = EnhancedDatabaseManager();
 
   /// الحصول على جميع العملاء
   Future<List<Customer>> getAllCustomers() async {
     try {
-      final result = await _db.executeQuery('''
+      final result = await DatabaseConfig.executeQuery('''
         SELECT id, name, phone, email, address, balance, 
                isActive, notes, createdAt, updatedAt
         FROM Customers
@@ -21,12 +23,11 @@ class CustomersRepository {
         ORDER BY name
       ''');
 
-      if (result == null || result.isEmpty) {
+      if (result.isEmpty) {
         return [];
       }
 
-      final List<dynamic> data = jsonDecode(result);
-      return data.map((json) => Customer.fromJson(json)).toList();
+      return result.map((json) => Customer.fromJson(json)).toList();
     } catch (e) {
       print('❌ خطأ في جلب العملاء: $e');
       return [];
@@ -209,3 +210,4 @@ class CustomersRepository {
     }
   }
 }
+*/

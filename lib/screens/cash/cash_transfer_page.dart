@@ -33,13 +33,14 @@ class _CashTransferPageState extends State<CashTransferPage> {
     }
   }
 
-  void _clearForm() {
-    _voucherNumberController.text = '1';
-    _sourceAmountController.text = '0';
-    _destinationAmountController.text = '0';
-    _transferAmountController.clear();
-    setState(() => _selectedDate = DateTime.now());
-  }
+  // TODO: تفعيل دالة مسح النموذج عند الحاجة
+  // void _clearForm() {
+  //   _voucherNumberController.text = '1';
+  //   _sourceAmountController.text = '0';
+  //   _destinationAmountController.text = '0';
+  //   _transferAmountController.clear();
+  //   setState(() => _selectedDate = DateTime.now());
+  // }
 
   @override
   void dispose() {

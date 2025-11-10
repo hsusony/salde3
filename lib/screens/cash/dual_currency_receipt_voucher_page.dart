@@ -37,7 +37,7 @@ class _DualCurrencyReceiptVoucherPageState
 
   final _notesController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
-  ReceiptVoucher? _editingVoucher;
+  // ReceiptVoucher? _editingVoucher; // معطل مؤقتاً - غير مستخدم
   bool _isSaving = false;
 
   @override
@@ -203,14 +203,12 @@ class _DualCurrencyReceiptVoucherPageState
           SnackBar(
             content: const Row(
               children: [
-                Icon(Icons.check_circle_rounded,
-                    color: Colors.white, size: 24),
+                Icon(Icons.check_circle_rounded, color: Colors.white, size: 24),
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'تم إضافة سند القبض بعملتين بنجاح ✓',
-                    style: TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
               ],
@@ -230,7 +228,7 @@ class _DualCurrencyReceiptVoucherPageState
 
   void _clearForm() {
     setState(() {
-      _editingVoucher = null;
+      // _editingVoucher = null; // معطل مؤقتاً
       _voucherNumberController.clear();
       _customerNameController.clear();
       _amountIQDController.clear();

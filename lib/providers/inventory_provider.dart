@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/warehouse.dart';
 import '../models/packaging.dart';
 import '../models/inventory_transaction.dart';
-import '../models/warehouse_stock.dart';
+// import '../models/warehouse_stock.dart'; // معطل مؤقتاً
 import '../services/inventory_service.dart';
 
 class InventoryProvider with ChangeNotifier {

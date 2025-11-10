@@ -2,7 +2,10 @@
 /// مستودع المبيعات - Repository Pattern
 /// Sales Repository
 /// ========================================
+/// ⚠️ ملف معطل مؤقتاً - يتطلب إصلاح النموذج والاتصال بقاعدة البيانات
+/// TODO: إعادة بناء هذا الملف بعد تفعيل الاتصال بـ SQL Server
 
+/*
 import 'dart:convert';
 import '../core/enhanced_database_manager.dart';
 import '../models/sale.dart';
@@ -168,3 +171,4 @@ class SalesRepository {
     }
   }
 }
+*/

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../providers/cash_provider.dart';
+// import 'package:provider/provider.dart'; // معطل مؤقتاً
+// import '../../providers/cash_provider.dart'; // معطل مؤقتاً
 
 class ExchangeVoucherPage extends StatefulWidget {
   const ExchangeVoucherPage({super.key});
@@ -43,11 +43,12 @@ class _ExchangeVoucherPageState extends State<ExchangeVoucherPage> {
     }
   }
 
-  void _printVoucher() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('جاري الطباعة...')),
-    );
-  }
+  // TODO: تفعيل دالة الطباعة عند الحاجة
+  // void _printVoucher() {
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     const SnackBar(content: Text('جاري الطباعة...')),
+  //   );
+  // }
 
   void _clearForm() {
     _voucherNumberController.clear();
