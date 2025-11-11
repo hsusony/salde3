@@ -529,27 +529,49 @@ class _ProductFormDialogState extends State<ProductFormDialog>
           const SizedBox(height: 16),
 
           // الفئة
-          DropdownButtonFormField<String>(
-            value: _selectedCategory,
-            decoration: const InputDecoration(
-              labelText: 'الفئة *',
-              prefixIcon: Icon(Icons.category_rounded),
-            ),
-            items: _categories.map((category) {
-              return DropdownMenuItem(value: category, child: Text(category));
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                _selectedCategory = value;
-              });
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'الرجاء اختيار الفئة';
-              }
-              return null;
-            },
-            hint: const Text('اختر الفئة'),
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: _selectedCategory,
+                  decoration: const InputDecoration(
+                    labelText: 'الفئة *',
+                    prefixIcon: Icon(Icons.category_rounded),
+                  ),
+                  items: _categories.map((category) {
+                    return DropdownMenuItem(
+                        value: category, child: Text(category));
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedCategory = value;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'الرجاء اختيار الفئة';
+                    }
+                    return null;
+                  },
+                  hint: const Text('اختر الفئة'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: ThemeProvider.primaryColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: IconButton(
+                  onPressed: () {
+                    _showAddCategoryDialog();
+                  },
+                  icon: const Icon(Icons.add_rounded, color: Colors.white),
+                  tooltip: 'إضافة فئة جديدة',
+                  padding: const EdgeInsets.all(12),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
 
@@ -1135,8 +1157,8 @@ class _ProductFormDialogState extends State<ProductFormDialog>
                 Expanded(
                   flex: 1,
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 16),
                     decoration: BoxDecoration(
                       color: Colors.blue[50],
                       borderRadius: BorderRadius.circular(8),
@@ -1400,7 +1422,6 @@ class _ProductFormDialogState extends State<ProductFormDialog>
                 activeColor: ThemeProvider.primaryColor,
               ),
             ),
-
           ],
         ],
       ),
@@ -2161,5 +2182,753 @@ class _ProductFormDialogState extends State<ProductFormDialog>
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  // دالة عرض نافذة إضافة فئة جديدة
+  void _showAddCategoryDialog() {
+    final categoryNameController = TextEditingController();
+    final categoryCodeController = TextEditingController();
+    final categoryDescriptionController = TextEditingController();
+    final categoryNotesController = TextEditingController();
+    final categoryParentController = TextEditingController();
+    final categorySortOrderController = TextEditingController(text: '0');
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        bool isActive = true;
+        bool showInReports = true;
+        bool allowDiscount = true;
+        String selectedColor = 'blue';
+        String selectedIcon = 'category';
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Container(
+                width: 500,
+                constraints: const BoxConstraints(maxHeight: 650),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Header
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: ThemeProvider.primaryColor,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(16),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.category_rounded,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'إضافة فئة جديدة',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  'قم بتعبئة المعلومات أدناه',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => Navigator.pop(context),
+                            icon: const Icon(Icons.close, color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Content
+                    Flexible(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // اسم الفئة
+                            TextField(
+                              controller: categoryNameController,
+                              decoration: InputDecoration(
+                                labelText: 'اسم الفئة *',
+                                hintText: 'مثال: إلكترونيات، ملابس، أغذية',
+                                prefixIcon: const Icon(Icons.label_outline),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                filled: true,
+                                fillColor: Colors.grey[50],
+                              ),
+                              autofocus: true,
+                              textInputAction: TextInputAction.next,
+                            ),
+                            const SizedBox(height: 20),
+
+                            // كود الفئة
+                            TextField(
+                              controller: categoryCodeController,
+                              decoration: InputDecoration(
+                                labelText: 'كود الفئة (اختياري)',
+                                hintText: 'مثال: CAT001, ELEC, FOOD',
+                                prefixIcon: const Icon(Icons.tag_rounded),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                filled: true,
+                                fillColor: Colors.grey[50],
+                              ),
+                              textInputAction: TextInputAction.next,
+                            ),
+                            const SizedBox(height: 20),
+
+                            // الفئة الأساسية
+                            TextField(
+                              controller: categoryParentController,
+                              decoration: InputDecoration(
+                                labelText: 'الفئة الأساسية (اختياري)',
+                                hintText: 'مثال: فئة رئيسية أو قسم',
+                                prefixIcon: const Icon(Icons.folder_outlined),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                filled: true,
+                                fillColor: Colors.grey[50],
+                              ),
+                              textInputAction: TextInputAction.next,
+                            ),
+                            const SizedBox(height: 20),
+
+                            // الوصف
+                            TextField(
+                              controller: categoryDescriptionController,
+                              decoration: InputDecoration(
+                                labelText: 'الوصف (اختياري)',
+                                hintText: 'وصف مختصر عن الفئة',
+                                prefixIcon:
+                                    const Icon(Icons.description_outlined),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                filled: true,
+                                fillColor: Colors.grey[50],
+                                alignLabelWithHint: true,
+                              ),
+                              maxLines: 3,
+                              textInputAction: TextInputAction.next,
+                            ),
+                            const SizedBox(height: 20),
+
+                            // اختيار اللون
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.palette_outlined, size: 20),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'لون الفئة',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.grey[300]!),
+                                    borderRadius: BorderRadius.circular(12),
+                                    color: Colors.grey[50],
+                                  ),
+                                  child: Wrap(
+                                    spacing: 12,
+                                    runSpacing: 12,
+                                    children: [
+                                      _buildColorOption('blue', Colors.blue, selectedColor, (color) {
+                                        setDialogState(() {
+                                          selectedColor = color;
+                                        });
+                                      }),
+                                      _buildColorOption('green', Colors.green, selectedColor, (color) {
+                                        setDialogState(() {
+                                          selectedColor = color;
+                                        });
+                                      }),
+                                      _buildColorOption('red', Colors.red, selectedColor, (color) {
+                                        setDialogState(() {
+                                          selectedColor = color;
+                                        });
+                                      }),
+                                      _buildColorOption('orange', Colors.orange, selectedColor, (color) {
+                                        setDialogState(() {
+                                          selectedColor = color;
+                                        });
+                                      }),
+                                      _buildColorOption('purple', Colors.purple, selectedColor, (color) {
+                                        setDialogState(() {
+                                          selectedColor = color;
+                                        });
+                                      }),
+                                      _buildColorOption('teal', Colors.teal, selectedColor, (color) {
+                                        setDialogState(() {
+                                          selectedColor = color;
+                                        });
+                                      }),
+                                      _buildColorOption('pink', Colors.pink, selectedColor, (color) {
+                                        setDialogState(() {
+                                          selectedColor = color;
+                                        });
+                                      }),
+                                      _buildColorOption('amber', Colors.amber, selectedColor, (color) {
+                                        setDialogState(() {
+                                          selectedColor = color;
+                                        });
+                                      }),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+
+                            // اختيار الأيقونة
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.emoji_symbols_outlined, size: 20),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'أيقونة الفئة',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.grey[300]!),
+                                    borderRadius: BorderRadius.circular(12),
+                                    color: Colors.grey[50],
+                                  ),
+                                  child: Wrap(
+                                    spacing: 12,
+                                    runSpacing: 12,
+                                    children: [
+                                      _buildIconOption('category', Icons.category_rounded, selectedIcon, (icon) {
+                                        setDialogState(() {
+                                          selectedIcon = icon;
+                                        });
+                                      }),
+                                      _buildIconOption('electronics', Icons.electrical_services_rounded, selectedIcon, (icon) {
+                                        setDialogState(() {
+                                          selectedIcon = icon;
+                                        });
+                                      }),
+                                      _buildIconOption('food', Icons.restaurant_rounded, selectedIcon, (icon) {
+                                        setDialogState(() {
+                                          selectedIcon = icon;
+                                        });
+                                      }),
+                                      _buildIconOption('clothing', Icons.checkroom_rounded, selectedIcon, (icon) {
+                                        setDialogState(() {
+                                          selectedIcon = icon;
+                                        });
+                                      }),
+                                      _buildIconOption('sports', Icons.sports_soccer_rounded, selectedIcon, (icon) {
+                                        setDialogState(() {
+                                          selectedIcon = icon;
+                                        });
+                                      }),
+                                      _buildIconOption('books', Icons.menu_book_rounded, selectedIcon, (icon) {
+                                        setDialogState(() {
+                                          selectedIcon = icon;
+                                        });
+                                      }),
+                                      _buildIconOption('tools', Icons.construction_rounded, selectedIcon, (icon) {
+                                        setDialogState(() {
+                                          selectedIcon = icon;
+                                        });
+                                      }),
+                                      _buildIconOption('beauty', Icons.face_rounded, selectedIcon, (icon) {
+                                        setDialogState(() {
+                                          selectedIcon = icon;
+                                        });
+                                      }),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+
+                            // ترتيب الفئة
+                            TextField(
+                              controller: categorySortOrderController,
+                              decoration: InputDecoration(
+                                labelText: 'ترتيب العرض',
+                                hintText: '0',
+                                prefixIcon: const Icon(Icons.sort_rounded),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                filled: true,
+                                fillColor: Colors.grey[50],
+                                helperText: 'الترتيب في القائمة (الأصغر أولاً)',
+                              ),
+                              keyboardType: TextInputType.number,
+                              textInputAction: TextInputAction.next,
+                            ),
+                            const SizedBox(height: 20),
+
+                            // ملاحظات
+                            TextField(
+                              controller: categoryNotesController,
+                              decoration: InputDecoration(
+                                labelText: 'ملاحظات إضافية (اختياري)',
+                                hintText: 'أي معلومات إضافية',
+                                prefixIcon: const Icon(Icons.note_outlined),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                filled: true,
+                                fillColor: Colors.grey[50],
+                                alignLabelWithHint: true,
+                              ),
+                              maxLines: 2,
+                              textInputAction: TextInputAction.done,
+                            ),
+                            const SizedBox(height: 20),
+
+                            // خيارات متقدمة
+                            Text(
+                              'الإعدادات المتقدمة',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+
+                            // الحالة
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey[300]!),
+                                borderRadius: BorderRadius.circular(12),
+                                color: Colors.grey[50],
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.toggle_on_rounded,
+                                    color: isActive
+                                        ? ThemeProvider.primaryColor
+                                        : Colors.grey,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'تفعيل الفئة',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        SizedBox(height: 2),
+                                        Text(
+                                          'السماح باستخدام هذه الفئة',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Switch(
+                                    value: isActive,
+                                    onChanged: (value) {
+                                      setDialogState(() {
+                                        isActive = value;
+                                      });
+                                    },
+                                    activeColor: ThemeProvider.primaryColor,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+
+                            // إظهار في التقارير
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey[300]!),
+                                borderRadius: BorderRadius.circular(12),
+                                color: Colors.grey[50],
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.assessment_rounded,
+                                    color: showInReports
+                                        ? ThemeProvider.primaryColor
+                                        : Colors.grey,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'إظهار في التقارير',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        SizedBox(height: 2),
+                                        Text(
+                                          'عرض إحصائيات هذه الفئة في التقارير',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Switch(
+                                    value: showInReports,
+                                    onChanged: (value) {
+                                      setDialogState(() {
+                                        showInReports = value;
+                                      });
+                                    },
+                                    activeColor: ThemeProvider.primaryColor,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+
+                            // السماح بالخصم
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey[300]!),
+                                borderRadius: BorderRadius.circular(12),
+                                color: Colors.grey[50],
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.local_offer_rounded,
+                                    color: allowDiscount
+                                        ? ThemeProvider.primaryColor
+                                        : Colors.grey,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'السماح بالخصم',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        SizedBox(height: 2),
+                                        Text(
+                                          'إمكانية تطبيق خصومات على منتجات هذه الفئة',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Switch(
+                                    value: allowDiscount,
+                                    onChanged: (value) {
+                                      setDialogState(() {
+                                        allowDiscount = value;
+                                      });
+                                    },
+                                    activeColor: ThemeProvider.primaryColor,
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(height: 24),
+
+                            // ملاحظة
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.blue[50],
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.blue[200]!),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.info_outline,
+                                      color: Colors.blue[700], size: 20),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      'سيتم إضافة الفئة مباشرة لقائمة الفئات المتاحة',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.blue[900],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Footer Buttons
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          top: BorderSide(color: Colors.grey[300]!),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () => Navigator.pop(context),
+                            icon: const Icon(Icons.close_rounded),
+                            label: const Text('إلغاء'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 16,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              if (categoryNameController.text
+                                  .trim()
+                                  .isNotEmpty) {
+                                final categoryData = {
+                                  'name': categoryNameController.text.trim(),
+                                  'code': categoryCodeController.text.trim(),
+                                  'parent': categoryParentController.text.trim(),
+                                  'description':
+                                      categoryDescriptionController.text.trim(),
+                                  'notes': categoryNotesController.text.trim(),
+                                  'sortOrder': categorySortOrderController.text.trim(),
+                                  'color': selectedColor,
+                                  'icon': selectedIcon,
+                                  'isActive': isActive,
+                                  'showInReports': showInReports,
+                                  'allowDiscount': allowDiscount,
+                                };
+                                Navigator.pop(context, categoryData);
+                              }
+                            },
+                            icon: const Icon(Icons.check_rounded),
+                            label: const Text('حفظ وإضافة'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: ThemeProvider.primaryColor,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 16,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    ).then((categoryData) {
+      if (categoryData != null && categoryData['name'].isNotEmpty) {
+        final newCategory = categoryData['name'];
+        setState(() {
+          // التحقق من عدم وجود الفئة مسبقاً
+          if (!_categories.contains(newCategory)) {
+            _categories.add(newCategory);
+            _selectedCategory = newCategory;
+
+            // عرض رسالة نجاح مع التفاصيل
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.check_circle, color: Colors.white),
+                        const SizedBox(width: 12),
+                        Text('تم إضافة الفئة "$newCategory" بنجاح',
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    if (categoryData['code'].isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4, right: 36),
+                        child: Text(
+                          'الكود: ${categoryData['code']}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                  ],
+                ),
+                backgroundColor: ThemeProvider.successColor,
+                duration: const Duration(seconds: 3),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          } else {
+            // إذا كانت الفئة موجودة، اختيارها فقط
+            _selectedCategory = newCategory;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(Icons.info_outline, color: Colors.white),
+                    const SizedBox(width: 12),
+                    Text('الفئة "$newCategory" موجودة بالفعل'),
+                  ],
+                ),
+                backgroundColor: Colors.orange,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        });
+      }
+    });
+  }
+
+  // دالة بناء خيار اللون
+  Widget _buildColorOption(String colorName, Color color, String selectedColor,
+      Function(String) onSelect) {
+    final isSelected = selectedColor == colorName;
+    return GestureDetector(
+      onTap: () => onSelect(colorName),
+      child: Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? Colors.black : Colors.grey[300]!,
+            width: isSelected ? 3 : 1,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: color.withOpacity(0.4),
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                  ),
+                ]
+              : null,
+        ),
+        child: isSelected
+            ? const Icon(Icons.check_rounded, color: Colors.white, size: 28)
+            : null,
+      ),
+    );
+  }
+
+  // دالة بناء خيار الأيقونة
+  Widget _buildIconOption(String iconName, IconData icon, String selectedIcon,
+      Function(String) onSelect) {
+    final isSelected = selectedIcon == iconName;
+    return GestureDetector(
+      onTap: () => onSelect(iconName),
+      child: Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          color: isSelected ? ThemeProvider.primaryColor : Colors.grey[200],
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? ThemeProvider.primaryColor : Colors.grey[300]!,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Icon(
+          icon,
+          color: isSelected ? Colors.white : Colors.grey[700],
+          size: 28,
+        ),
+      ),
+    );
   }
 }

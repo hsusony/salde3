@@ -135,8 +135,7 @@ class Product {
       source: map['source'],
       unitNumber: map['unit_number'],
       location: map['location'],
-      minLimit:
-          map['min_limit'] != null ? (map['min_limit']).toDouble() : null,
+      minLimit: map['min_limit'] != null ? (map['min_limit']).toDouble() : null,
       serialNumber: map['serial_number'],
       note: map['note'],
       description: map['description'] ?? map['Description'],
