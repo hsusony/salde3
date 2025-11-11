@@ -38,8 +38,15 @@ class Product {
     }
     
     public function create($data) {
-        $sql = "INSERT INTO Products (ProductName, Barcode, CategoryID, UnitID, PurchasePrice, SalePrice, Stock, MinimumStock, ExpiryDate, Notes, IsActive) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)";
+        $sql = "INSERT INTO Products (
+                    ProductName, Barcode, CategoryID, UnitID, 
+                    PurchasePrice, SalePrice, WholesalePrice, Stock, MinimumStock, 
+                    CartonPurchasePrice, CartonSellingPrice, 
+                    DiscountPercent, TaxBuy, TaxSell, ExemptFromTax,
+                    Specifications, Source, UnitNumber, Location, MinLimit, SerialNumber, Note,
+                    ExpiryDate, Notes, IsActive
+                ) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)";
         
         $params = [
             $data['ProductName'],
@@ -48,8 +55,22 @@ class Product {
             $data['UnitID'],
             $data['PurchasePrice'],
             $data['SalePrice'],
+            $data['WholesalePrice'] ?? null,
             $data['Stock'] ?? 0,
             $data['MinimumStock'] ?? 0,
+            $data['CartonPurchasePrice'] ?? null,
+            $data['CartonSellingPrice'] ?? null,
+            $data['DiscountPercent'] ?? null,
+            $data['TaxBuy'] ?? null,
+            $data['TaxSell'] ?? null,
+            $data['ExemptFromTax'] ?? 0,
+            $data['Specifications'] ?? null,
+            $data['Source'] ?? null,
+            $data['UnitNumber'] ?? null,
+            $data['Location'] ?? null,
+            $data['MinLimit'] ?? null,
+            $data['SerialNumber'] ?? null,
+            $data['Note'] ?? null,
             $data['ExpiryDate'] ?? null,
             $data['Notes'] ?? null
         ];
@@ -63,7 +84,10 @@ class Product {
     public function update($id, $data) {
         $sql = "UPDATE Products 
                 SET ProductName = ?, Barcode = ?, CategoryID = ?, UnitID = ?, 
-                    PurchasePrice = ?, SalePrice = ?, Stock = ?, MinimumStock = ?, 
+                    PurchasePrice = ?, SalePrice = ?, WholesalePrice = ?, Stock = ?, MinimumStock = ?,
+                    CartonPurchasePrice = ?, CartonSellingPrice = ?,
+                    DiscountPercent = ?, TaxBuy = ?, TaxSell = ?, ExemptFromTax = ?,
+                    Specifications = ?, Source = ?, UnitNumber = ?, Location = ?, MinLimit = ?, SerialNumber = ?, Note = ?,
                     ExpiryDate = ?, Notes = ?
                 WHERE ProductID = ?";
         
@@ -74,8 +98,22 @@ class Product {
             $data['UnitID'],
             $data['PurchasePrice'],
             $data['SalePrice'],
+            $data['WholesalePrice'] ?? null,
             $data['Stock'] ?? 0,
             $data['MinimumStock'] ?? 0,
+            $data['CartonPurchasePrice'] ?? null,
+            $data['CartonSellingPrice'] ?? null,
+            $data['DiscountPercent'] ?? null,
+            $data['TaxBuy'] ?? null,
+            $data['TaxSell'] ?? null,
+            $data['ExemptFromTax'] ?? 0,
+            $data['Specifications'] ?? null,
+            $data['Source'] ?? null,
+            $data['UnitNumber'] ?? null,
+            $data['Location'] ?? null,
+            $data['MinLimit'] ?? null,
+            $data['SerialNumber'] ?? null,
+            $data['Note'] ?? null,
             $data['ExpiryDate'] ?? null,
             $data['Notes'] ?? null,
             $id
