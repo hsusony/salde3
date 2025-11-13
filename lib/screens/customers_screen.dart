@@ -662,111 +662,133 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header with Action Buttons
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                      // Enhanced Header with Gradient
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: _isEditing
+                                ? [
+                                    const Color(0xFFEF4444),
+                                    const Color(0xFFDC2626),
+                                  ]
+                                : [
+                                    const Color(0xFF6366F1),
+                                    const Color(0xFF8B5CF6),
+                                  ],
+                            begin: Alignment.topRight,
+                            end: Alignment.bottomLeft,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: (_isEditing
+                                      ? const Color(0xFFEF4444)
+                                      : const Color(0xFF6366F1))
+                                  .withOpacity(0.3),
+                              blurRadius: 20,
+                              spreadRadius: 2,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                  width: 2,
+                                ),
                               ),
-                              borderRadius: BorderRadius.circular(16),
+                              child: Icon(
+                                _isEditing
+                                    ? Icons.edit_note_rounded
+                                    : Icons.person_add_alt_1_rounded,
+                                color: Colors.white,
+                                size: 36,
+                              ),
                             ),
-                            child: const Icon(Icons.person_add_rounded,
-                                color: Colors.white, size: 32),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _isEditing ? 'تعديل حساب' : 'إضافة حساب',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineSmall
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                ),
-                                Text(
-                                  'أدخل بيانات الحساب',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.copyWith(
-                                        color: Colors.grey,
-                                      ),
-                                ),
-                              ],
+                            const SizedBox(width: 20),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _isEditing
+                                        ? 'تعديل حساب'
+                                        : 'إضافة حساب جديد',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    _isEditing
+                                        ? 'قم بتحديث بيانات الحساب أدناه'
+                                        : 'املأ البيانات لإنشاء حساب عميل جديد',
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.9),
+                                      fontSize: 14,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 32),
 
-                      // Action Buttons Row
+                      // Quick Action Buttons
                       Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
+                        spacing: 10,
+                        runSpacing: 10,
                         children: [
-                          ElevatedButton.icon(
-                            onPressed: _saveCustomer,
-                            icon: const Icon(Icons.person_add, size: 20),
-                            label: const Text('إضافة حساب'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF10B981),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 12),
-                            ),
+                          _buildQuickActionButton(
+                            label: 'أسباب النماذج',
+                            icon: Icons.description_outlined,
+                            color: const Color(0xFF3B82F6),
+                            onPressed: () {},
+                            isDark: isDark,
                           ),
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              // أسباب النماذج
-                            },
-                            icon: const Icon(Icons.description_outlined,
-                                size: 20),
-                            label: const Text('أسباب النماذج'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFF6366F1),
-                              side: const BorderSide(color: Color(0xFF6366F1)),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 12),
-                            ),
-                          ),
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              // بيانات إضافية
-                            },
-                            icon:
-                                const Icon(Icons.add_circle_outline, size: 20),
-                            label: const Text('بيانات إضافية'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFF8B5CF6),
-                              side: const BorderSide(color: Color(0xFF8B5CF6)),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 12),
-                            ),
+                          _buildQuickActionButton(
+                            label: 'بيانات إضافية',
+                            icon: Icons.add_circle_outline,
+                            color: const Color(0xFF8B5CF6),
+                            onPressed: () {},
+                            isDark: isDark,
                           ),
                           if (_isEditing)
-                            OutlinedButton.icon(
+                            _buildQuickActionButton(
+                              label: 'إلغاء التعديل',
+                              icon: Icons.close_rounded,
+                              color: const Color(0xFFEF4444),
                               onPressed: _clearForm,
-                              icon: const Icon(Icons.close, size: 20),
-                              label: const Text('إلغاء'),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.red,
-                                side: const BorderSide(color: Colors.red),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 20, vertical: 12),
-                              ),
+                              isDark: isDark,
                             ),
                         ],
                       ),
 
                       const SizedBox(height: 32),
+
+                      // المعلومات الأساسية Section Header
+                      _buildSectionHeader(
+                        title: 'المعلومات الأساسية',
+                        icon: Icons.badge_rounded,
+                        color: const Color(0xFF10B981),
+                        isDark: isDark,
+                      ),
+
+                      const SizedBox(height: 20),
 
                       // Row 1: Account Number & Account Type
                       Row(
@@ -971,6 +993,16 @@ class _CustomersScreenState extends State<CustomersScreen> {
                             ),
                           ),
                         ],
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // معلومات الاتصال Section Header
+                      _buildSectionHeader(
+                        title: 'معلومات الاتصال',
+                        icon: Icons.contact_phone_rounded,
+                        color: const Color(0xFF3B82F6),
+                        isDark: isDark,
                       ),
 
                       const SizedBox(height: 20),
@@ -1576,85 +1608,88 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
                       const SizedBox(height: 32),
 
-                      // Action Buttons Bottom
-                      Row(
-                        children: [
-                          Expanded(
-                            child: SizedBox(
-                              height: 56,
-                              child: ElevatedButton.icon(
+                      // Enhanced Action Buttons
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: isDark
+                                ? [
+                                    const Color(0xFF334155),
+                                    const Color(0xFF1E293B),
+                                  ]
+                                : [
+                                    const Color(0xFFF8FAFC),
+                                    Colors.white,
+                                  ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isDark
+                                ? Colors.grey.shade700.withOpacity(0.3)
+                                : const Color(0xFFE2E8F0),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _buildMainActionButton(
+                                label:
+                                    _isEditing ? 'تحديث الحساب' : 'حفظ الحساب',
+                                icon: _isEditing
+                                    ? Icons.update_rounded
+                                    : Icons.save_rounded,
+                                gradient: LinearGradient(
+                                  colors: _isEditing
+                                      ? [
+                                          const Color(0xFFF59E0B),
+                                          const Color(0xFFD97706),
+                                        ]
+                                      : [
+                                          const Color(0xFF10B981),
+                                          const Color(0xFF059669),
+                                        ],
+                                ),
                                 onPressed: _saveCustomer,
-                                icon: Icon(
-                                    _isEditing
-                                        ? Icons.edit_rounded
-                                        : Icons.save_rounded,
-                                    size: 24),
-                                label: Text(
-                                  _isEditing ? 'تحديث' : 'حفظ',
-                                  style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF10B981),
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
+                                isDark: isDark,
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: SizedBox(
-                              height: 56,
-                              child: ElevatedButton.icon(
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildMainActionButton(
+                                label: 'حساب جديد',
+                                icon: Icons.add_circle_outline_rounded,
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFF6366F1),
+                                    Color(0xFF4F46E5),
+                                  ],
+                                ),
                                 onPressed: _clearForm,
-                                icon: const Icon(Icons.add_circle_outline,
-                                    size: 24),
-                                label: const Text(
-                                  'جديد',
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF6366F1),
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
+                                isDark: isDark,
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: SizedBox(
-                              height: 56,
-                              child: OutlinedButton.icon(
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildMainActionButton(
+                                label: 'مسح الكل',
+                                icon: Icons.refresh_rounded,
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFFEF4444),
+                                    Color(0xFFDC2626),
+                                  ],
+                                ),
                                 onPressed: _clearForm,
-                                icon:
-                                    const Icon(Icons.refresh_rounded, size: 24),
-                                label: const Text(
-                                  'مسح',
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: const Color(0xFFEF4444),
-                                  side: const BorderSide(
-                                      color: Color(0xFFEF4444), width: 2),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
+                                isDark: isDark,
+                                isOutlined: true,
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -2202,6 +2237,193 @@ class _CustomersScreenState extends State<CustomersScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  // Helper Widget للأزرار السريعة
+  Widget _buildQuickActionButton({
+    required String label,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onPressed,
+    required bool isDark,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: isDark ? color.withOpacity(0.15) : color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: color.withOpacity(0.3),
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Helper Widget لعناوين الأقسام
+  Widget _buildSectionHeader({
+    required String title,
+    required IconData icon,
+    required Color color,
+    required bool isDark,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            color.withOpacity(0.1),
+            color.withOpacity(0.05),
+          ],
+          begin: Alignment.centerRight,
+          end: Alignment.centerLeft,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const Spacer(),
+          Container(
+            width: 40,
+            height: 2,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  color,
+                  color.withOpacity(0),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper Widget للأزرار الرئيسية
+  Widget _buildMainActionButton({
+    required String label,
+    required IconData icon,
+    required Gradient gradient,
+    required VoidCallback onPressed,
+    required bool isDark,
+    bool isOutlined = false,
+  }) {
+    return SizedBox(
+      height: 62,
+      child: isOutlined
+          ? OutlinedButton.icon(
+              onPressed: onPressed,
+              icon: Icon(icon, size: 24),
+              label: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFFEF4444),
+                side: const BorderSide(
+                  color: Color(0xFFEF4444),
+                  width: 2.5,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+              ),
+            )
+          : Container(
+              decoration: BoxDecoration(
+                gradient: gradient,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: (gradient.colors.first).withOpacity(0.4),
+                    blurRadius: 12,
+                    spreadRadius: 0,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: ElevatedButton.icon(
+                onPressed: onPressed,
+                icon: Icon(icon, size: 24),
+                label: Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
+                ),
+              ),
+            ),
     );
   }
 }

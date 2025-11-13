@@ -2356,7 +2356,8 @@ class _ProductFormDialogState extends State<ProductFormDialog>
                                   padding: const EdgeInsets.only(bottom: 12),
                                   child: Row(
                                     children: [
-                                      const Icon(Icons.palette_outlined, size: 20),
+                                      const Icon(Icons.palette_outlined,
+                                          size: 20),
                                       const SizedBox(width: 8),
                                       Text(
                                         'لون الفئة',
@@ -2372,7 +2373,8 @@ class _ProductFormDialogState extends State<ProductFormDialog>
                                 Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: Colors.grey[300]!),
+                                    border:
+                                        Border.all(color: Colors.grey[300]!),
                                     borderRadius: BorderRadius.circular(12),
                                     color: Colors.grey[50],
                                   ),
@@ -2380,42 +2382,56 @@ class _ProductFormDialogState extends State<ProductFormDialog>
                                     spacing: 12,
                                     runSpacing: 12,
                                     children: [
-                                      _buildColorOption('blue', Colors.blue, selectedColor, (color) {
+                                      _buildColorOption(
+                                          'blue', Colors.blue, selectedColor,
+                                          (color) {
                                         setDialogState(() {
                                           selectedColor = color;
                                         });
                                       }),
-                                      _buildColorOption('green', Colors.green, selectedColor, (color) {
+                                      _buildColorOption(
+                                          'green', Colors.green, selectedColor,
+                                          (color) {
                                         setDialogState(() {
                                           selectedColor = color;
                                         });
                                       }),
-                                      _buildColorOption('red', Colors.red, selectedColor, (color) {
+                                      _buildColorOption(
+                                          'red', Colors.red, selectedColor,
+                                          (color) {
                                         setDialogState(() {
                                           selectedColor = color;
                                         });
                                       }),
-                                      _buildColorOption('orange', Colors.orange, selectedColor, (color) {
+                                      _buildColorOption('orange', Colors.orange,
+                                          selectedColor, (color) {
                                         setDialogState(() {
                                           selectedColor = color;
                                         });
                                       }),
-                                      _buildColorOption('purple', Colors.purple, selectedColor, (color) {
+                                      _buildColorOption('purple', Colors.purple,
+                                          selectedColor, (color) {
                                         setDialogState(() {
                                           selectedColor = color;
                                         });
                                       }),
-                                      _buildColorOption('teal', Colors.teal, selectedColor, (color) {
+                                      _buildColorOption(
+                                          'teal', Colors.teal, selectedColor,
+                                          (color) {
                                         setDialogState(() {
                                           selectedColor = color;
                                         });
                                       }),
-                                      _buildColorOption('pink', Colors.pink, selectedColor, (color) {
+                                      _buildColorOption(
+                                          'pink', Colors.pink, selectedColor,
+                                          (color) {
                                         setDialogState(() {
                                           selectedColor = color;
                                         });
                                       }),
-                                      _buildColorOption('amber', Colors.amber, selectedColor, (color) {
+                                      _buildColorOption(
+                                          'amber', Colors.amber, selectedColor,
+                                          (color) {
                                         setDialogState(() {
                                           selectedColor = color;
                                         });
@@ -2435,7 +2451,8 @@ class _ProductFormDialogState extends State<ProductFormDialog>
                                   padding: const EdgeInsets.only(bottom: 12),
                                   child: Row(
                                     children: [
-                                      const Icon(Icons.emoji_symbols_outlined, size: 20),
+                                      const Icon(Icons.emoji_symbols_outlined,
+                                          size: 20),
                                       const SizedBox(width: 8),
                                       Text(
                                         'أيقونة الفئة',
@@ -2451,7 +2468,8 @@ class _ProductFormDialogState extends State<ProductFormDialog>
                                 Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: Colors.grey[300]!),
+                                    border:
+                                        Border.all(color: Colors.grey[300]!),
                                     borderRadius: BorderRadius.circular(12),
                                     color: Colors.grey[50],
                                   ),
@@ -2459,42 +2477,66 @@ class _ProductFormDialogState extends State<ProductFormDialog>
                                     spacing: 12,
                                     runSpacing: 12,
                                     children: [
-                                      _buildIconOption('category', Icons.category_rounded, selectedIcon, (icon) {
+                                      _buildIconOption(
+                                          'category',
+                                          Icons.category_rounded,
+                                          selectedIcon, (icon) {
                                         setDialogState(() {
                                           selectedIcon = icon;
                                         });
                                       }),
-                                      _buildIconOption('electronics', Icons.electrical_services_rounded, selectedIcon, (icon) {
+                                      _buildIconOption(
+                                          'electronics',
+                                          Icons.electrical_services_rounded,
+                                          selectedIcon, (icon) {
                                         setDialogState(() {
                                           selectedIcon = icon;
                                         });
                                       }),
-                                      _buildIconOption('food', Icons.restaurant_rounded, selectedIcon, (icon) {
+                                      _buildIconOption(
+                                          'food',
+                                          Icons.restaurant_rounded,
+                                          selectedIcon, (icon) {
                                         setDialogState(() {
                                           selectedIcon = icon;
                                         });
                                       }),
-                                      _buildIconOption('clothing', Icons.checkroom_rounded, selectedIcon, (icon) {
+                                      _buildIconOption(
+                                          'clothing',
+                                          Icons.checkroom_rounded,
+                                          selectedIcon, (icon) {
                                         setDialogState(() {
                                           selectedIcon = icon;
                                         });
                                       }),
-                                      _buildIconOption('sports', Icons.sports_soccer_rounded, selectedIcon, (icon) {
+                                      _buildIconOption(
+                                          'sports',
+                                          Icons.sports_soccer_rounded,
+                                          selectedIcon, (icon) {
                                         setDialogState(() {
                                           selectedIcon = icon;
                                         });
                                       }),
-                                      _buildIconOption('books', Icons.menu_book_rounded, selectedIcon, (icon) {
+                                      _buildIconOption(
+                                          'books',
+                                          Icons.menu_book_rounded,
+                                          selectedIcon, (icon) {
                                         setDialogState(() {
                                           selectedIcon = icon;
                                         });
                                       }),
-                                      _buildIconOption('tools', Icons.construction_rounded, selectedIcon, (icon) {
+                                      _buildIconOption(
+                                          'tools',
+                                          Icons.construction_rounded,
+                                          selectedIcon, (icon) {
                                         setDialogState(() {
                                           selectedIcon = icon;
                                         });
                                       }),
-                                      _buildIconOption('beauty', Icons.face_rounded, selectedIcon, (icon) {
+                                      _buildIconOption(
+                                          'beauty',
+                                          Icons.face_rounded,
+                                          selectedIcon, (icon) {
                                         setDialogState(() {
                                           selectedIcon = icon;
                                         });
@@ -2574,7 +2616,8 @@ class _ProductFormDialogState extends State<ProductFormDialog>
                                   const SizedBox(width: 12),
                                   const Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           'تفعيل الفئة',
@@ -2627,7 +2670,8 @@ class _ProductFormDialogState extends State<ProductFormDialog>
                                   const SizedBox(width: 12),
                                   const Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           'إظهار في التقارير',
@@ -2680,7 +2724,8 @@ class _ProductFormDialogState extends State<ProductFormDialog>
                                   const SizedBox(width: 12),
                                   const Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           'السماح بالخصم',
@@ -2776,11 +2821,13 @@ class _ProductFormDialogState extends State<ProductFormDialog>
                                 final categoryData = {
                                   'name': categoryNameController.text.trim(),
                                   'code': categoryCodeController.text.trim(),
-                                  'parent': categoryParentController.text.trim(),
+                                  'parent':
+                                      categoryParentController.text.trim(),
                                   'description':
                                       categoryDescriptionController.text.trim(),
                                   'notes': categoryNotesController.text.trim(),
-                                  'sortOrder': categorySortOrderController.text.trim(),
+                                  'sortOrder':
+                                      categorySortOrderController.text.trim(),
                                   'color': selectedColor,
                                   'icon': selectedIcon,
                                   'isActive': isActive,
