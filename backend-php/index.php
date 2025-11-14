@@ -1,27 +1,59 @@
 <?php
 /**
- * Sales Management System API
- * Professional PHP Backend with SQL Server 2008
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * 🚀 Sales Management System - Professional REST API
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  * 
- * @version 1.0.0
- * @author Sales Management Team
+ * @package     Sales Management System
+ * @version     2.0.0 Professional Edition
+ * @author      9SOFT - Innovative Software Solutions
+ * @copyright   2025 9SOFT. All rights reserved.
+ * @license     Proprietary
+ * @link        https://9soft.com
+ * 
+ * 🔥 Features:
+ * - RESTful API Architecture
+ * - SQL Server 2008 Integration
+ * - Advanced Security & Authentication
+ * - Rate Limiting & Caching
+ * - Comprehensive Error Handling
+ * - Professional Logging System
+ * - Request/Response Validation
+ * 
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
-// Enable error reporting for development
-error_reporting(E_ALL);
+// Performance & Security Configuration
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
-error_log('API Request: ' . $_SERVER['REQUEST_METHOD'] . ' ' . $_SERVER['REQUEST_URI']);
+ini_set('error_log', __DIR__ . '/logs/php-errors.log');
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
 
-// CORS Headers
+// Set timezone
+date_default_timezone_set('Asia/Baghdad');
+
+// Request tracking
+$requestId = uniqid('req_', true);
+define('REQUEST_ID', $requestId);
+define('REQUEST_START_TIME', microtime(true));
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🔐 Security Headers & CORS Configuration
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-Request-ID, Accept');
+header('Access-Control-Max-Age: 86400'); // Cache preflight for 24 hours
 header('Content-Type: application/json; charset=utf-8');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('X-XSS-Protection: 1; mode=block');
+header('X-Request-ID: ' . REQUEST_ID);
+header('X-Powered-By: 9SOFT API v2.0');
 
 // Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
+    http_response_code(204);
     exit;
 }
 
@@ -31,6 +63,7 @@ require_once __DIR__ . '/helpers/Request.php';
 require_once __DIR__ . '/helpers/Auth.php';
 require_once __DIR__ . '/helpers/Logger.php';
 require_once __DIR__ . '/helpers/Cache.php';
+require_once __DIR__ . '/helpers/SecurityMiddleware.php';
 require_once __DIR__ . '/models/Customer.php';
 require_once __DIR__ . '/models/Product.php';
 require_once __DIR__ . '/models/Sale.php';
@@ -40,6 +73,11 @@ require_once __DIR__ . '/models/Installment.php';
 require_once __DIR__ . '/models/Report.php';
 require_once __DIR__ . '/models/User.php';
 require_once __DIR__ . '/models/Backup.php';
+
+// ═══════════════════════════════════════════════════════════════════
+// 🛡️ Initialize Security Middleware
+// ═══════════════════════════════════════════════════════════════════
+SecurityMiddleware::init();
 
 // Initialize request
 $request = new Request();
@@ -61,35 +99,66 @@ $id = $parts[2] ?? null;
 
 try {
     
-    // ===========================================
-    // API INFO
-    // ===========================================
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // 📋 API Information & Documentation
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     if (($endpoint === '' || $endpoint === 'api') && empty($resource)) {
+        $executionTime = round((microtime(true) - REQUEST_START_TIME) * 1000, 2);
+        
         Response::success([
-            'name' => 'Sales Management System API',
-            'version' => '1.0.0',
-            'description' => 'Professional REST API with PHP and SQL Server 2008',
+            'api' => [
+                'name' => '🚀 Sales Management System API',
+                'version' => '2.0.0',
+                'status' => 'operational',
+                'environment' => 'production'
+            ],
+            'company' => [
+                'name' => '9SOFT',
+                'tagline' => 'Innovative Software Solutions | حلول برمجية مبتكرة',
+                'website' => 'https://9soft.com'
+            ],
+            'server' => [
+                'database' => 'SQL Server 2008',
+                'php_version' => phpversion(),
+                'timezone' => date_default_timezone_get(),
+                'request_id' => REQUEST_ID,
+                'response_time' => $executionTime . ' ms'
+            ],
             'endpoints' => [
-                '/api/health' => 'Health check',
-                '/api/auth/login' => 'User login',
-                '/api/auth/register' => 'User registration',
-                '/api/customers' => 'Customer management',
-                '/api/products' => 'Product management',
-                '/api/sales' => 'Sales management',
-                '/api/categories' => 'Category management',
-                '/api/units' => 'Unit management',
-                '/api/installments' => 'Installment management',
-                '/api/backup/create' => 'Create database backup',
-                '/api/backup/list' => 'List all backups',
-                '/api/backup/export' => 'Export data as JSON',
-                '/api/reports/daily-sales' => 'Daily sales report',
-                '/api/reports/monthly-sales' => 'Monthly sales report',
-                '/api/reports/top-selling' => 'Top selling products',
-                '/api/reports/top-customers' => 'Top customers',
-                '/api/reports/profit' => 'Profit report',
-                '/api/reports/inventory' => 'Inventory report',
-                '/api/reports/debts' => 'Debts report',
-                '/api/dashboard/stats' => 'Dashboard statistics'
+                'authentication' => [
+                    'POST /api/auth/login' => 'تسجيل الدخول | User Login',
+                    'POST /api/auth/register' => 'تسجيل مستخدم جديد | Register New User',
+                    'GET /api/auth/me' => 'معلومات المستخدم الحالي | Current User Info'
+                ],
+                'core_resources' => [
+                    'GET/POST/PUT/DELETE /api/customers' => 'إدارة العملاء | Customer Management',
+                    'GET/POST/PUT/DELETE /api/products' => 'إدارة المنتجات | Product Management',
+                    'GET/POST /api/sales' => 'إدارة المبيعات | Sales Management',
+                    'GET/POST/PUT/DELETE /api/categories' => 'إدارة الفئات | Category Management',
+                    'GET/POST/PUT/DELETE /api/units' => 'إدارة الوحدات | Unit Management',
+                    'GET/POST/PUT /api/installments' => 'إدارة الأقساط | Installment Management'
+                ],
+                'reports' => [
+                    'GET /api/reports/daily-sales' => 'تقرير المبيعات اليومية | Daily Sales Report',
+                    'GET /api/reports/monthly-sales' => 'تقرير المبيعات الشهرية | Monthly Sales Report',
+                    'GET /api/reports/top-selling' => 'المنتجات الأكثر مبيعاً | Top Selling Products',
+                    'GET /api/reports/top-customers' => 'أفضل العملاء | Top Customers',
+                    'GET /api/reports/profit' => 'تقرير الأرباح | Profit Report',
+                    'GET /api/reports/inventory' => 'تقرير المخزون | Inventory Report',
+                    'GET /api/reports/debts' => 'تقرير الديون | Debts Report'
+                ],
+                'utilities' => [
+                    'GET /api/health' => 'فحص صحة النظام | Health Check',
+                    'GET /api/dashboard/stats' => 'إحصائيات لوحة التحكم | Dashboard Statistics',
+                    'POST /api/backup/create' => 'إنشاء نسخة احتياطية | Create Backup',
+                    'GET /api/backup/list' => 'قائمة النسخ الاحتياطية | List Backups',
+                    'POST /api/backup/export' => 'تصدير البيانات | Export Data'
+                ]
+            ],
+            'documentation' => [
+                'swagger' => '/api/docs',
+                'postman' => '/api/postman-collection',
+                'support' => 'support@9soft.com'
             ]
         ]);
     }

@@ -35,6 +35,7 @@ class _ProductFormDialogState extends State<ProductFormDialog>
   late TextEditingController _packagingQuantityController;
   late TextEditingController _descriptionController;
   late TextEditingController _discountPercentController;
+  late TextEditingController _discountAmountController;
   late TextEditingController _taxBuyController;
   late TextEditingController _taxSellController;
   late TextEditingController _specificationsController;
@@ -81,8 +82,8 @@ class _ProductFormDialogState extends State<ProductFormDialog>
     });
 
     _nameController = TextEditingController(text: widget.product?.name ?? '');
-    _barcodeController = TextEditingController(
-        text: widget.product?.barcode ?? _generateBarcode());
+    _barcodeController =
+        TextEditingController(text: widget.product?.barcode ?? '');
     final cat = widget.product?.category;
     _selectedCategory = (cat != null && cat.isNotEmpty) ? cat : null;
     _purchasePriceController = TextEditingController(
@@ -104,6 +105,7 @@ class _ProductFormDialogState extends State<ProductFormDialog>
     _descriptionController =
         TextEditingController(text: widget.product?.description ?? '');
     _discountPercentController = TextEditingController(text: '');
+    _discountAmountController = TextEditingController(text: '');
     _taxBuyController = TextEditingController(text: '');
     _taxSellController = TextEditingController(text: '');
     _specificationsController = TextEditingController(text: '');
@@ -215,6 +217,7 @@ class _ProductFormDialogState extends State<ProductFormDialog>
     _packagingQuantityController.dispose();
     _descriptionController.dispose();
     _discountPercentController.dispose();
+    _discountAmountController.dispose();
     _taxBuyController.dispose();
     _taxSellController.dispose();
     _specificationsController.dispose();
@@ -230,20 +233,46 @@ class _ProductFormDialogState extends State<ProductFormDialog>
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.product != null;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Dialog(
+      backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
       child: Container(
         width: 900,
         constraints: const BoxConstraints(maxHeight: 750),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Header
             Container(
               padding: const EdgeInsets.all(24),
-              decoration: const BoxDecoration(
-                color: ThemeProvider.primaryColor,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isDark
+                      ? [
+                          const Color(0xFF6366F1),
+                          const Color(0xFF4F46E5),
+                        ]
+                      : [
+                          ThemeProvider.primaryColor,
+                          const Color(0xFF4F46E5),
+                        ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(16)),
+                boxShadow: [
+                  BoxShadow(
+                    color: ThemeProvider.primaryColor.withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Row(
                 children: [
@@ -258,9 +287,17 @@ class _ProductFormDialogState extends State<ProductFormDialog>
                         ),
                   ),
                   const Spacer(),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded, color: Colors.white),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon:
+                          const Icon(Icons.close_rounded, color: Colors.white),
+                      tooltip: 'إغلاق',
+                    ),
                   ),
                 ],
               ),
@@ -269,14 +306,19 @@ class _ProductFormDialogState extends State<ProductFormDialog>
             // Tab Bar
             Container(
               decoration: BoxDecoration(
-                color: Colors.grey[100],
+                color: isDark ? const Color(0xFF2A2A3E) : Colors.grey[100],
                 border: Border(
-                    bottom: BorderSide(color: Colors.grey[300]!, width: 1)),
+                    bottom: BorderSide(
+                        color: isDark
+                            ? const Color(0xFF3A3A4E)
+                            : Colors.grey[300]!,
+                        width: 1)),
               ),
               child: TabBar(
                 controller: _tabController,
                 labelColor: ThemeProvider.primaryColor,
-                unselectedLabelColor: Colors.grey[600],
+                unselectedLabelColor:
+                    isDark ? Colors.grey[400] : Colors.grey[600],
                 indicatorColor: ThemeProvider.primaryColor,
                 indicatorWeight: 3,
                 labelStyle:
@@ -314,25 +356,77 @@ class _ProductFormDialogState extends State<ProductFormDialog>
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                border: Border(top: BorderSide(color: Colors.grey[300]!)),
+                color: isDark ? const Color(0xFF2A2A3E) : Colors.white,
+                border: Border(
+                    top: BorderSide(
+                        color: isDark
+                            ? const Color(0xFF3A3A4E)
+                            : Colors.grey[300]!)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  OutlinedButton(
-                    onPressed: _isLoading ? null : () => Navigator.pop(context),
-                    child: const Text('إلغاء'),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
+                        width: 2,
+                      ),
+                    ),
+                    child: OutlinedButton(
+                      onPressed:
+                          _isLoading ? null : () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 32, vertical: 16),
+                        side: BorderSide.none,
+                      ),
+                      child:
+                          const Text('إلغاء', style: TextStyle(fontSize: 16)),
+                    ),
                   ),
                   const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: _isLoading ? null : _saveProduct,
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(isEdit ? 'حفظ التعديلات' : 'إضافة المنتج'),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          ThemeProvider.primaryColor,
+                          const Color(0xFF4F46E5),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: ThemeProvider.primaryColor.withOpacity(0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _saveProduct,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 32, vertical: 16),
+                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(
+                              isEdit ? 'حفظ التعديلات' : 'إضافة المنتج',
+                              style: const TextStyle(
+                                  fontSize: 16, color: Colors.white),
+                            ),
+                    ),
                   ),
                 ],
               ),
@@ -345,6 +439,7 @@ class _ProductFormDialogState extends State<ProductFormDialog>
 
   // ===================== القسم الأول: عام =====================
   Widget _buildGeneralTab() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -355,12 +450,37 @@ class _ProductFormDialogState extends State<ProductFormDialog>
             child: Column(
               children: [
                 Container(
-                  width: 150,
-                  height: 150,
+                  width: 160,
+                  height: 160,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade300, width: 2),
+                    gradient: LinearGradient(
+                      colors: isDark
+                          ? [
+                              const Color(0xFF2A2A3E),
+                              const Color(0xFF1E1E2E),
+                            ]
+                          : [
+                              Colors.grey.shade100,
+                              Colors.grey.shade50,
+                            ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                        color: isDark
+                            ? const Color(0xFF4A4A5E)
+                            : Colors.grey.shade300,
+                        width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: isDark
+                            ? Colors.black.withOpacity(0.3)
+                            : Colors.grey.withOpacity(0.2),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: _imageBytes != null
                       ? ClipRRect(
@@ -375,24 +495,52 @@ class _ProductFormDialogState extends State<ProductFormDialog>
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
                                   return Icon(Icons.image_outlined,
-                                      size: 60, color: Colors.grey.shade400);
+                                      size: 60,
+                                      color: isDark
+                                          ? Colors.grey[600]
+                                          : Colors.grey.shade400);
                                 },
                               ),
                             )
                           : Icon(Icons.image_outlined,
-                              size: 60, color: Colors.grey.shade400),
+                              size: 60,
+                              color: isDark
+                                  ? Colors.grey[600]
+                                  : Colors.grey.shade400),
                 ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: _pickImage,
-                  icon: const Icon(Icons.upload_rounded),
-                  label: Text(
-                      _imageBytes != null || widget.product?.imageUrl != null
-                          ? 'تغيير الصورة'
-                          : 'رفع صورة'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 12),
+                const SizedBox(height: 16),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        ThemeProvider.primaryColor.withOpacity(0.8),
+                        const Color(0xFF4F46E5),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: ThemeProvider.primaryColor.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: OutlinedButton.icon(
+                    onPressed: _pickImage,
+                    icon: const Icon(Icons.upload_rounded, color: Colors.white),
+                    label: Text(
+                        _imageBytes != null || widget.product?.imageUrl != null
+                            ? 'تغيير الصورة'
+                            : 'رفع صورة',
+                        style: const TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.bold)),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 28, vertical: 14),
+                      side: BorderSide.none,
+                      backgroundColor: Colors.transparent,
+                    ),
                   ),
                 ),
               ],
@@ -424,10 +572,11 @@ class _ProductFormDialogState extends State<ProductFormDialog>
                   controller: _barcodeController,
                   decoration: InputDecoration(
                     labelText: 'الباركود الرئيسي *',
+                    hintText: 'اضغط لتوليد باركود تلقائي',
                     prefixIcon: const Icon(Icons.qr_code_rounded),
                     suffixIcon: IconButton(
-                      icon: const Icon(Icons.refresh_rounded),
-                      tooltip: 'توليد باركود جديد',
+                      icon: const Icon(Icons.auto_awesome_rounded),
+                      tooltip: 'توليد باركود تلقائي',
                       onPressed: () {
                         setState(() {
                           _barcodeController.text = _generateBarcode();
@@ -437,7 +586,7 @@ class _ProductFormDialogState extends State<ProductFormDialog>
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'الرجاء إدخال الباركود';
+                      return 'الرجاء إدخال الباركود أو توليده';
                     }
                     return null;
                   },
@@ -505,8 +654,12 @@ class _ProductFormDialogState extends State<ProductFormDialog>
                   margin: const EdgeInsets.only(top: 8),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[300]!),
+                    border: Border.all(
+                        color: isDark
+                            ? const Color(0xFF3A3A4E)
+                            : Colors.grey[300]!),
                     borderRadius: BorderRadius.circular(8),
+                    color: isDark ? const Color(0xFF2A2A3E) : Colors.white,
                   ),
                   child: Wrap(
                     spacing: 8,
@@ -557,18 +710,38 @@ class _ProductFormDialogState extends State<ProductFormDialog>
                 ),
               ),
               const SizedBox(width: 12),
-              Container(
-                decoration: BoxDecoration(
-                  color: ThemeProvider.primaryColor,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: IconButton(
-                  onPressed: () {
-                    _showAddCategoryDialog();
-                  },
-                  icon: const Icon(Icons.add_rounded, color: Colors.white),
-                  tooltip: 'إضافة فئة جديدة',
-                  padding: const EdgeInsets.all(12),
+              Material(
+                elevation: 4,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFF667EEA),
+                        Color(0xFF764BA2),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF764BA2).withOpacity(0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: IconButton(
+                    onPressed: () {
+                      _showAddCategoryDialog();
+                    },
+                    icon: const Icon(Icons.add_rounded,
+                        color: Colors.white, size: 24),
+                    tooltip: 'إضافة فئة جديدة',
+                    padding: const EdgeInsets.all(14),
+                    splashRadius: 24,
+                  ),
                 ),
               ),
             ],
@@ -612,9 +785,10 @@ class _ProductFormDialogState extends State<ProductFormDialog>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[300]!),
+              border: Border.all(
+                  color: isDark ? const Color(0xFF3A3A4E) : Colors.grey[300]!),
               borderRadius: BorderRadius.circular(8),
-              color: Colors.grey[50],
+              color: isDark ? const Color(0xFF2A2A3E) : Colors.grey[50],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -732,81 +906,148 @@ class _ProductFormDialogState extends State<ProductFormDialog>
           const SizedBox(height: 16),
 
           // الأسعار الأساسية
-          const Text(
-            'الأسعار',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  controller: _purchasePriceController,
-                  decoration: InputDecoration(
-                    labelText: _materialType == 'خدمية'
-                        ? 'سعر التكلفة *'
-                        : 'سعر الشراء *',
-                    prefixIcon: const Icon(Icons.shopping_cart_rounded),
-                    suffixText: 'د.ع',
-                  ),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))
-                  ],
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return _materialType == 'خدمية'
-                          ? 'الرجاء إدخال سعر التكلفة'
-                          : 'الرجاء إدخال سعر الشراء';
-                    }
-                    if (double.tryParse(value) == null) {
-                      return 'الرجاء إدخال رقم صحيح';
-                    }
-                    return null;
-                  },
-                ),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [
+                        const Color(0xFF2A2A3E),
+                        const Color(0xFF1E1E2E),
+                      ]
+                    : [
+                        const Color(0xFFF3F4F6),
+                        const Color(0xFFE5E7EB),
+                      ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: TextFormField(
-                  controller: _sellingPriceController,
-                  decoration: const InputDecoration(
-                    labelText: 'سعر البيع *',
-                    prefixIcon: Icon(Icons.attach_money_rounded),
-                    suffixText: 'د.ع',
-                  ),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))
-                  ],
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'الرجاء إدخال سعر البيع';
-                    }
-                    if (double.tryParse(value) == null) {
-                      return 'الرجاء إدخال رقم صحيح';
-                    }
-                    return null;
-                  },
-                ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark ? const Color(0xFF4A4A5E) : Colors.grey.shade300,
+                width: 1.5,
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: TextFormField(
-                  controller: _wholesalePriceController,
-                  decoration: const InputDecoration(
-                    labelText: 'البيع العام',
-                    prefixIcon: Icon(Icons.storefront_rounded),
-                    suffixText: 'د.ع',
-                    hintText: 'سعر الجملة',
-                  ),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))
+              boxShadow: [
+                BoxShadow(
+                  color: isDark
+                      ? Colors.black.withOpacity(0.2)
+                      : Colors.grey.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFF10B981),
+                            Color(0xFF059669),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF10B981).withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(Icons.attach_money,
+                          color: Colors.white, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'الأسعار',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
                   ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _purchasePriceController,
+                        decoration: InputDecoration(
+                          labelText: _materialType == 'خدمية'
+                              ? 'سعر التكلفة *'
+                              : 'سعر الشراء *',
+                          prefixIcon: const Icon(Icons.shopping_cart_rounded),
+                          suffixText: 'د.ع',
+                        ),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d+\.?\d{0,2}'))
+                        ],
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return _materialType == 'خدمية'
+                                ? 'الرجاء إدخال سعر التكلفة'
+                                : 'الرجاء إدخال سعر الشراء';
+                          }
+                          if (double.tryParse(value) == null) {
+                            return 'الرجاء إدخال رقم صحيح';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _sellingPriceController,
+                        decoration: const InputDecoration(
+                          labelText: 'سعر البيع *',
+                          prefixIcon: Icon(Icons.attach_money_rounded),
+                          suffixText: 'د.ع',
+                        ),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d+\.?\d{0,2}'))
+                        ],
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'الرجاء إدخال سعر البيع';
+                          }
+                          if (double.tryParse(value) == null) {
+                            return 'الرجاء إدخال رقم صحيح';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _wholesalePriceController,
+                        decoration: const InputDecoration(
+                          labelText: 'البيع العام',
+                          prefixIcon: Icon(Icons.storefront_rounded),
+                          suffixText: 'د.ع',
+                          hintText: 'سعر الجملة',
+                        ),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d+\.?\d{0,2}'))
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 16),
 
@@ -984,6 +1225,7 @@ class _ProductFormDialogState extends State<ProductFormDialog>
 
   // ===================== القسم الثاني: الخصومات =====================
   Widget _buildDiscountsTab() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -998,7 +1240,9 @@ class _ProductFormDialogState extends State<ProductFormDialog>
             const SizedBox(height: 8),
             Text(
               'قم بتحديد أسعار شراء وبيع الكارتونة',
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              style: TextStyle(
+                  fontSize: 14,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600]),
             ),
             const SizedBox(height: 24),
             Row(
@@ -1185,6 +1429,59 @@ class _ProductFormDialogState extends State<ProductFormDialog>
             ),
             const SizedBox(height: 16),
 
+            // خصم بمبلغ ثابت
+            Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: TextFormField(
+                    controller: _discountAmountController,
+                    decoration: const InputDecoration(
+                      labelText: 'خصم مبلغ ثابت',
+                      prefixIcon: Icon(Icons.money_off_rounded),
+                      hintText: '0',
+                      helperText: 'خصم بالدينار',
+                    ),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d+\.?\d{0,2}'))
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  flex: 1,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.green[50],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.green[200]!),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.attach_money,
+                            color: Colors.green[700], size: 20),
+                        const SizedBox(width: 4),
+                        Text(
+                          'د.ع',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
             // ضريبة البيع والشراء
             Row(
               children: [
@@ -1237,9 +1534,11 @@ class _ProductFormDialogState extends State<ProductFormDialog>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
+                border: Border.all(
+                    color:
+                        isDark ? const Color(0xFF3A3A4E) : Colors.grey[300]!),
                 borderRadius: BorderRadius.circular(8),
-                color: Colors.grey[50],
+                color: isDark ? const Color(0xFF2A2A3E) : Colors.grey[50],
               ),
               child: CheckboxListTile(
                 title: Row(
@@ -1333,6 +1632,59 @@ class _ProductFormDialogState extends State<ProductFormDialog>
             ),
             const SizedBox(height: 16),
 
+            // خصم بمبلغ ثابت
+            Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: TextFormField(
+                    controller: _discountAmountController,
+                    decoration: const InputDecoration(
+                      labelText: 'خصم مبلغ ثابت',
+                      prefixIcon: Icon(Icons.money_off_rounded),
+                      hintText: '0',
+                      helperText: 'خصم بالدينار',
+                    ),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d+\.?\d{0,2}'))
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  flex: 1,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.green[50],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.green[200]!),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.attach_money,
+                            color: Colors.green[700], size: 20),
+                        const SizedBox(width: 4),
+                        Text(
+                          'د.ع',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
             // ضريبة البيع والشراء
             Row(
               children: [
@@ -1385,9 +1737,11 @@ class _ProductFormDialogState extends State<ProductFormDialog>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
+                border: Border.all(
+                    color:
+                        isDark ? const Color(0xFF3A3A4E) : Colors.grey[300]!),
                 borderRadius: BorderRadius.circular(8),
-                color: Colors.grey[50],
+                color: isDark ? const Color(0xFF2A2A3E) : Colors.grey[50],
               ),
               child: CheckboxListTile(
                 title: Row(
@@ -1430,6 +1784,7 @@ class _ProductFormDialogState extends State<ProductFormDialog>
 
   // ===================== القسم الثالث: بيانات إضافية =====================
   Widget _buildAdditionalDataTab() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -1445,9 +1800,10 @@ class _ProductFormDialogState extends State<ProductFormDialog>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[300]!),
+              border: Border.all(
+                  color: isDark ? const Color(0xFF3A3A4E) : Colors.grey[300]!),
               borderRadius: BorderRadius.circular(8),
-              color: Colors.grey[50],
+              color: isDark ? const Color(0xFF2A2A3E) : Colors.grey[50],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1588,6 +1944,7 @@ class _ProductFormDialogState extends State<ProductFormDialog>
 
   // ===================== القسم الرابع: حركة المادة =====================
   Widget _buildHistoryTab() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isEdit = widget.product != null;
 
     return SingleChildScrollView(
@@ -1621,7 +1978,9 @@ class _ProductFormDialogState extends State<ProductFormDialog>
             // جدول حركة المادة
             Container(
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
+                border: Border.all(
+                    color:
+                        isDark ? const Color(0xFF3A3A4E) : Colors.grey[300]!),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -1658,13 +2017,16 @@ class _ProductFormDialogState extends State<ProductFormDialog>
                       child: Column(
                         children: [
                           Icon(Icons.inbox_outlined,
-                              size: 64, color: Colors.grey[400]),
+                              size: 64,
+                              color:
+                                  isDark ? Colors.grey[600] : Colors.grey[400]),
                           const SizedBox(height: 16),
                           Text(
                             'لا توجد حركات لهذه المادة',
                             style: TextStyle(
                               fontSize: 16,
-                              color: Colors.grey[600],
+                              color:
+                                  isDark ? Colors.grey[400] : Colors.grey[600],
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -1680,21 +2042,25 @@ class _ProductFormDialogState extends State<ProductFormDialog>
             Container(
               padding: const EdgeInsets.all(40),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
+                border: Border.all(
+                    color:
+                        isDark ? const Color(0xFF3A3A4E) : Colors.grey[300]!),
                 borderRadius: BorderRadius.circular(8),
-                color: Colors.grey[50],
+                color: isDark ? const Color(0xFF2A2A3E) : Colors.grey[50],
               ),
               child: Center(
                 child: Column(
                   children: [
-                    Icon(Icons.history, size: 64, color: Colors.grey[400]),
+                    Icon(Icons.history,
+                        size: 64,
+                        color: isDark ? Colors.grey[600] : Colors.grey[400]),
                     const SizedBox(height: 16),
                     Text(
                       'منتج جديد',
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.grey[700]),
+                          color: isDark ? Colors.grey[400] : Colors.grey[700]),
                     ),
                     const SizedBox(height: 8),
                     Text(

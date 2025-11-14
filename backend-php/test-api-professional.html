@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Sales Management System API - Test Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            color: #FF6B35;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.2em;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #FF6B35;
+        }
+        
+        .endpoint {
+            background: #f8f9fa;
+            border-left: 4px solid #FF6B35;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        
+        .endpoint .method {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-right: 10px;
+            color: white;
+        }
+        
+        .method.get { background: #28a745; }
+        .method.post { background: #007bff; }
+        .method.put { background: #ffc107; color: #333; }
+        .method.delete { background: #dc3545; }
+        
+        .endpoint .path {
+            font-family: 'Courier New', monospace;
+            color: #495057;
+        }
+        
+        .endpoint .desc {
+            color: #6c757d;
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+        
+        .test-button {
+            background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 10px;
+            box-shadow: 0 5px 15px rgba(255,107,53,0.3);
+            transition: all 0.3s;
+        }
+        
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255,107,53,0.4);
+        }
+        
+        .result {
+            background: #1e1e1e;
+            color: #0f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .result.show {
+            display: block;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-box .value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        
+        .stat-box .label {
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Sales Management System API</h1>
+            <p>Professional REST API v2.0 - Powered by 9SOFT</p>
+            <p style="color: #FF6B35; font-weight: bold;">حلول برمجية مبتكرة | Innovative Software Solutions</p>
+        </div>
+        
+        <div class="card">
+            <h2>🏥 Health Check</h2>
+            <button class="test-button" onclick="testHealth()">Test Health Endpoint</button>
+            <div id="health-result" class="result"></div>
+        </div>
+        
+        <div class="card">
+            <h2>📡 API Information</h2>
+            <button class="test-button" onclick="testAPIInfo()">Get API Info</button>
+            <div id="api-result" class="result"></div>
+        </div>
+        
+        <div class="card">
+            <h2>🔐 Authentication Endpoints</h2>
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/auth/login</span>
+                <div class="desc">تسجيل الدخول | User Login</div>
+            </div>
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/auth/register</span>
+                <div class="desc">تسجيل مستخدم جديد | Register New User</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>👥 Customers Management</h2>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/customers</span>
+                <div class="desc">Get all customers</div>
+            </div>
+            <button class="test-button" onclick="testCustomers()">Test Customers</button>
+            <div id="customers-result" class="result"></div>
+        </div>
+        
+        <div class="card">
+            <h2>📦 Products Management</h2>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/products</span>
+                <div class="desc">Get all products</div>
+            </div>
+            <button class="test-button" onclick="testProducts()">Test Products</button>
+            <div id="products-result" class="result"></div>
+        </div>
+        
+        <div class="card">
+            <h2>📊 Reports</h2>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/reports/daily-sales</span>
+                <div class="desc">تقرير المبيعات اليومية</div>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/reports/inventory</span>
+                <div class="desc">تقرير المخزون</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const baseURL = 'http://localhost/api';
+        
+        async function makeRequest(url) {
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                return { success: true, data, status: response.status };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+        
+        function displayResult(elementId, data) {
+            const element = document.getElementById(elementId);
+            element.textContent = JSON.stringify(data, null, 2);
+            element.classList.add('show');
+        }
+        
+        async function testHealth() {
+            const result = await makeRequest(`${baseURL}/health`);
+            displayResult('health-result', result);
+        }
+        
+        async function testAPIInfo() {
+            const result = await makeRequest(baseURL);
+            displayResult('api-result', result);
+        }
+        
+        async function testCustomers() {
+            const result = await makeRequest(`${baseURL}/customers`);
+            displayResult('customers-result', result);
+        }
+        
+        async function testProducts() {
+            const result = await makeRequest(`${baseURL}/products`);
+            displayResult('products-result', result);
+        }
+    </script>
+</body>
+</html>

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../providers/theme_provider.dart';
 import 'dashboard_screen.dart';
-import 'products_screen.dart';
 import 'sales_menu_screen.dart';
 import 'customers_screen.dart';
 import 'reports_screen.dart';
@@ -26,14 +26,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Widget> _screens = [
     const DashboardScreen(),
+    const InventoryMenuScreen(),
     const SalesMenuScreen(),
     const PurchasesScreen(),
-    const ProductsScreen(),
     const CustomersScreen(),
     const CashScreen(),
     const InstallmentsScreen(),
     const ReportsScreen(),
-    const InventoryMenuScreen(),
     const SettingsScreen(),
     const BackupScreen(),
     const AboutScreen(),
@@ -41,15 +40,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<NavigationItem> _navItems = [
     NavigationItem(icon: Icons.dashboard_rounded, label: 'لوحة التحكم'),
+    NavigationItem(icon: Icons.warehouse_rounded, label: 'المخزون'),
     NavigationItem(icon: Icons.shopping_cart_rounded, label: 'البيع'),
     NavigationItem(icon: Icons.shopping_bag_rounded, label: 'المشتريات'),
-    NavigationItem(icon: Icons.inventory_2_rounded, label: 'المنتجات'),
     NavigationItem(icon: Icons.person_add_rounded, label: 'إضافة حساب'),
     NavigationItem(
         icon: Icons.account_balance_rounded, label: 'النقد والحسابات'),
     NavigationItem(icon: Icons.credit_card_rounded, label: 'نظام التقسيط'),
     NavigationItem(icon: Icons.analytics_rounded, label: 'التقارير'),
-    NavigationItem(icon: Icons.warehouse_rounded, label: 'المخزون'),
     NavigationItem(icon: Icons.settings_rounded, label: 'الإعدادات'),
     NavigationItem(icon: Icons.backup_rounded, label: 'النسخ الاحتياطي'),
     NavigationItem(icon: Icons.info_rounded, label: 'حول'),
@@ -93,23 +91,29 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       children: [
                         Container(
-                          width: 120,
-                          height: 120,
+                          width: 140,
+                          height: 140,
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(25),
+                            gradient: RadialGradient(
+                              colors: [
+                                const Color(0xFFFFB380).withOpacity(0.3),
+                                const Color(0xFFFF6B35).withOpacity(0.1),
+                              ],
+                            ),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFFE57330).withOpacity(0.3),
-                                blurRadius: 15,
-                                offset: const Offset(0, 8),
+                                color: const Color(0xFFFF6B35).withOpacity(0.4),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
                               ),
                             ],
                           ),
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: Image.asset(
-                              'assets/images/app_icon.png',
-                              fit: BoxFit.cover,
+                            borderRadius: BorderRadius.circular(25),
+                            child: SvgPicture.asset(
+                              'assets/images/9soft_logo.svg',
+                              fit: BoxFit.contain,
                             ),
                           ),
                         ),
@@ -207,23 +211,44 @@ class _HomeScreenState extends State<HomeScreen> {
                                   child: Row(
                                     children: [
                                       Container(
-                                        padding: const EdgeInsets.all(10),
+                                        padding: const EdgeInsets.all(12),
                                         decoration: BoxDecoration(
                                           gradient: isSelected
                                               ? const LinearGradient(
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
                                                   colors: [
                                                     Color(0xFF6366F1),
                                                     Color(0xFF8B5CF6)
                                                   ],
                                                 )
-                                              : null,
-                                          color: isSelected
-                                              ? null
-                                              : (isDark
-                                                  ? const Color(0xFF334155)
-                                                  : const Color(0xFFF1F5F9)),
+                                              : LinearGradient(
+                                                  colors: [
+                                                    isDark
+                                                        ? const Color(
+                                                            0xFF334155)
+                                                        : const Color(
+                                                            0xFFF1F5F9),
+                                                    isDark
+                                                        ? const Color(
+                                                            0xFF334155)
+                                                        : const Color(
+                                                            0xFFF1F5F9),
+                                                  ],
+                                                ),
                                           borderRadius:
-                                              BorderRadius.circular(12),
+                                              BorderRadius.circular(14),
+                                          boxShadow: isSelected
+                                              ? [
+                                                  BoxShadow(
+                                                    color:
+                                                        const Color(0xFF6366F1)
+                                                            .withOpacity(0.4),
+                                                    blurRadius: 12,
+                                                    offset: const Offset(0, 4),
+                                                  ),
+                                                ]
+                                              : [],
                                         ),
                                         child: Icon(
                                           _navItems[index].icon,
@@ -232,7 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               : (isDark
                                                   ? const Color(0xFF94A3B8)
                                                   : const Color(0xFF64748B)),
-                                          size: 22,
+                                          size: 26,
                                         ),
                                       ),
                                       const SizedBox(width: 16),
@@ -259,20 +284,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                               ),
                                         ),
                                       ),
-                                      if (isSelected)
-                                        Container(
-                                          width: 6,
-                                          height: 6,
-                                          decoration: const BoxDecoration(
-                                            gradient: LinearGradient(
-                                              colors: [
-                                                Color(0xFF6366F1),
-                                                Color(0xFF8B5CF6)
-                                              ],
-                                            ),
-                                            shape: BoxShape.circle,
-                                          ),
-                                        ),
                                     ],
                                   ),
                                 ),

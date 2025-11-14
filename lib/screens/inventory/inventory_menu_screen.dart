@@ -13,6 +13,7 @@ import 'material_import_screen.dart';
 import 'inventory_reports_screen.dart';
 import 'barcode_print_screen.dart';
 import 'multi_barcode_print_screen.dart';
+import '../products_screen.dart';
 
 class InventoryMenuScreen extends StatelessWidget {
   const InventoryMenuScreen({Key? key}) : super(key: key);
@@ -181,11 +182,11 @@ class InventoryMenuScreen extends StatelessWidget {
                     topRight: Radius.circular(45),
                   ),
                   child: GridView.count(
-                    padding: const EdgeInsets.all(28),
-                    crossAxisCount: 4,
-                    crossAxisSpacing: 24,
-                    mainAxisSpacing: 24,
-                    childAspectRatio: 1.0,
+                    padding: const EdgeInsets.all(20),
+                    crossAxisCount: 6,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 1.3,
                     physics: const BouncingScrollPhysics(),
                     children: _buildMenuItems(context, isDark),
                   ),
@@ -201,8 +202,14 @@ class InventoryMenuScreen extends StatelessWidget {
   List<Widget> _buildMenuItems(BuildContext context, bool isDark) {
     final menuItems = [
       _MenuItem(
-        title: 'عرض المواد',
+        title: 'المنتجات',
         icon: Icons.inventory_2_rounded,
+        gradient: const [Color(0xFF1FA2FF), Color(0xFF12D8FA)],
+        screen: const ProductsScreen(),
+      ),
+      _MenuItem(
+        title: 'عرض المواد',
+        icon: Icons.view_list_rounded,
         gradient: const [Color(0xFF667EEA), Color(0xFF764BA2)],
         screen: const InventoryReportsScreen(),
       ),
@@ -342,7 +349,7 @@ class InventoryMenuScreen extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => item.screen),
                     ),
                     child: Container(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
@@ -355,7 +362,7 @@ class InventoryMenuScreen extends StatelessWidget {
                         children: [
                           // Icon container with enhanced glow effect
                           Container(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.25),
                               shape: BoxShape.circle,
@@ -369,7 +376,7 @@ class InventoryMenuScreen extends StatelessWidget {
                             ),
                             child: Icon(
                               item.icon,
-                              size: 42,
+                              size: 34,
                               color: Colors.white,
                               shadows: [
                                 Shadow(
@@ -380,13 +387,13 @@ class InventoryMenuScreen extends StatelessWidget {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 10),
                           // Text with shadow for better readability
                           Text(
                             item.title,
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontSize: 15,
+                              fontSize: 13,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
                               height: 1.3,

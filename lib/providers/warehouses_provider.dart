@@ -4,7 +4,16 @@ import 'dart:convert';
 import '../models/warehouse.dart';
 
 class WarehousesProvider with ChangeNotifier {
-  List<Warehouse> _warehouses = [];
+  List<Warehouse> _warehouses = [
+    Warehouse(
+      id: 1,
+      name: 'المحل',
+      location: 'بغداد - شارع الصناعة - مجمع التميمي',
+      description: 'المخزن الرئيسي',
+      manager: 'المدير',
+      isActive: true,
+    ),
+  ];
   bool _isLoading = false;
   String? _error;
 
@@ -38,7 +47,30 @@ class WarehousesProvider with ChangeNotifier {
         } else {
           throw Exception('صيغة غير متوقعة للبيانات');
         }
-        _warehouses = data.map((json) => Warehouse.fromMap(json)).toList();
+
+        final apiWarehouses =
+            data.map((json) => Warehouse.fromMap(json)).toList();
+
+        // دمج المخزن الافتراضي مع البيانات من API
+        final defaultWarehouse = Warehouse(
+          id: 1,
+          name: 'المحل',
+          location: 'بغداد - شارع الصناعة - مجمع التميمي',
+          description: 'المخزن الرئيسي',
+          manager: 'المدير',
+          isActive: true,
+        );
+
+        // التحقق من عدم وجود تكرار
+        final hasDefaultInApi =
+            apiWarehouses.any((w) => w.id == 1 || w.name == 'المحل');
+
+        if (hasDefaultInApi) {
+          _warehouses = apiWarehouses;
+        } else {
+          _warehouses = [defaultWarehouse, ...apiWarehouses];
+        }
+
         debugPrint('✅ تم تحميل ${_warehouses.length} مخزن من API');
         _error = null;
       } else {
@@ -48,6 +80,8 @@ class WarehousesProvider with ChangeNotifier {
     } catch (e) {
       _error = 'خطأ في الاتصال: $e';
       debugPrint('❌ Error loading warehouses: $e');
+      // في حالة فشل الاتصال، نبقي على المخزن الافتراضي
+      debugPrint('ℹ️ استخدام المخزن الافتراضي فقط');
     } finally {
       _isLoading = false;
       notifyListeners();

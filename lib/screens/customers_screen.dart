@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 import '../providers/customers_provider.dart';
 import '../models/customer.dart';
+import 'account_masters_screen.dart';
 
 class CustomersScreen extends StatefulWidget {
   const CustomersScreen({super.key});
@@ -35,6 +38,10 @@ class _CustomersScreenState extends State<CustomersScreen> {
   String _distributorLink = 'لا يوجد'; // ربط بموزع
   bool _isSpecificDate = false; // حسابات تاريخ محددة
   bool _isAccountFrozen = false; // تجميد الحساب
+
+  // متغيرات الصور
+  File? _accountImage; // صورة الحساب
+  List<File> _documentImages = []; // المستمسكات
 
   // قوائم ديناميكية
   List<String> _distributorsList = ['لا يوجد', 'موزع 1', 'موزع 2', 'موزع 3'];
@@ -96,6 +103,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
       _distributorLink = 'لا يوجد';
       _isSpecificDate = false;
       _isAccountFrozen = false;
+      _accountImage = null;
+      _documentImages.clear();
     });
   }
 
@@ -596,6 +605,420 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
+  // دالة اختيار صورة الحساب
+  Future<void> _pickAccountImage() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      allowMultiple: false,
+    );
+
+    if (result != null && result.files.single.path != null) {
+      setState(() {
+        _accountImage = File(result.files.single.path!);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ تم اختيار صورة الحساب'),
+          backgroundColor: Color(0xFF10B981),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  // دالة اختيار المستمسكات (متعددة)
+  Future<void> _pickDocumentImages() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      allowMultiple: true,
+    );
+
+    if (result != null) {
+      setState(() {
+        _documentImages.addAll(
+          result.files
+              .where((file) => file.path != null)
+              .map((file) => File(file.path!))
+              .toList(),
+        );
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('✅ تم إضافة ${result.files.length} مستمسك'),
+          backgroundColor: const Color(0xFF10B981),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  // حذف مستمسك معين
+  void _removeDocumentImage(int index) {
+    setState(() {
+      _documentImages.removeAt(index);
+    });
+  }
+
+  // دالة عرض نافذة البيانات الإضافية
+  void _showAdditionalDataDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Container(
+                width: 700,
+                constraints: const BoxConstraints(maxHeight: 700),
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Header
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.image_outlined,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'البيانات الإضافية',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                'رفع صورة الحساب والمستمسكات',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close_rounded),
+                          onPressed: () => Navigator.pop(context),
+                          tooltip: 'إغلاق',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    const Divider(),
+                    const SizedBox(height: 24),
+
+                    // المحتوى القابل للتمرير
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // قسم صورة الحساب
+                            _buildImageSection(
+                              title: '📷 صورة الحساب',
+                              subtitle: 'اختر صورة شخصية أو شعار للحساب',
+                              image: _accountImage,
+                              onPickImage: () async {
+                                await _pickAccountImage();
+                                setDialogState(() {});
+                              },
+                              onRemoveImage: () {
+                                setDialogState(() {
+                                  _accountImage = null;
+                                });
+                              },
+                              isDark: isDark,
+                            ),
+
+                            const SizedBox(height: 32),
+
+                            // قسم المستمسكات
+                            Text(
+                              '📄 المستمسكات',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'أضف صور الهوية، جواز السفر، أو أي مستندات أخرى',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+
+                            // عرض المستمسكات المحددة
+                            if (_documentImages.isNotEmpty)
+                              Wrap(
+                                spacing: 12,
+                                runSpacing: 12,
+                                children: List.generate(
+                                  _documentImages.length,
+                                  (index) => _buildDocumentThumbnail(
+                                    _documentImages[index],
+                                    index,
+                                    (idx) {
+                                      _removeDocumentImage(idx);
+                                      setDialogState(() {});
+                                    },
+                                    isDark,
+                                  ),
+                                ),
+                              ),
+                            const SizedBox(height: 16),
+
+                            // زر إضافة مستمسكات
+                            OutlinedButton.icon(
+                              onPressed: () async {
+                                await _pickDocumentImages();
+                                setDialogState(() {});
+                              },
+                              icon: const Icon(
+                                  Icons.add_photo_alternate_outlined),
+                              label: const Text('إضافة مستمسكات'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFF8B5CF6),
+                                side: const BorderSide(
+                                  color: Color(0xFF8B5CF6),
+                                  width: 2,
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+                    const Divider(),
+                    const SizedBox(height: 16),
+
+                    // أزرار الإجراءات
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                          ),
+                          child: const Text(
+                            'إغلاق',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('✅ تم حفظ البيانات الإضافية'),
+                                backgroundColor: Color(0xFF10B981),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.check_circle_outline),
+                          label: const Text('حفظ'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF8B5CF6),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // بناء قسم الصورة
+  Widget _buildImageSection({
+    required String title,
+    required String subtitle,
+    required File? image,
+    required VoidCallback onPickImage,
+    required VoidCallback onRemoveImage,
+    required bool isDark,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.grey[600],
+          ),
+        ),
+        const SizedBox(height: 16),
+        if (image != null)
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.file(
+                  image,
+                  width: 200,
+                  height: 200,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: IconButton(
+                  onPressed: onRemoveImage,
+                  icon: const Icon(Icons.close_rounded),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.all(8),
+                  ),
+                  tooltip: 'حذف الصورة',
+                ),
+              ),
+            ],
+          )
+        else
+          InkWell(
+            onTap: onPickImage,
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                color:
+                    isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: const Color(0xFF8B5CF6).withOpacity(0.3),
+                  width: 2,
+                  style: BorderStyle.solid,
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.add_a_photo_outlined,
+                    size: 48,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'اضغط لاختيار صورة',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  // بناء صورة مصغرة للمستمسك
+  Widget _buildDocumentThumbnail(
+    File image,
+    int index,
+    Function(int) onRemove,
+    bool isDark,
+  ) {
+    return Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.file(
+            image,
+            width: 120,
+            height: 120,
+            fit: BoxFit.cover,
+          ),
+        ),
+        Positioned(
+          top: 4,
+          right: 4,
+          child: IconButton(
+            onPressed: () => onRemove(index),
+            icon: const Icon(Icons.close_rounded, size: 18),
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.all(6),
+              minimumSize: const Size(28, 28),
+            ),
+            tooltip: 'حذف',
+          ),
+        ),
+      ],
+    );
+  }
+
   void _deleteCustomer(int id) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -754,17 +1177,25 @@ class _CustomersScreenState extends State<CustomersScreen> {
                         runSpacing: 10,
                         children: [
                           _buildQuickActionButton(
-                            label: 'أسباب النماذج',
-                            icon: Icons.description_outlined,
+                            label: 'إضافة استاذ',
+                            icon: Icons.person_add_alt_rounded,
                             color: const Color(0xFF3B82F6),
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const AccountMastersScreen(),
+                                ),
+                              );
+                            },
                             isDark: isDark,
                           ),
                           _buildQuickActionButton(
                             label: 'بيانات إضافية',
                             icon: Icons.add_circle_outline,
                             color: const Color(0xFF8B5CF6),
-                            onPressed: () {},
+                            onPressed: _showAdditionalDataDialog,
                             isDark: isDark,
                           ),
                           if (_isEditing)

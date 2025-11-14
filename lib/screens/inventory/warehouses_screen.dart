@@ -570,6 +570,42 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
                             return;
                           }
 
+                          // Show loading
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) => Center(
+                              child: Container(
+                                padding: const EdgeInsets.all(32),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? const Color(0xFF2A2A2A)
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          Color(0xFF56AB2F)),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'جاري الحفظ...',
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.white
+                                            : Colors.black87,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+
                           final newWarehouse = Warehouse(
                             id: warehouse?.id,
                             name: nameController.text,
@@ -583,15 +619,22 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
                           );
 
                           bool success;
-                          if (warehouse == null) {
-                            success = await context
-                                .read<WarehousesProvider>()
-                                .addWarehouse(newWarehouse);
-                          } else {
-                            success = await context
-                                .read<WarehousesProvider>()
-                                .updateWarehouse(newWarehouse);
+                          try {
+                            if (warehouse == null) {
+                              success = await context
+                                  .read<WarehousesProvider>()
+                                  .addWarehouse(newWarehouse);
+                            } else {
+                              success = await context
+                                  .read<WarehousesProvider>()
+                                  .updateWarehouse(newWarehouse);
+                            }
+                          } catch (e) {
+                            success = false;
                           }
+
+                          // Close loading dialog
+                          if (mounted) Navigator.pop(context);
 
                           if (success && mounted) {
                             Navigator.pop(context);
@@ -601,6 +644,15 @@ class _WarehousesScreenState extends State<WarehousesScreen> {
                                     ? 'تم إضافة المخزن بنجاح ✓'
                                     : 'تم تحديث المخزن بنجاح ✓'),
                                 backgroundColor: const Color(0xFF56AB2F),
+                              ),
+                            );
+                          } else if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    '⚠️ فشل الحفظ - تأكد من تشغيل خادم PHP'),
+                                backgroundColor: Color(0xFFEB3349),
+                                duration: Duration(seconds: 4),
                               ),
                             );
                           }

@@ -267,9 +267,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     crossAxisCount: 4,
-                    crossAxisSpacing: 20,
-                    mainAxisSpacing: 20,
-                    childAspectRatio: 1.4,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 1.8,
                     children: [
                       _buildStatCard(
                         title: 'مبيعات اليوم',
@@ -286,13 +286,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         trend: '+8%',
                       ),
                       _buildStatCard(
-                        title: 'إجمالي المنتجات',
+                        title: 'إجمالي قيمة المخزن',
                         value: '${stats['productsCount'] ?? 0}',
                         icon: Icons.inventory_2_rounded,
                         color: ThemeProvider.accentColor,
                       ),
                       _buildStatCard(
-                        title: 'إجمالي العملاء',
+                        title: 'أرصدة العملاء',
                         value: '${stats['customersCount'] ?? 0}',
                         icon: Icons.people_rounded,
                         color: ThemeProvider.secondaryColor,
@@ -395,7 +395,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             splashColor: color.withOpacity(0.1),
             highlightColor: color.withOpacity(0.05),
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -406,7 +406,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Hero(
                         tag: 'icon_$title',
                         child: Container(
-                          padding: const EdgeInsets.all(14),
+                          padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
@@ -417,7 +417,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
-                            borderRadius: BorderRadius.circular(18),
+                            borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
                                 color: color.withOpacity(0.5),
@@ -432,7 +432,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ],
                           ),
-                          child: Icon(icon, color: Colors.white, size: 26),
+                          child: Icon(icon, color: Colors.white, size: 24),
                         ),
                       ),
                       if (trend != null)
@@ -590,6 +590,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               height: 250,
               child: LineChart(
                 LineChartData(
+                  minX: 0,
+                  maxX: 6,
+                  minY: 0,
+                  maxY: 7000,
                   gridData: FlGridData(
                     show: true,
                     drawVerticalLine: false,
@@ -612,6 +616,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
+                        reservedSize: 30,
+                        interval: 1,
                         getTitlesWidget: (value, meta) {
                           const days = [
                             'السبت',
@@ -622,17 +628,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             'الخميس',
                             'الجمعة'
                           ];
-                          if (value.toInt() >= 0 &&
-                              value.toInt() < days.length) {
+                          final index = value.toInt();
+                          if (index >= 0 && index < days.length) {
                             return Padding(
                               padding: const EdgeInsets.only(top: 8.0),
                               child: Text(
-                                days[value.toInt()],
-                                style: const TextStyle(fontSize: 12),
+                                days[index],
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
                             );
                           }
-                          return const Text('');
+                          return const SizedBox.shrink();
                         },
                       ),
                     ),
